@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "b46c3809adcfa41e7cdba35f71b195da471e399f16f59826d219dcd2a3ea0cb6"
+      "sha256": "eb99aa121b07bdcfb7c57fff52a41087249b0c8f7087a1fa8d835083c993f259"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
@@ -178,7 +178,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
-      "sha256": "5726dc53a8102cbb0f1c561d83153a6c03215d134f176e57ebfc486bc80ccd71"
+      "sha256": "7eb5b9a9277c7ab9f8a002b5c3b9f93dcbf43571270f51eb3ba26397467b031b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",

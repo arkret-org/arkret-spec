@@ -50,7 +50,9 @@
     },
     "size_bytes": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 16,
+      "maximum": 8796109799424,
+      "description": "Exact stored ciphertext octet length B, including all 16-byte segment tags. Plaintext length and segment count are uniquely derived with segment_bytes, never separate wire members; see call-state.md section 5.3."
     },
     "duration_ms": {
       "type": "integer",
@@ -144,26 +146,21 @@
       "required": [
         "encryption_algorithm",
         "exporter_label",
-        "context"
+        "context",
+        "key_ref",
+        "nonce_prefix",
+        "segment_bytes"
       ],
       "properties": {
         "encryption_algorithm": {
           "type": "string",
-          "enum": [
-            "mls_exporter_aead_xchacha20poly1305",
-            "mls_exporter_aead_aes_256_gcm",
-            "mls_exporter_aead_xchacha20poly1305_stream",
-            "mls_exporter_aead_aes_256_gcm_stream"
-          ],
+          "const": "mls_exporter_aead_xchacha20poly1305_stream",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
             "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
             "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
             "values": [
-              "mls_exporter_aead_xchacha20poly1305",
-              "mls_exporter_aead_aes_256_gcm",
-              "mls_exporter_aead_xchacha20poly1305_stream",
-              "mls_exporter_aead_aes_256_gcm_stream"
+              "mls_exporter_aead_xchacha20poly1305_stream"
             ]
           }
         },
@@ -210,9 +207,21 @@
             }
           },
           "additionalProperties": false
+        },
+        "key_ref": {
+          "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+        },
+        "nonce_prefix": {
+          "$ref": "./blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/nonce_prefix",
+          "pattern": "^[A-Za-z0-9_-]{25}[AQgw]$",
+          "description": "Canonical base64url-no-pad of exactly 19 CSPRNG octets, frozen with one encryption attempt. Reuse only for byte-identical ciphertext replay."
+        },
+        "segment_bytes": {
+          "$ref": "./blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/segment_bytes"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Single RTC recording STREAM codec. key_ref is byte-equivalent to the original accepted recording Start capture_metadata.key_ref. Source scope/genesis/epoch are verified before the registered RTC MLS-Exporter; this is not AttachmentContentKeyContext. Nonce, online AAD and ciphertext-length inversion are normative in call-state.md section 5.3."
     },
     "call_recording_retention": {
       "type": "object",

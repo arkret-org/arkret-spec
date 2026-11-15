@@ -28,7 +28,8 @@
         "ak.realm_actor_recovery_acceptance_signature.v1",
         "ak.realm_actor_content_backup_admission_signature.v1",
         "ak.realm_actor_content_backup_offer_signature.v1",
-        "ak.realm_actor_content_backup_confirmation_signature.v1"
+        "ak.realm_actor_content_backup_confirmation_signature.v1",
+        "ak.realm_owner_transfer_acceptance_signature.v1"
       ],
       "x-arkret-value-ownership": {
         "class": "namespaced_symbol",
@@ -48,7 +49,8 @@
           "ak.realm_actor_recovery_acceptance_signature.v1",
           "ak.realm_actor_content_backup_admission_signature.v1",
           "ak.realm_actor_content_backup_offer_signature.v1",
-          "ak.realm_actor_content_backup_confirmation_signature.v1"
+          "ak.realm_actor_content_backup_confirmation_signature.v1",
+          "ak.realm_owner_transfer_acceptance_signature.v1"
         ]
       }
     },
@@ -383,6 +385,28 @@
                 "owner": "detached-object-signature.schema.json#/$defs/realm_actor_content_backup_confirmation_signature/allOf/1/properties/context",
                 "values": [
                   "ak.realm_actor_content_backup_confirmation_signature.v1"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "realm_owner_transfer_acceptance_signature": {
+      "allOf": [
+        {
+          "$ref": "#"
+        },
+        {
+          "properties": {
+            "context": {
+              "const": "ak.realm_owner_transfer_acceptance_signature.v1",
+              "x-arkret-value-ownership": {
+                "class": "namespaced_symbol",
+                "authority": "detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature/allOf/1/properties/context",
+                "owner": "detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature/allOf/1/properties/context",
+                "values": [
+                  "ak.realm_owner_transfer_acceptance_signature.v1"
                 ]
               }
             }

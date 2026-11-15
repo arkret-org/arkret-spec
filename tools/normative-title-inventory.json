@@ -273,6 +273,11 @@
     },
     {
       "page": "crypto-media/call-state.md",
+      "heading": "5.3 录制 Blob 的单一 STREAM 编码（normative）",
+      "fragment": "53-录制-blob-的单一-stream-编码normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
       "heading": "6. P2P→SFU 升级（normative）",
       "fragment": "6-p2psfu-升级normative"
     },

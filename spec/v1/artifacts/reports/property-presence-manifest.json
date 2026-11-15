@@ -13,19 +13,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10882,
+    "total_properties": 10915,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2522,
+      "optional": 2529,
       "optional_defaulted": 46,
-      "required": 7760,
-      "required_nullable": 328,
-      "tristate": 226
+      "required": 7780,
+      "required_nullable": 330,
+      "tristate": 230
     },
-    "tristate_occurrences": 226,
-    "tristate_audit_targets": 175,
+    "tristate_occurrences": 230,
+    "tristate_audit_targets": 177,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 163,
+      "absent_null_equivalent": 165,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -107,6 +107,8 @@
     "event-envelope.schema.json/allOf/150/then/properties/scope_ref",
     "event-envelope.schema.json/allOf/157/then/then/properties/payload",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
+    "event-payload.schema.json/$defs/call_recording_start_payload/allOf/0/else/properties/capture_metadata",
+    "event-payload.schema.json/$defs/call_recording_start_payload/allOf/0/then/properties/capture_metadata",
     "event-payload.schema.json/$defs/capability_grant_payload/properties/grant/allOf/0/then/properties/issuer_authority_refs",
     "event-payload.schema.json/$defs/circle_member_state_payload/properties/expected_membership",
     "event-payload.schema.json/$defs/content_block/allOf/2/then/properties/body",
@@ -160,6 +162,8 @@
     "keys-operations.schema.json/$defs/backup_metadata/properties/expires_at",
     "keys-operations.schema.json/$defs/backup_metadata/properties/supersedes_id",
     "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis",
+    "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/1/then/properties/device_keys",
+    "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis",
     "keys-operations.schema.json/$defs/realm_actor_backup_metadata/properties/supersedes_id",
     "management-review-operations.schema.json/$defs/management_review_request_body/allOf/0/then/properties/target",
     "management-review-operations.schema.json/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event",
@@ -823,6 +827,17 @@
     },
     {
       "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/call_recording_start_payload",
+      "instance_path": "/capture_metadata",
+      "occurrences": [
+        "/$defs/call_recording_start_payload/allOf/0/else/properties/capture_metadata",
+        "/$defs/call_recording_start_payload/allOf/0/then/properties/capture_metadata"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "event-payload.schema.json",
       "shape": "/$defs/capability_grant_payload",
       "instance_path": "/grant/issuer_authority_refs",
       "occurrences": [
@@ -1227,9 +1242,20 @@
     {
       "schema_file": "keys-operations.schema.json",
       "shape": "/$defs/peer_keys_query_request_body",
+      "instance_path": "/device_keys",
+      "occurrences": [
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/device_keys"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "/$defs/peer_keys_query_request_body",
       "instance_path": "/relationship_basis",
       "occurrences": [
-        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis"
+        "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis",
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4500,6 +4526,10 @@
         "/$defs/peer_stream_scan_response_body/properties/producer_signer_facts": "required",
         "/$defs/peer_stream_scan_response_body/properties/readable_floor": "optional",
         "/$defs/peer_stream_scan_response_body/properties/truncated": "required",
+        "/$defs/peer_submit_request_body/allOf/1/if/properties/branch": "required",
+        "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission": "required_nullable",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event": "required_nullable",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
@@ -4518,6 +4548,7 @@
         "/$defs/peer_submit_request_body/properties/producer_agent_evidence": "optional",
         "/$defs/peer_submit_request_body/properties/producer_device_evidence": "optional",
         "/$defs/peer_submit_request_body/properties/replications": "optional",
+        "/$defs/peer_submit_request_body/properties/successor_device_evidence": "optional",
         "/$defs/peer_submit_request_body/properties/unit": "optional",
         "/$defs/readable_floor/properties/floor_commit_id": "required",
         "/$defs/readable_floor/properties/floor_reason": "required",
@@ -4605,6 +4636,7 @@
         "/$defs/peer_submit_request_body/properties/mls_group_state_material",
         "/$defs/peer_submit_request_body/properties/mls_submission",
         "/$defs/peer_submit_request_body/properties/replications",
+        "/$defs/peer_submit_request_body/properties/successor_device_evidence",
         "/$defs/peer_submit_request_body/properties/unit",
         "/$defs/realm_authority_handoff_request_body/properties/historical_signer_facts",
         "/$defs/realm_authority_handoff_request_body/properties/management_private_state",
@@ -4856,6 +4888,9 @@
         "/$defs/recording_encryption/properties/context/properties/recording_start_event_id": "required",
         "/$defs/recording_encryption/properties/encryption_algorithm": "required",
         "/$defs/recording_encryption/properties/exporter_label": "required",
+        "/$defs/recording_encryption/properties/key_ref": "required",
+        "/$defs/recording_encryption/properties/nonce_prefix": "required",
+        "/$defs/recording_encryption/properties/segment_bytes": "required",
         "/anyOf/1/properties/retention": "required_nullable",
         "/properties/blob_ref": "required",
         "/properties/call_id": "required",
@@ -6225,12 +6260,16 @@
         "/$defs/current_call_recording_artifact/properties/value/allOf/0/then/properties/details/properties/artifact": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/1/if/properties/status": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/1/then/properties/details": "optional",
+        "/$defs/current_call_recording_artifact/properties/value/allOf/1/then/properties/details/properties/key_ref": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/1/then/properties/details/properties/recording_start_event_id": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/1/then/properties/details/properties/retention": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/2/if/properties/status": "required",
         "/$defs/current_call_recording_artifact/properties/value/allOf/2/then/properties/details": "tristate",
         "/$defs/current_call_recording_artifact/properties/value/properties/details": "required",
         "/$defs/current_call_recording_artifact/properties/value/properties/details/oneOf/0/properties/artifact": "required",
+        "/$defs/current_call_recording_artifact/properties/value/properties/details/oneOf/1/properties/key_ref": "required",
+        "/$defs/current_call_recording_artifact/properties/value/properties/details/oneOf/1/properties/recording_start_event_id": "required",
+        "/$defs/current_call_recording_artifact/properties/value/properties/details/oneOf/1/properties/retention": "required",
         "/$defs/current_call_recording_artifact/properties/value/properties/status": "required",
         "/$defs/current_call_recording_state/properties/revision": "required",
         "/$defs/current_call_recording_state/properties/selector": "required",
@@ -6866,6 +6905,7 @@
         "/$defs/realm_authority_handoff_new_acceptance_signature/allOf/1/properties/context": "optional",
         "/$defs/realm_authority_handoff_old_signature/allOf/1/properties/context": "optional",
         "/$defs/realm_commit_signature/allOf/1/properties/context": "optional",
+        "/$defs/realm_owner_transfer_acceptance_signature/allOf/1/properties/context": "optional",
         "/$defs/realm_snapshot_signature/allOf/1/properties/context": "optional",
         "/properties/context": "required",
         "/properties/created_at": "required",
@@ -8165,9 +8205,14 @@
         "/$defs/call_participant/properties/media/properties/video": "optional",
         "/$defs/call_participant/properties/participant_binding": "optional",
         "/$defs/call_participant/properties/participant_id": "optional",
+        "/$defs/call_recording_start_payload/allOf/0/else/properties/capture_metadata": "tristate",
+        "/$defs/call_recording_start_payload/allOf/0/else/properties/capture_metadata/properties/key_ref": "optional",
+        "/$defs/call_recording_start_payload/allOf/0/if/properties/capture_kind": "required",
+        "/$defs/call_recording_start_payload/allOf/0/then/properties/capture_metadata": "tristate",
         "/$defs/call_recording_start_payload/properties/call_id": "required",
         "/$defs/call_recording_start_payload/properties/capture_kind": "required",
         "/$defs/call_recording_start_payload/properties/capture_metadata": "required",
+        "/$defs/call_recording_start_payload/properties/capture_metadata/properties/key_ref": "optional",
         "/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention": "required",
         "/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention/allOf/1/properties/consent_confirmed": "required",
         "/$defs/call_recording_start_payload/properties/mode": "required",
@@ -8910,6 +8955,12 @@
         "/$defs/realm_organization_payload/properties/statement_id": "required",
         "/$defs/realm_organization_payload/properties/status": "required",
         "/$defs/realm_organization_payload/properties/supersedes_statement_id": "optional",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/actor_id": "required",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/payload_without_successor_acceptance": "required",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/payload_without_successor_acceptance/properties/expected_state_digest": "required",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/payload_without_successor_acceptance/properties/patch": "required",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/payload_without_successor_acceptance/properties/realm_id": "required",
+        "/$defs/realm_owner_transfer_acceptance_transcript/properties/scope_ref": "required",
         "/$defs/realm_owner_transfer_payload/properties/expected_state_digest": "required",
         "/$defs/realm_owner_transfer_payload/properties/patch": "required",
         "/$defs/realm_owner_transfer_payload/properties/patch/properties/controller_actor_id": "required",
@@ -10450,6 +10501,7 @@
         "/$defs/device_projection_attestation_core/properties/device_status": "required",
         "/$defs/device_projection_attestation_core/properties/expires_at": "required",
         "/$defs/device_projection_attestation_core/properties/hpke_key": "required",
+        "/$defs/device_projection_attestation_core/properties/owner_transfer_acceptance_intent_digest": "optional",
         "/$defs/failure/properties/account_id": "optional",
         "/$defs/failure/properties/algorithm": "optional",
         "/$defs/failure/properties/device_id": "optional",
@@ -10566,7 +10618,15 @@
         "/$defs/peer_keys_query_request_body/allOf/0/then/properties/purpose": "optional",
         "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis": "tristate",
         "/$defs/peer_keys_query_request_body/allOf/0/then/properties/relationship_basis/properties/kind": "optional",
+        "/$defs/peer_keys_query_request_body/allOf/1/if/properties/purpose": "required",
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/device_keys": "tristate",
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/device_keys/items/properties/device_ids": "optional",
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis": "tristate",
+        "/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis/properties/kind": "required",
         "/$defs/peer_keys_query_request_body/properties/device_keys": "required",
+        "/$defs/peer_keys_query_request_body/properties/owner_transfer_acceptance": "optional",
+        "/$defs/peer_keys_query_request_body/properties/owner_transfer_acceptance/properties/acceptance": "required",
+        "/$defs/peer_keys_query_request_body/properties/owner_transfer_acceptance/properties/intent": "required",
         "/$defs/peer_keys_query_request_body/properties/purpose": "required",
         "/$defs/peer_keys_query_request_body/properties/relationship_basis": "required",
         "/$defs/peer_keys_query_request_body/properties/request_id": "required",
@@ -10814,6 +10874,7 @@
         "/$defs/verified_device_projection/properties/hpke_key": "required"
       },
       "conditionally_required": [
+        "/$defs/peer_keys_query_request_body/properties/owner_transfer_acceptance",
         "/$defs/peer_keys_query_request_body/properties/requester_account_id",
         "/$defs/peer_keys_query_request_body/properties/requester_actor_id",
         "/$defs/peer_keys_query_response_body/properties/requester_account_id",

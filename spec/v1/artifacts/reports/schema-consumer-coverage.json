@@ -2055,6 +2055,7 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.backup_series_erase_confirmation.v1",
+          "ak.schema.event_payload.v1",
           "ak.schema.keys_operations.v1",
           "ak.schema.mls_welcome_delivery.v1",
           "ak.schema.realm_actor_create.v1",

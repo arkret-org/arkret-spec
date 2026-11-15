@@ -644,5 +644,17 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             source["eligible_producer_sources"].append("realm_device")
         self.assert_red(mutate, "live Device forward source must retain")
 
+
+    def test_successor_evidence_cannot_be_untyped_or_become_optional(self):
+        self.assert_red(lambda docs:self.defs(docs)["peer_submit_request_body"]["properties"]["successor_device_evidence"].__setitem__("$ref","./common-ids.schema.json#/$defs/non_empty_string"),marker="closed independent")
+        self.assert_red(lambda docs:self.defs(docs)["peer_submit_request_body"]["allOf"].pop(),marker="only owner transfer")
+
+    def test_successor_evidence_cannot_expand_to_another_kind(self):
+        def mutate(docs):
+            peer=self.defs(docs)["peer_submit_request_body"]
+            peer["allOf"][-1]["if"]["properties"]["event_submission"]["properties"]["event"]["properties"]["kind"]["const"]="ak.call.state"
+        self.assert_red(mutate,marker="only owner-transfer")
+
+
 if __name__ == "__main__":
     unittest.main()

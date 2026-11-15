@@ -1875,11 +1875,14 @@
         },
         "capture_metadata": {
           "type": "object",
-          "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result current state.",
+          "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result current state. Recording starts freeze the exact current accepted winning MLS state in key_ref; transcript starts retain their existing shape and do not carry this recording-only member.",
           "required": [
             "retention"
           ],
           "properties": {
+            "key_ref": {
+              "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+            },
             "retention": {
               "allOf": [
                 {
@@ -1909,7 +1912,47 @@
           "additionalProperties": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "capture_kind": {
+                "const": "recording",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_kind",
+                  "owner": "event-payload.schema.json#/$defs/call_recording_start_payload/allOf/0/if/properties/capture_kind",
+                  "values": [
+                    "recording"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "capture_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "capture_metadata": {
+                "required": [
+                  "key_ref"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "capture_metadata": {
+                "properties": {
+                  "key_ref": false
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "call_create_payload": {
       "type": "object",
@@ -4206,7 +4249,7 @@
               "$ref": "#/$defs/applet_managed_device_scopes"
             }
           ],
-          "description": "realm_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority."
+          "description": "realm_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority. For native Human Account Device owner-transfer acceptance, omitted scopes retain the original no-explicit-ceiling semantics; an explicit string list MUST literally contain ak.realm.owner.transfer. Empty, unknown, wildcard or explicit null never authorizes this purpose. This checks Device-key use only, not prospective root authority; see capabilities.md section 3.2."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -9047,18 +9090,57 @@
           "properties": {
             "controller_actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/actor_id",
-              "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Station sidecar is insufficient."
+              "description": "Exact full successor ActorId. Actor syntax alone grants no root eligibility: ordinary Collaboration roots require the native accepted Human Account Device source defined in capabilities.md section 3.2. Unsupported Agent, Service and RealmActor targets fail closed; Applet is not an Actor."
             }
           },
           "additionalProperties": false,
           "description": "The authority-root member selected by the author. The reducer also increments controller_epoch from the CAS-frozen pre-state; every other member is preserved verbatim."
         },
         "successor_acceptance": {
-          "$ref": "#/$defs/signature_material",
-          "description": "Independent acceptance proof from the successor. The current controller proof, this proof, the payload and expected_state_digest MUST all enter the same signing transcript. The successor controller_epoch is uniquely computed from the expected pre-state, so neither party signs a producer-supplied counter."
+          "$ref": "./detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature",
+          "description": "Independent successor acceptance over realm_owner_transfer_acceptance_transcript, never over itself or the final EventId. The current controller then signs the complete Event including this carrier. The receiver independently resolves the patch-selected successor current accepted Device key and limited key-purpose ceiling; outer author Device evidence is insufficient."
         }
       },
       "additionalProperties": false
+    },
+    "realm_owner_transfer_acceptance_transcript": {
+      "type": "object",
+      "required": [
+        "scope_ref",
+        "actor_id",
+        "payload_without_successor_acceptance"
+      ],
+      "properties": {
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/properties/scope_ref"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "payload_without_successor_acceptance": {
+          "type": "object",
+          "required": [
+            "realm_id",
+            "expected_state_digest",
+            "patch"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "#/$defs/realm_owner_transfer_payload/properties/realm_id"
+            },
+            "expected_state_digest": {
+              "$ref": "#/$defs/realm_owner_transfer_payload/properties/expected_state_digest"
+            },
+            "patch": {
+              "$ref": "#/$defs/realm_owner_transfer_payload/properties/patch"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Receiver-derived finite intent for the owner-transfer context. Copy the enclosing scope_ref and full actor_id and exactly the three payload members shown; exclude successor_acceptance, producer_proof and EventId. The fixed context uniquely selects ak.realm.owner.transfer. Scope is the target ordinary Collaboration Realm, checked against payload.realm_id and the exact current root.",
+      "x-arkret-signature-domain": "ak.realm_owner_transfer_acceptance_signature.v1"
     },
     "realm_policy_bundle_payload": {
       "type": "object",

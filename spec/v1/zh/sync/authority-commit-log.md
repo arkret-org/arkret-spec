@@ -381,6 +381,7 @@ state_digest绑定完整冻结配置／review ledger、原intent／候选、来�
 的canonical私有导出；双方以实际完整导入／重新导出比较，缺项／未知保持不可激活，不只比较manifest。
 同一冻结cut还必须完整纳入[原生内容根保管](../crypto-media/content-history.md#324-完整保管管理转交与治理交接)的
 RealmActor root namespace：全部首次PUT（含无业务Event、CAS loser及丢ACK）、原签密文／原准入来源、recipient／scope-series原件与指针、coverage／充分替代义务、challenge／nonce／去重／固定结果／未决意图及原archive_revision。此全集使用同一management_private_state.state_digest绑定并实际完整导入／重新导出比较，缺项或未知域不得签acceptance或激活；不能仅从业务引用、当前series或成员可读历史重建。manager的archive私钥、秘密交接challenge与成员private MLS state不进入Station私态导出。
+同一 `management_private_state` opaque operational export MUST 包含本 Realm 每条已 accepted `ak.realm.owner.transfer` 的实际 successor W1 完整 evidence 及其 exact Event／RealmCommit 关联；从 W1 完整原像重算并核对本次 wrapper ref，B proof／intent 则从 exact 原 Event 重建核验，不要求再存冗余镜像。该有限稳定投影属于同一个 state_digest 全集，不能误放入只覆盖实际作者 A 的 historical_signer_facts，也不能仅按 realm_control 的收集范围漏掉它；不要求导出／比较数据库全行、本地 PK 或本地接收元数据。完整导出／导入／重新导出比较必须拒绝缺项、多项、冲突或来源不明。目标先经 Full 原件装入 Event 时，仅能在 exact Event／Commit 相同时填原 null evidence，或对完全相等 W1 作 no-op；非空不同必须失败关闭，不能因原件已存在而忽略证据，也不得覆盖为后来的 W2。缺集不得签 handoff acceptance／激活；备份恢复遵守同一原件绑定。此载体不公开 PCR 正文、B 证据或新 snapshot 字段，不提供新的成员历史 key 查询，也不新增 authority ledger。
 公开authority bundle只携加盐承诺，无manifest、私态或下载面。该增补不是PCR资格例外，不允许Human／用户管理Agent PCR handoff。
 旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§5](../extensions/applet-management-source.md#5-交接与完整性)。
 

@@ -661,6 +661,12 @@
     },
     {
       "schema": "current-state.schema.json",
+      "json_pointer": "/$defs/current_call_recording_artifact/properties/value/properties/details/oneOf/1/properties/recording_start_event_id",
+      "field": "recording_start_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "current-state.schema.json",
       "json_pointer": "/$defs/current_call_transcript_artifact/properties/value/allOf/1/else/properties/details/properties/transcript_start_event_id",
       "field": "transcript_start_event_id",
       "classification": "complete_event_id"

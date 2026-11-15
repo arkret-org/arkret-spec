@@ -212,6 +212,10 @@
         },
         "atomic_producer_evidence": {
           "$ref": "#/$defs/audit_pair_producer_evidence"
+        },
+        "successor_device_evidence": {
+          "$ref": "./account-device-signer-evidence.schema.json",
+          "description": "Required only for authority_forward event_submission whose exact Event kind is ak.realm.owner.transfer; forbidden for all other kinds, MLS, atomic and replication branches. Complete original successor Account Station evidence carrying owner_transfer_acceptance_intent_digest for the exact finite intent, independently verified from primary producer_device_evidence. Fresh transport evidence is excluded from the stable forward-body/idempotency projection just like existing mutable producer evidence, but remains included in the full HTTP authenticated body. The successor signature and full producer Event remain byte-identical across refreshed evidence; accepted exact Event retry returns original outcome before new-admission freshness."
         }
       },
       "oneOf": [
@@ -352,6 +356,11 @@
                 "required": [
                   "atomic_producer_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "successor_device_evidence"
+                ]
               }
             ]
           }
@@ -410,6 +419,11 @@
               {
                 "required": [
                   "producer_agent_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "successor_device_evidence"
                 ]
               }
             ]
@@ -479,6 +493,11 @@
                 "required": [
                   "content_backup_sources"
                 ]
+              },
+              {
+                "required": [
+                  "successor_device_evidence"
+                ]
               }
             ]
           }
@@ -547,6 +566,11 @@
                 "required": [
                   "content_backup_sources"
                 ]
+              },
+              {
+                "required": [
+                  "successor_device_evidence"
+                ]
               }
             ]
           }
@@ -560,6 +584,64 @@
               "producer_device_evidence",
               "producer_agent_evidence"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "branch": {
+                "const": "authority_forward",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/branch",
+                  "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/branch",
+                  "values": [
+                    "authority_forward"
+                  ]
+                }
+              },
+              "event_submission": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.realm.owner.transfer",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                          "values": [
+                            "ak.realm.owner.transfer"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            },
+            "required": [
+              "branch",
+              "event_submission"
+            ]
+          },
+          "then": {
+            "required": [
+              "successor_device_evidence"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "successor_device_evidence"
+              ]
+            }
           }
         }
       ],

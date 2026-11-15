@@ -216,13 +216,13 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request_body alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "mls_group_state_material", "content_backup_sources", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "event_submission", "mls_group_state_material", "content_backup_sources", "producer_device_evidence", "producer_agent_evidence", "successor_device_evidence"},
             {"branch", "mls_submission", "mls_group_state_material", "content_backup_sources", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "atomic_submission", "content_backup_sources", "atomic_producer_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_group_state_material", "content_backup_sources", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
+        all_branch_fields = {"event_submission", "mls_group_state_material", "content_backup_sources", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence", "successor_device_evidence"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -233,8 +233,22 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request_body alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_group_state_material", "content_backup_sources", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_group_state_material", "content_backup_sources", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence", "successor_device_evidence"}:
         _fail(lint, SCHEMA, "peer_submit_request_body properties must be the exact branch field set")
+    if _ref_name(peer_properties.get("successor_device_evidence")) != "./account-device-signer-evidence.schema.json":
+        _fail(lint, SCHEMA, "successor_device_evidence must reuse the closed independent Account Device evidence")
+    successor_rules=[rule for rule in peer.get("allOf",[]) if _required(rule.get("then",{}))=={"successor_device_evidence"}]
+    if len(successor_rules)!=1:
+        _fail(lint, SCHEMA, "only owner transfer must decide required successor_device_evidence")
+    else:
+        rule=successor_rules[0]
+        condition=rule.get("if",{})
+        event_kind=condition.get("properties",{}).get("event_submission",{}).get("properties",{}).get("event",{}).get("properties",{}).get("kind",{}).get("const")
+        branch_kind=condition.get("properties",{}).get("branch",{}).get("const")
+        if (event_kind!="ak.realm.owner.transfer" or branch_kind!="authority_forward"
+                or _required(condition)!={"branch","event_submission"}
+                or _required(rule.get("else",{}).get("not",{}))!={"successor_device_evidence"}):
+            _fail(lint, SCHEMA, "successor_device_evidence is required for only owner-transfer single forward and forbidden elsewhere")
     if "producer_managed_provenance" in peer_properties or "forward_managed_actor_provenance" in defs:
         _fail(lint, SCHEMA, "Realm actor must use its owning governor's control state, not foreign Account provenance")
     if _ref_name(peer_properties.get("mls_group_state_material")) != "#/$defs/mls_group_state_material":
