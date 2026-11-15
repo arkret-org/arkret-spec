@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:43e32d2a11a577566d76e293f37307bb7d1ace4de0765544710c65560e475fd5",
+  "contract_digest": "sha256:1c337c8ef093a69ff5f9c64aa5b311fa22595d2888dedef3b16293b87b774e0c",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -11456,7 +11456,8 @@
                   "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
                 },
                 "minItems": 1,
-                "maxItems": 64
+                "maxItems": 64,
+                "description": "Exact requested original accepted Grant Events and covering Realm Commits. Their immutable registration/instance and Realm source differ from the requested exact Realm/Circle effect scope; never substitute the latest registration."
               },
               "current_states": {
                 "type": "array",
@@ -11464,7 +11465,8 @@
                   "$ref": "./exact-current-state-read.schema.json#/$defs/exact_current_state_present"
                 },
                 "minItems": 1,
-                "maxItems": 256
+                "maxItems": 256,
+                "description": "Same-cut original Grant current/revision/effective governance head binds the owning Realm stream; exact effect scope is independently bound to request and original parent resources. No Circle source head may stand in for a Grant Realm source."
               },
               "current_binding": {
                 "$ref": "#/$defs/current_binding"
@@ -11475,7 +11477,7 @@
             "x-arkret-name-role": "response_body"
           },
           "current_binding": {
-            "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read.",
+            "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read. This current installation is not business authority and does not rewrite historical registration/grant sources; original Grant source/head remains Realm even for a Circle effect.",
             "oneOf": [
               {
                 "type": "object",
@@ -12650,7 +12652,7 @@
             "properties": {
               "applet_id": {
                 "$ref": "#/$defs/applet_id",
-                "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
+                "description": "Together with the explicit owning Realm and signed Source-Service-ID, selects the current legal registration pair key for transport authentication. Installation scope is checked separately after signature verification; no submitted child resource or singleton installation selects the HTTP key."
               },
               "source_id": {
                 "$ref": "#/$defs/did_core_id",
@@ -12662,7 +12664,7 @@
                 "items": {
                   "$ref": "./event-envelope.schema.json"
                 },
-                "description": "Original producer-only business Events; native Realm actor control Events use the registered self submission controller authentication, not Applet Service transport as a substitute."
+                "description": "Original producer-signed Events. Ordinary business keeps its exact Event scope and current installation gates. Only the existing managed terminal Grant/original-issuer child Revoke profile derives exact installation source from accepted parent/child ancestry and frozen registration; their governance Event scope is Realm. Every mixed business/governance item independently proves the same full historical source tuple; old-epoch cleanup and new-epoch business are separate deliveries. Native Realm actor control still uses its dedicated self controller authentication."
               },
               "committed_events": {
                 "type": "array",
@@ -12997,6 +12999,9 @@
                         "ak.capability.grant"
                       ]
                     }
+                  },
+                  "scope_ref": {
+                    "$ref": "./event-envelope.schema.json#/$defs/scope_ref/oneOf/0"
                   }
                 }
               }
@@ -13820,6 +13825,9 @@
                                       "ak.capability.revoke"
                                     ]
                                   }
+                                },
+                                "scope_ref": {
+                                  "$ref": "./event-envelope.schema.json#/$defs/scope_ref/oneOf/0"
                                 }
                               }
                             }
@@ -27113,7 +27121,7 @@
               "since_join",
               "all_history_for_current_members"
             ],
-            "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join.",
+            "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS can be activated under either registered history_access value. Accepting Genesis does not establish durability of application content roots or content-history readiness.",
             "x-arkret-value-ownership": {
               "class": "owned_symbol",
               "authority": "circle.schema.json#/properties/history_access",
@@ -117822,7 +117830,7 @@
     },
     {
       "file": "applet-managed-authority-registry.json",
-      "digest": "sha256:a61349feb8fcefbcc7b27bf3c58b4133e4d20f52a082d83af226feb336fae994"
+      "digest": "sha256:a0bb36bc9b7c6f8efd8114102be328c0110d73f9505fa5689557a607dd4d1dc4"
     },
     {
       "file": "authority-set-policy-registry.json",
@@ -117846,7 +117854,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:bc24d43716dae3b49c6bdabccd0282312c582c38bf1388768da5617135d1310f"
+      "digest": "sha256:7d763487579b3c479c7bc4b7d4056b73c9c52cc1e0aa0c9edede7bbd509c5f8b"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117906,7 +117914,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:e8d8646475bd750e1d39c0d3eebbb3147d423f59d0fe56473b92c3189886e575"
+      "digest": "sha256:da304c66315adef4b616f885ee376b208ddfccb678842483d87b4c3c17297a5e"
     },
     {
       "file": "operation-clause-registry.json",
@@ -117986,7 +117994,7 @@
     },
     {
       "file": "test-material-registry.json",
-      "digest": "sha256:76797e383ac16dedb2abd69540ef8fa5e43909fd933da8d202643680085d51a8"
+      "digest": "sha256:b933afac9b4ba69aed9d133d1d4c579bebb0570b6df1fc979399216d9d24a92d"
     },
     {
       "file": "vector-registry.json",

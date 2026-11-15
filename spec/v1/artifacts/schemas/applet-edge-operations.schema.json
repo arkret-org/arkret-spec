@@ -498,7 +498,7 @@
       "properties": {
         "applet_id": {
           "$ref": "#/$defs/applet_id",
-          "description": "Exact active Applet registration selected for signature and epoch verification; service_id alone is not unique."
+          "description": "Together with the explicit owning Realm and signed Source-Service-ID, selects the current legal registration pair key for transport authentication. Installation scope is checked separately after signature verification; no submitted child resource or singleton installation selects the HTTP key."
         },
         "source_id": {
           "$ref": "#/$defs/did_core_id",
@@ -510,7 +510,7 @@
           "items": {
             "$ref": "./event-envelope.schema.json"
           },
-          "description": "Original producer-only business Events; native Realm actor control Events use the registered self submission controller authentication, not Applet Service transport as a substitute."
+          "description": "Original producer-signed Events. Ordinary business keeps its exact Event scope and current installation gates. Only the existing managed terminal Grant/original-issuer child Revoke profile derives exact installation source from accepted parent/child ancestry and frozen registration; their governance Event scope is Realm. Every mixed business/governance item independently proves the same full historical source tuple; old-epoch cleanup and new-epoch business are separate deliveries. Native Realm actor control still uses its dedicated self controller authentication."
         },
         "committed_events": {
           "type": "array",

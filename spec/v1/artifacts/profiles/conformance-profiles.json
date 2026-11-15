@@ -4173,7 +4173,7 @@
         },
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery_authentication_record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
-        "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_signature_policy.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
+        "transaction_push_inbound_registration_must": "For app/bridge-to-Arkret inbound, first verify the explicit Realm/Applet/Source-Service-ID pair current legal registration/method-native key and complete RFC9421/body/freshness. Key selection never uses unauthenticated child resources or scope enumeration. Ordinary business still requires its exact active install before effects/idempotency reservation and independent full admission; missing/revoked uses its existing gate/code. Only finite managed terminal Grant/original-issuer child Revoke resolves historical installation from accepted parent/child ancestry and frozen original registration plus immutable accepted installation instance. Cleanup requires the original pair current key but not active business parent/install; retired original pair rejects. Each mixed business/governance item independently proves the same historical tuple. Existing historical creation-result and native-series roles remain separate and unexpanded.",
         "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event MUST verify its original producer proof, complete actor_id, applet_id, authorization_ref and capability grants. A Realm actor must have accepted creation provenance and the exact current manager; an ordinary Account requires its actual delegation. Actor DID namespace matching is not supported and cannot establish ownership or authorization.",
         "managed_authority_contract_must": "Service-only install, 0..N independent Bot/Ghost; exact role creation actions, ordinary Service parent to terminal child and Device content supply follow registry/applet-managed-authority-registry.json and zh/authz/managed-governance.md."
       },
@@ -4187,7 +4187,7 @@
           "required_constraint_kind": "authority_control",
           "required_constraint_subkind": "applet_authority",
           "subject_binding": "registration.service_id",
-          "scope_binding": "grant.resource_exact_registration_scope",
+          "scope_binding": "grant.resource_exact_installation_effective_scope",
           "epoch_binding": "constraint.registration_epoch_exact_registration",
           "requested_action_binding": "grant.action_in_registration.requested_scopes"
         }
@@ -4246,7 +4246,7 @@
           "required_constraint_kind": "authority_control",
           "required_constraint_subkind": "applet_authority",
           "subject_binding": "registration.service_id",
-          "scope_binding": "grant.resource_exact_registration_scope",
+          "scope_binding": "grant.resource_exact_installation_effective_scope",
           "epoch_binding": "constraint.registration_epoch_exact_registration",
           "requested_action_binding": "grant.action_in_registration.requested_scopes"
         }

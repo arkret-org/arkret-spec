@@ -1308,7 +1308,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"{label} uses an unsupported constraint subkind")
             expected_bindings = {
                 "subject_binding": "registration.service_id",
-                "scope_binding": "grant.resource_exact_registration_scope",
+                "scope_binding": "grant.resource_exact_installation_effective_scope",
                 "epoch_binding": "constraint.registration_epoch_exact_registration",
                 "requested_action_binding": "grant.action_in_registration.requested_scopes",
             }

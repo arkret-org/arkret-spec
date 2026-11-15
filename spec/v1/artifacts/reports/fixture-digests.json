@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-management-source-fixture.json",
-      "sha256": "91de52de7c3233a8c8c6d3f042450fbc48570e62e23df582e0f543962b6bf029"
+      "sha256": "1fec30271220c1eed0b2b04c5444721bb4833dbcfb02335c82f2fcb39ef0e188"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -254,7 +254,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "0b42c6fd80f4ba51402f545a31366a187089d45b8d97a6e40024975bc986b3ae"
+      "sha256": "08259983dc480f2cba05364eb00eabb4861ed4cbebcba1fcdedf9e92288e979c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json",
@@ -318,7 +318,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-      "sha256": "2137b8a14f64f0ed0d2a16daab5443f9f49a35e0ff56d75e70399e152a4c902a"
+      "sha256": "276fc67ed2eac272496262291ca8d8f3515ef0b13a8b7ff946da6107eab55b94"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",

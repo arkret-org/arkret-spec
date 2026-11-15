@@ -93,6 +93,25 @@ class AppletDeliveryAuthenticationKatTests(unittest.TestCase):
         self.assertEqual(holder[kat.DIGEST_KEY], digest)
         self.assertEqual(holder[kat.PREIMAGE_KEY], preimage)
 
+    def test_fresh_verified_times_change_audit_but_not_stable_digest(self) -> None:
+        record=copy.deepcopy(self._record_holder(self.fixture,"valid_inbound")[kat.RECORD_KEY])
+        before=kat.record_digest("ak.applet.delivery_authentication_record.v1",record)
+        record["created"]+=60
+        record["expires"]+=60
+        after=kat.record_digest("ak.applet.delivery_authentication_record.v1",record)
+        self.assertEqual(before,after)
+        self.assertNotIn('"created":',after[0])
+        self.assertNotIn('"expires":',after[0])
+
+    def test_every_non_time_record_member_remains_in_stable_identity(self) -> None:
+        record=self._record_holder(self.fixture,"valid_inbound")[kat.RECORD_KEY]
+        baseline=kat.record_digest("ak.applet.delivery_authentication_record.v1",record)[1]
+        for field in record:
+            if field in {"created","expires"}:continue
+            changed=copy.deepcopy(record)
+            changed[field]=["different"] if isinstance(record[field],list) else str(record[field])+"-different"
+            self.assertNotEqual(baseline,kat.record_digest("ak.applet.delivery_authentication_record.v1",changed)[1],field)
+
     # ------------------------------------------------- the record is derivable
 
     def test_a_member_edited_without_the_digest_turns_the_kat_red(self) -> None:

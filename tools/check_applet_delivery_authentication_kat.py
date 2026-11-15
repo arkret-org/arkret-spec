@@ -4,7 +4,7 @@
 `applet-integration.md` §7.3.1 fixes a closed 14-member record that the receiver
 derives from the verified HTTP message, and pins its digest to
 
-    "sha256:" + lowerhex(SHA256(UTF8(domain + LF) || RFC8785_JCS(record)))
+    "sha256:" + lowerhex(SHA256(UTF8(domain + LF) || RFC8785_JCS(record without only created/expires)))
 
 The conformance vector asserted `delivery_authentication_record_digest_is_domain_separated`
 while carrying only a digest string: no record, no preimage, and nothing that
@@ -87,12 +87,13 @@ def jcs_text(value: Any) -> str:
 def record_digest(domain: str, record: dict[str, Any]) -> tuple[str, str]:
     """Return (canonical record bytes, "sha256:" digest) for one record.
 
-    The returned text is JCS(record) alone. The domain is a prefix of the hash
+    The returned text is JCS(record without only created/expires). The domain is a prefix of the hash
     input, never a member of the record, so the fixture states the two halves
     separately and the artifact lint's stated-preimage pair re-checks the
     separator independently of this KAT.
     """
-    canonical = jcs_text(record)
+    canonical = jcs_text({key: value for key, value in record.items()
+                          if key not in {"created", "expires"}})
     digest = hashlib.sha256((domain + "\n" + canonical).encode("utf-8")).hexdigest()
     return canonical, f"sha256:{digest}"
 
