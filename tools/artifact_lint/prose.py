@@ -25,7 +25,6 @@ from .core import (
     LEGACY_DID_METHOD_REGEX_RE,
     Lint,
     MARKDOWN_LINK_RE,
-    NAMING_DEBT_PATH,
     NAMING_RULES_PATH,
     NAMING_RULE_MARKER_RE,
     NON_NORMATIVE_KEYWORD_WAIVERS,
@@ -481,48 +480,14 @@ def check_naming_predicates(lint: Lint) -> None:
             NAMING_RULES_PATH, row.get("exact_path_exceptions", []), f"{rule_id}.exact_path_exceptions"
         )
 
-    debt_data = load_json(lint, NAMING_DEBT_PATH)
-    debt_index: dict[str, dict[tuple[str, str, str], dict]] = {}
-    if isinstance(debt_data, dict):
-        entries = debt_data.get("entries")
-        grouped: dict[str, list] = {}
-        if isinstance(entries, list):
-            for entry in entries:
-                if not isinstance(entry, dict):
-                    lint.fail(NAMING_DEBT_PATH, "entries must be objects")
-                    continue
-                rule_id = entry.get("rule_id")
-                if rule_id not in PREDICATES:
-                    lint.fail(NAMING_DEBT_PATH, f"unknown rule_id `{rule_id}`")
-                    continue
-                if entry.get("basis") == "external_literal" or entry.get("external_anchor"):
-                    lint.fail(
-                        NAMING_DEBT_PATH,
-                        f"{rule_id} debt must not claim an external anchor; register it as a "
-                        f"rule exception instead",
-                    )
-                if not entry.get("owner_batch") or not entry.get("reason"):
-                    lint.fail(NAMING_DEBT_PATH, f"{rule_id} debt needs owner_batch and reason")
-                grouped.setdefault(rule_id, []).append(entry)
-        elif entries is not None:
-            lint.fail(NAMING_DEBT_PATH, "entries must be an array")
-        for rule_id, rows_for_rule in grouped.items():
-            debt_index[rule_id] = index_exact_paths(
-                NAMING_DEBT_PATH, rows_for_rule, f"{rule_id} debt"
-            )
-
     matched_exceptions: set[tuple[str, str, str, str]] = set()
-    matched_debt: set[tuple[str, str, str, str]] = set()
 
     def adjudicate(path: Path, rule_id: str, file_name: str, pointer: str, name: str) -> None:
-        """Report a violation unless an exact-path exception or debt entry covers it."""
+        """Report a violation unless a registered exact-path exception covers it."""
 
         key = (file_name, pointer, name)
         if key in exact_exceptions.get(rule_id, {}):
             matched_exceptions.add((rule_id, *key))
-            return
-        if key in debt_index.get(rule_id, {}):
-            matched_debt.add((rule_id, *key))
             return
         lint.fail(path, f"{pointer} violates {rule_id} (`{name}`)")
 
@@ -750,18 +715,6 @@ def check_naming_predicates(lint: Lint) -> None:
         lint.fail(
             NAMING_RULES_PATH,
             f"exact-path naming exceptions no longer match a violation: {sorted(stale_exceptions)}",
-        )
-
-    stale_debt = [
-        f"{rule_id}:{key[0]}#{key[1]}"
-        for rule_id, rows_for_rule in debt_index.items()
-        for key in rows_for_rule
-        if (rule_id, *key) not in matched_debt
-    ]
-    if stale_debt:
-        lint.fail(
-            NAMING_DEBT_PATH,
-            f"debt entries no longer match a violation and must be deleted: {sorted(stale_debt)}",
         )
 
     # Registered cases are executed, not merely counted. A rule cannot claim

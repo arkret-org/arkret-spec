@@ -1,9 +1,9 @@
 """Mutation tests for the naming gate.
 
 These guard the three properties the naming gate exists to establish: the walker
-reaches every declared property (including inside ``$defs``), exceptions and
-debt are keyed by exact path rather than by bare name, and registered cases are
-actually executed by the predicates they claim to cover.
+reaches every declared property (including inside ``$defs``), exceptions are
+keyed by exact path rather than by bare name, and registered cases are actually
+executed by the predicates they claim to cover.
 """
 
 from __future__ import annotations
@@ -21,7 +21,6 @@ sys.path.insert(0, str(ROOT))
 from tools.artifact_lint.core import (
     ARTIFACTS,
     Lint,
-    NAMING_DEBT_PATH,
     NAMING_RULES_PATH,
     parse_json_file,
     parse_yaml_file,
@@ -312,106 +311,6 @@ class RegisteredCaseTest(MutationHarness):
         self.assertTrue(
             any("blocked_external_reviews" in error and "NC-SET-001" in error for error in errors)
         )
-
-
-class DebtBaselineTest(MutationHarness):
-    def first_entry(self) -> dict:
-        debt = json.loads(NAMING_DEBT_PATH.read_text(encoding="utf-8"))
-        if not debt["entries"]:
-            self.skipTest("debt baseline is empty; the ledger has reached closure")
-        return debt["entries"][0]
-
-    def test_debt_is_internal_and_owned(self) -> None:
-        debt = json.loads(NAMING_DEBT_PATH.read_text(encoding="utf-8"))
-        for entry in debt["entries"]:
-            self.assertIn(entry["rule_id"], PREDICATES)
-            self.assertTrue(entry["owner_batch"], entry)
-            self.assertTrue(entry["reason"], entry)
-            self.assertTrue(entry["pointer"].startswith("/"), entry)
-            # Internal debt must never masquerade as an external-standard grant.
-            self.assertNotIn("external_anchor", entry)
-            self.assertNotEqual(entry.get("basis"), "external_literal")
-
-    def test_unregistered_violation_fails_the_gate(self) -> None:
-        # Data-driven: each batch drains the ledger, so pin to whatever row is
-        # currently first rather than to a name that a later batch will delete.
-        victim = self.first_entry()
-
-        def mutate(document):
-            document["entries"] = [
-                entry
-                for entry in document["entries"]
-                if not (
-                    entry["file"] == victim["file"] and entry["pointer"] == victim["pointer"]
-                )
-            ]
-
-        errors = self.lint_with_file(NAMING_DEBT_PATH, mutate)
-        self.assertTrue(any(victim["pointer"] in error for error in errors), errors)
-
-    def test_stale_debt_fails_the_gate(self) -> None:
-        def mutate(document):
-            document["entries"].append(
-                {
-                    "rule_id": "NC-BOOL-001",
-                    "file": "event-payload.schema.json",
-                    "pointer": "/$defs/no_such_payload/properties/require_nothing",
-                    "name": "require_nothing",
-                    "reason": "deliberately stale",
-                    "owner_batch": "batch-2-mechanical-renames",
-                }
-            )
-
-        errors = self.lint_with_file(NAMING_DEBT_PATH, mutate)
-        self.assertTrue(any("no longer match a violation" in error for error in errors), errors)
-
-    def test_debt_does_not_leak_across_paths(self) -> None:
-        """Relief is granted at the registered pointer only, never by name."""
-
-        victim = self.first_entry()
-
-        def mutate(document):
-            for entry in document["entries"]:
-                if entry["file"] == victim["file"] and entry["pointer"] == victim["pointer"]:
-                    entry["pointer"] = "/$defs/moved_elsewhere/properties/" + entry["name"]
-
-        errors = self.lint_with_file(NAMING_DEBT_PATH, mutate)
-        self.assertTrue(
-            any(victim["pointer"] in error and victim["name"] in error for error in errors),
-            errors,
-        )
-
-    # Shape rules are validated while the debt index is built, before any
-    # violation matching, so these inject a synthetic row instead of editing a
-    # real one. That keeps them meaningful once the ledger reaches closure.
-    SYNTHETIC = {
-        "rule_id": "NC-BOOL-001",
-        "file": "event-payload.schema.json",
-        "pointer": "/$defs/synthetic_payload/properties/require_something",
-        "name": "require_something",
-        "reason": "synthetic row for the shape mutation tests",
-        "owner_batch": "batch-test",
-    }
-
-    def test_debt_claiming_an_external_anchor_fails_the_gate(self) -> None:
-        def mutate(document):
-            document["entries"].append(dict(self.SYNTHETIC, external_anchor="RFC 9420"))
-
-        errors = self.lint_with_file(NAMING_DEBT_PATH, mutate)
-        self.assertTrue(any("must not claim an external anchor" in e for e in errors), errors)
-
-    def test_debt_without_owner_fails_the_gate(self) -> None:
-        def mutate(document):
-            document["entries"].append(dict(self.SYNTHETIC, owner_batch=""))
-
-        errors = self.lint_with_file(NAMING_DEBT_PATH, mutate)
-        self.assertTrue(any("needs owner_batch and reason" in e for e in errors), errors)
-
-    def test_empty_ledger_is_the_closure_state(self) -> None:
-        """Batches 2 and 3 drained the ledger; closure means it stays empty."""
-
-        debt = json.loads(NAMING_DEBT_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(debt["entries"], [], "debt must be empty once all batches close")
 
 
 class WrapperWordTest(unittest.TestCase):

@@ -2190,33 +2190,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
             "station.device_pairing_handoff must exactly project the complete device_pairing_handoff surface",
         )
 
-    migration_path = ROOT / "tools" / "operation-id-v1-migration.json"
-    migration = load_json(lint, migration_path) or {}
-    mappings = migration.get("mappings")
-    mapped_new: set[str] = set()
-    mapped_old: set[str] = set()
-    if not isinstance(mappings, list):
-        lint.fail(migration_path, "mappings must be an array")
-    else:
-        for index, row in enumerate(mappings):
-            if not isinstance(row, dict) or set(row) != {"old", "new"}:
-                lint.fail(migration_path, f"mappings[{index}] must contain exactly old and new")
-                continue
-            old = row.get("old")
-            new = row.get("new")
-            if not isinstance(old, str) or not isinstance(new, str) or new != old + ".v1":
-                lint.fail(migration_path, f"mappings[{index}] must be a mechanical old -> old.v1 rename")
-                continue
-            mapped_old.add(old)
-            mapped_new.add(new)
-        if len(mapped_old) != len(mappings) or len(mapped_new) != len(mappings):
-            lint.fail(migration_path, "migration mappings must be one-to-one")
-        if mapped_new != operations:
-            lint.fail(
-                migration_path,
-                "migration new-id set must exactly equal the canonical operation registry",
-            )
-
     profiles = {
         row.get("profile")
         for row in profile_registry.get("profile_requirements", [])

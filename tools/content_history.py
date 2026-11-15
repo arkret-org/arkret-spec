@@ -6,6 +6,8 @@ import json
 import unicodedata
 from datetime import datetime
 
+from tools.reference_json import jcs_text
+
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
@@ -18,7 +20,7 @@ STRATEGY = "ak.encryption_backup.epoch_content_roots.v1"
 
 
 def jcs(value):
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
+    return jcs_text(value).encode("utf-8")
 
 
 def b64(value):

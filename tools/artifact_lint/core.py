@@ -342,7 +342,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
 
 NAMING_RULES_PATH = TOOLS_ROOT / "naming-convention-rules.json"
 
-NAMING_DEBT_PATH = TOOLS_ROOT / "naming-debt-baseline.json"
 
 CANONICAL_LEXEME_REGISTRY_PATH = ARTIFACTS / "registry" / "canonical-lexeme-registry.json"
 

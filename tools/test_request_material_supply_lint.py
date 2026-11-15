@@ -13,6 +13,8 @@ import copy
 import sys
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -207,31 +209,35 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
         self.assertTrue(any("review_anchor" in error for error in errors), errors)
 
     def test_open_finding_anchor_must_resolve_to_a_live_review_entry(self) -> None:
-        open_review_dir = ROOT.parent / "arkret-work" / "review" / "spec-open"
-        live_reviews = [
-            path
-            for path in sorted(open_review_dir.glob("*.md"))
-            if path.name != "README-status.md"
-        ]
-        if not live_reviews:
-            self.skipTest("workspace has no live spec-open finding to probe")
-        live_review = live_reviews[0]
-        live_review_ref = live_review.relative_to(ROOT.parent).as_posix()
+        with TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            review = workspace / "arkret-work/tasks/spec-open/probe.md"
+            review.parent.mkdir(parents=True)
+            review.write_text("# Current finding\n", encoding="utf-8")
 
-        def mutate(registry):
-            for row in registry["exemptions"]:
-                if row["exemption_id"] == DID_OPERATION_ROW:
-                    row["disposition"] = "open_finding"
-                    row["review_anchor"] = {
-                        "file": live_review_ref,
-                        "heading": "A HEADING THAT WAS NEVER WRITTEN",
-                    }
+            for file, heading, expected_error in (
+                ("probe.md", "Current finding", None),
+                ("probe.md", "Missing heading", "review_anchor heading not found"),
+                ("missing.md", "Current finding", "does not exist"),
+            ):
+                with self.subTest(file=file, heading=heading):
+                    def mutate(registry):
+                        for row in registry["exemptions"]:
+                            if row["exemption_id"] == DID_OPERATION_ROW:
+                                row["disposition"] = "open_finding"
+                                row["review_anchor"] = {
+                                    "file": f"arkret-work/tasks/spec-open/{file}",
+                                    "heading": heading,
+                                }
 
-        errors = self._run(json_mutations={REGISTRY_PATH: mutate})
-        self.assertTrue(
-            any("review_anchor heading not found" in error for error in errors),
-            errors,
-        )
+                    with patch.object(core, "ROOT", workspace / "arkret-spec"):
+                        errors = self._run(json_mutations={REGISTRY_PATH: mutate})
+                    if expected_error is None:
+                        self.assertEqual(errors, [])
+                    else:
+                        self.assertTrue(
+                            any(expected_error in error for error in errors), errors
+                        )
 
 
 if __name__ == "__main__":

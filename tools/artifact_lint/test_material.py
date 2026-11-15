@@ -23,6 +23,8 @@ verified the signature failed the case the specification calls valid.
 
 from __future__ import annotations
 
+from tools.reference_json import jcs_text
+
 from .core import (
     ARTIFACTS,
     Any,
@@ -78,15 +80,7 @@ MIN_REQUIREMENT_LENGTH = 16
 
 
 def _jcs(value: Any) -> bytes:
-    """RFC 8785 JCS bytes for the artifact subset used here.
-
-    Every object the callers pass has ASCII member names and carries no
-    floating-point number, so sorting by code point and emitting the compact
-    separators is byte-identical to JCS.
-    """
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode(
-        "utf-8"
-    )
+    return jcs_text(value).encode("utf-8")
 
 
 def _b64u_decode(lint: Lint, path: Path, where: str, value: Any) -> bytes | None:
@@ -886,7 +880,11 @@ def check_sdk_claim_contract_binding(lint: Lint) -> None:
             "a claim binds is computed",
         )
         return
-    expected_digest = "sha256:" + hashlib.sha256(_jcs(contract)).hexdigest()
+    try:
+        expected_digest = "sha256:" + hashlib.sha256(_jcs(contract)).hexdigest()
+    except (ValueError, TypeError) as error:
+        lint.fail(_contract_path(), f"SDK contract is outside the reference JSON subset: {error}")
+        return
 
     cases = fixture.get("schema_validation_cases")
     if not isinstance(cases, list) or not cases:
@@ -989,7 +987,7 @@ def check_sdk_claim_contract_binding(lint: Lint) -> None:
             Ed25519PublicKey.from_public_bytes(public_key).verify(
                 signature, CLAIM_DOMAIN + _jcs(body)
             )
-        except InvalidSignature:
+        except (InvalidSignature, ValueError, TypeError):
             if signature_expected:
                 lint.fail(
                     _claim_fixture_path(),
