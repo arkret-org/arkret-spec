@@ -509,6 +509,7 @@
         "device_status",
         "attested_at",
         "expires_at",
+        "owner_transfer_acceptance_intent_digest",
         "verification_method",
         "created_at"
       ],
@@ -1940,6 +1941,38 @@
       "defined_in": "zh/extensions/realm-actors.md",
       "known_answer_ref": "fixtures/realm-actor-content-backup-fixture.json#/handover_confirmation_case",
       "unsigned_projection_schema_ref": "schemas/keys-operations.schema.json#/$defs/realm_actor_content_backup_handover_confirmation_signature_input"
+    },
+    {
+      "domain": "ak.realm_owner_transfer_acceptance_signature.v1",
+      "object_family": "realm_owner_transfer_acceptance_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature"
+      ],
+      "signature_member": "successor_acceptance",
+      "excluded_signature_members": [],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f6f776e65725f7472616e736665725f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "Patch-selected full Human Account current accepted Device identity key, exact original authorization Event and live generation, revocation, lifecycle and limited Device scope ceiling; independent of the current controller outer Event signature",
+      "defined_in": "zh/authz/capabilities.md",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/owner_transfer/acceptance",
+      "unsigned_projection_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript"
     }
   ]
 }

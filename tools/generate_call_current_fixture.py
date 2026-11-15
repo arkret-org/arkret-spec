@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from tools.regenerate_crypto_signature_fixture import refresh_jws_input
+from tools.call_recording_codec import ALGORITHM, CODEC_CASES, LABEL, seal
 from tools.regenerate_detached_object_signature_kat import (
     KEY_A_SEED, KEY_B_SEED, OLD_VM, b64u, jcs, make_signature, public_key,
 )
@@ -136,6 +137,15 @@ def capture_fixture(call_id, previous):
     rows, checkpoints = [], []
     axes = {}
     start = None
+    recording_source = {
+        'boundary': 'Qualified public winning MLS state and public exporter secret for reference bytes; not native MLS, authority, storage or HTTP proof.',
+        'effective_scope': copy.deepcopy(STREAM),
+        'genesis_event_ref': typed_id('event', {'fixture': 'recording_mls_genesis', 'scope_ref': STREAM}),
+        'group_state_event_ref': typed_id('event', {'fixture': 'recording_winning_mls_state', 'scope_ref': STREAM, 'epoch': '7'}),
+        'epoch': '7', 'focus_id': 'fra-1', 'exporter_secret': b64u(bytes(range(80, 112))),
+    }
+    key_ref = {'algorithm': 'MLS', 'group_state_ref': recording_source['group_state_event_ref']}
+    recording_kat = None
     root_ref = {'kind': 'realm_root', 'realm_id': REALM,
                 'authority_event_ref': typed_id('event', {'fixture': 'capture_authority'}),
                 'authority_generation': '1'}
@@ -192,9 +202,12 @@ def capture_fixture(call_id, previous):
         return row
     for capture in ('recording', 'transcript'):
         segment = capture + '-segment'
+        metadata = {'retention': {'consent_confirmed': True, 'retention_expires_at': '2027-09-20T00:00:00.000Z'}}
+        if capture == 'recording':
+            metadata = {'key_ref': copy.deepcopy(key_ref), **metadata}
         opening = append({'recording_id': segment, 'recording_agent_id': 'ak:did_core:web:media.example',
                           'capture_kind': capture, 'mode': 'audio', 'visible_notice': True,
-                          'capture_metadata': {'retention': {'consent_confirmed': True, 'retention_expires_at': '2027-09-20T00:00:00.000Z'}}},
+                          'capture_metadata': metadata},
                          'ak.call.recording.start')
         stopped = append({capture + '_transition': {'recording_id': segment, 'from': 'recording' if capture == 'recording' else 'transcribing', 'to': 'stopped'}})
         details = {capture + '_start_event_id': opening['event']['event_id'], capture + '_stop_event_id': stopped['event']['event_id'],
@@ -206,17 +219,30 @@ def capture_fixture(call_id, previous):
                 'recording_id': segment, 'recording_start_event_id': opening['event']['event_id'],
                 'blob_ref': 'ak:blob:sha256:' + hashlib.sha256(b'encrypted capture fixture').hexdigest(),
                 'size_bytes': len(b'encrypted capture fixture'), 'duration_ms': 12, 'media_type': 'audio/ogg',
-                'encryption': {'encryption_algorithm': 'mls_exporter_aead_xchacha20poly1305',
-                    'exporter_label': 'ak.rtc-recording-key/v1', 'context': {'realm_id': REALM, 'call_id': call_id,
+                'encryption': {'encryption_algorithm': ALGORITHM,
+                    'exporter_label': LABEL, 'context': {'realm_id': REALM, 'call_id': call_id,
                     'focus_id': 'fra-1', 'recording_id': segment, 'media_service_id': 'ak:did_core:web:media.example',
-                    'recording_start_event_id': opening['event']['event_id']}},
+                    'recording_start_event_id': opening['event']['event_id']},
+                    'key_ref': copy.deepcopy(key_ref), 'nonce_prefix': b64u(bytes(range(19))), 'segment_bytes': 1024},
                 'retention': copy.deepcopy(opening['event']['payload']['capture_metadata']['retention']),
                 'produced_by': 'ak:did_core:web:media.example', 'recording_initiator_capability_ref': grant_id,
                 'created_at': rows[-1]['event']['created_at']}
+            plaintext = bytes(index % 251 for index in range(1041))
+            artifact, expected = seal(plaintext, artifact, opening['event'], recording_source)
+            vectors = [{'name': 'multi_segment', 'plaintext': b64u(plaintext), 'artifact': copy.deepcopy(artifact), 'expected': expected}]
+            for name, length in [('empty', 0), ('single_octet', 1), ('exact_segment', 1024)]:
+                varied = copy.deepcopy(artifact)
+                varied['encryption']['nonce_prefix'] = b64u(hashlib.sha256(('public test prefix: ' + name).encode()).digest()[:19])
+                raw = bytes(index % 251 for index in range(length))
+                varied, expected = seal(raw, varied, opening['event'], recording_source)
+                vectors.append({'name': name, 'plaintext': b64u(raw), 'artifact': varied, 'expected': expected})
+            recording_kat = {'boundary': 'Real RFC 9420 MLS-Exporter and XChaCha20-Poly1305 STREAM bytes over explicit qualified source inputs. Alternate unpublished codec vectors, not native admission or cryptographic consent.',
+                'qualified_source': recording_source, 'start_event': copy.deepcopy(opening['event']), 'vectors': vectors}
             append({'recording_transition': {'recording_id': segment, 'from': 'stopped', 'to': 'ready',
                     'expected_commit_id': rows[-1]['commit']['commit_id'], 'capture_metadata': {'artifact': artifact}}})
     return {'original_rows': rows, 'checkpoints': checkpoints,
             'initiator_grant_source': {'event': grant_event, 'commit': grant_commit, 'current': grant_current},
+            'recording_codec_kat': recording_kat,
             'cases': ['start_atomic_pending', 'stop_does_not_publish_result', 'result_cas_uses_artifact_revision',
                       'failed_then_ready_keeps_stopped', 'stale_result_guard_rejected', 'stop_guard_forbidden',
                       'ready_metadata_is_artifact_only', 'no_result_guard_in_current', 'transcript_kind_isolation']}
@@ -342,7 +368,7 @@ def build_fixture():
                 ('snapshot_signature_tampered', 'reject'), ('omission_unsigned', 'reject'),
                 ('omission_resigned_ordinary_trust_boundary', 'accept'),
                 ('omission_resigned_complete_replica', 'reject'), ('wrong_member_complete_replica', 'reject'),
-            ]
+            ] + CODEC_CASES
         ],
     }
 

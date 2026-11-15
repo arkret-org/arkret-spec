@@ -333,6 +333,17 @@
       "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a real Account Device producer (Human or accepted Applet-managed); its presence is decided by the Event."
     },
     {
+      "file": "authority-commit-operations.schema.json",
+      "key": "successor_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Owner-transfer-only independent closed AccountDeviceSignerEvidence: the successor Station finite intent-bound attestation plus its independently verified method-native Service resolution. It is separate from the actual author producer evidence and creates no new generic authority or historical signer query."
+    },
+    {
       "file": "capability-action-registry.json",
       "key": "evidence_schema_ref",
       "occurrences": 2,

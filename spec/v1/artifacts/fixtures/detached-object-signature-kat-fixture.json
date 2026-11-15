@@ -523,5 +523,1021 @@
       },
       "expected_result": "accept"
     }
-  ]
+  ],
+  "owner_transfer": {
+    "boundary": "Real independent Ed25519 signatures and schema-bound finite intent. Current Account/Device/root authority, membership and lifecycle below are explicit qualified reference inputs, not native PCR, remote directory, storage or HTTP proof.",
+    "event": {
+      "kind": "ak.realm.owner.transfer",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "scope_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      },
+      "created_at": "2026-09-20T00:00:00.000Z",
+      "payload": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "expected_state_digest": "sha256:4cd07db434164b221042f3e6b966241b8e4329f13a5c8bfe0215af3cad4f41ee",
+        "patch": {
+          "controller_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            }
+          }
+        },
+        "successor_acceptance": {
+          "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+          "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "signature": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ"
+        }
+      },
+      "event_id": "ak:event:AYpXvJQcxb1TSx3SRkcZTxST4lNcbsQMmhkToX86Cc_5",
+      "producer_proof": {
+        "kind": "detached_jws",
+        "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc",
+        "event_digest": "sha256:8a57bc941cc5bd534b1dd24647194f1493e2535c6ec40c9a1913a17f3a09cff9",
+        "created_at": "2026-09-20T00:00:00.000Z",
+        "jws": "eyJhbGciOiJFZDI1NTE5In0..6EBY9aQRcfSR7UKYPUuhqA17n2iNVEmBaPpsXLdMimyNZd1-8fbHLTWxo_9XP0bD6f5u2vLRU0_bVmvj4dJ2AQ"
+      }
+    },
+    "acceptance": {
+      "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+      "signature_algorithm": "Ed25519",
+      "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+      "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+      "created_at": "2026-09-20T00:00:00.000Z",
+      "signature": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ"
+    },
+    "unsigned_projection": {
+      "scope_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      },
+      "payload_without_successor_acceptance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "expected_state_digest": "sha256:4cd07db434164b221042f3e6b966241b8e4329f13a5c8bfe0215af3cad4f41ee",
+        "patch": {
+          "controller_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            }
+          }
+        }
+      }
+    },
+    "unsigned_jcs_utf8_hex": "7b226163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a516d5534677045583734776d6e557035704a4c6f74674274513678685866524d324857635a6162617a746a616966222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a73746174696f6e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c227061796c6f61645f776974686f75745f737563636573736f725f616363657074616e6365223a7b2265787065637465645f73746174655f646967657374223a227368613235363a34636430376462343334313634623232313034326633653662393636323431623865343332396631336135633862666530323135616633636164346634316565222c227061746368223a7b22636f6e74726f6c6c65725f6163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a516d5534677045583734776d6e557035704a4c6f74674274513678685866524d324857635a6162617a746a616966222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a7765623a737563636573736f722d73746174696f6e2e6578616d706c65227d2c226b696e64223a226163636f756e74227d7d2c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d2c2273636f70655f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d7d",
+    "expected_signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+    "signature_envelope_without_sig": {
+      "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+      "signature_algorithm": "Ed25519",
+      "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+      "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+      "created_at": "2026-09-20T00:00:00.000Z"
+    },
+    "prefix_bytes_hex": "616b2e7265616c6d5f6f776e65725f7472616e736665725f616363657074616e63655f7369676e61747572652e76310a",
+    "signature_input_hex": "616b2e7265616c6d5f6f776e65725f7472616e736665725f616363657074616e63655f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f6f776e65725f7472616e736665725f616363657074616e63655f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a63363632386238303530623732613134363562383166643130616337643961326264383436306638613437653164333532653035386534393838653333316664222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a516d5534677045583734776d6e557035704a4c6f74674274513678685866524d324857635a6162617a746a6169663a616c6963652e6578616d706c652e6e657423616b3a6465766963653a30313939626262622d626262622d376262622d386262622d626262626262626262626262227d",
+    "public_key_base64url": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+    "expected_sig": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ",
+    "prestate_root": {
+      "controller_actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      },
+      "controller_epoch": 4,
+      "authority_generation": "2",
+      "authority_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+    },
+    "outer_signer_basis": {
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      },
+      "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc",
+      "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+    },
+    "successor_source": {
+      "actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:successor-station.example"
+        }
+      },
+      "principal_kind": "human",
+      "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+      "authorization_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+      "authorized_generation_ref": 7,
+      "current_generation_ref": 7,
+      "device_status": "accepted",
+      "account_status": "active",
+      "membership": "join",
+      "not_before": "2026-09-20T00:00:00.000Z",
+      "expires_at": "2026-09-20T01:00:00.000Z",
+      "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+      "public_key_base64url": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "scopes": [
+        "ak.realm.owner.transfer"
+      ]
+    },
+    "cases": [
+      {
+        "name": "accepted_human",
+        "expected_result": "accept"
+      },
+      {
+        "name": "scope_omitted",
+        "expected_result": "accept"
+      },
+      {
+        "name": "legacy_string",
+        "expected_result": "reject"
+      },
+      {
+        "name": "open_map",
+        "expected_result": "reject"
+      },
+      {
+        "name": "explicit_null",
+        "expected_result": "reject"
+      },
+      {
+        "name": "wrong_context",
+        "expected_result": "reject"
+      },
+      {
+        "name": "wrong_algorithm",
+        "expected_result": "reject"
+      },
+      {
+        "name": "changed_actor_resigned_outer",
+        "expected_result": "reject"
+      },
+      {
+        "name": "changed_scope_resigned_outer",
+        "expected_result": "reject"
+      },
+      {
+        "name": "changed_root_resigned_outer",
+        "expected_result": "reject"
+      },
+      {
+        "name": "changed_patch_resigned_outer",
+        "expected_result": "reject"
+      },
+      {
+        "name": "author_key_as_acceptance",
+        "expected_result": "reject"
+      },
+      {
+        "name": "wrong_key",
+        "expected_result": "reject"
+      },
+      {
+        "name": "wrong_station",
+        "expected_result": "reject"
+      },
+      {
+        "name": "wrong_device",
+        "expected_result": "reject"
+      },
+      {
+        "name": "generation_changed",
+        "expected_result": "reject"
+      },
+      {
+        "name": "revoked_device",
+        "expected_result": "reject"
+      },
+      {
+        "name": "deactivated_account",
+        "expected_result": "reject"
+      },
+      {
+        "name": "left_member",
+        "expected_result": "reject"
+      },
+      {
+        "name": "future_device",
+        "expected_result": "reject"
+      },
+      {
+        "name": "expired_device",
+        "expected_result": "reject"
+      },
+      {
+        "name": "acceptance_before_device_window",
+        "expected_result": "reject"
+      },
+      {
+        "name": "scope_empty",
+        "expected_result": "reject"
+      },
+      {
+        "name": "scope_unknown",
+        "expected_result": "reject"
+      },
+      {
+        "name": "scope_wildcard",
+        "expected_result": "reject"
+      },
+      {
+        "name": "scope_null",
+        "expected_result": "reject"
+      },
+      {
+        "name": "owned_agent_root",
+        "expected_result": "reject"
+      },
+      {
+        "name": "service_root",
+        "expected_result": "reject"
+      },
+      {
+        "name": "realm_actor_root",
+        "expected_result": "reject"
+      },
+      {
+        "name": "stale_root",
+        "expected_result": "reject"
+      },
+      {
+        "name": "returned_controller_new_epoch",
+        "expected_result": "reject"
+      },
+      {
+        "name": "counter_overflow",
+        "expected_result": "reject"
+      },
+      {
+        "name": "modified_outer_signature",
+        "expected_result": "reject"
+      }
+    ],
+    "evaluation_at": "2026-09-20T00:00:00.000Z",
+    "transport": {
+      "boundary": "Actual C-signature bytes and typed reference wrappers. did:web HTTPS retrieval/authority and both source document observations are qualified inputs, not native DID history or peer HTTP execution. Primary producer authority is checked separately by the original ingress.",
+      "query": {
+        "request_id": "ak:request:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+        "requester_account_id": {
+          "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "purpose": "realm_owner_transfer_acceptance",
+        "relationship_basis": {
+          "kind": "realm_membership",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "device_keys": [
+          {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            },
+            "device_ids": [
+              "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+            ]
+          }
+        ],
+        "owner_transfer_acceptance": {
+          "intent": {
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "payload_without_successor_acceptance": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "expected_state_digest": "sha256:4cd07db434164b221042f3e6b966241b8e4329f13a5c8bfe0215af3cad4f41ee",
+              "patch": {
+                "controller_actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:successor-station.example"
+                  }
+                }
+              }
+            }
+          },
+          "acceptance": {
+            "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+            "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ"
+          }
+        }
+      },
+      "origin_wrapper": {
+        "device_projection_attestation": {
+          "attestation": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            },
+            "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+            "device_signing_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+            "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+            "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "authorized_generation_ref": 7,
+            "device_status": "active",
+            "attested_at": "2026-09-20T00:00:00.000Z",
+            "expires_at": "2026-09-20T00:00:30.000Z",
+            "authorization_window": {
+              "not_before": "2026-09-20T00:00:00.000Z",
+              "expires_at": "2026-09-20T01:00:00.000Z"
+            },
+            "owner_transfer_acceptance_intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd"
+          },
+          "proof": {
+            "verification_method": "did:web:successor-station.example#assertion-1",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..KndbCwBS2d_NHsMQHveIa2ohougtkpgW89cqRqj09E8OI6emSlxPgVsBQ0Fxd6YJUFIWGT4eIqjA4482pl3wAg"
+          }
+        },
+        "service_resolution": {
+          "service_id": "ak:did_core:web:successor-station.example",
+          "service_kind": "station",
+          "method_history_evidence": {
+            "evidence_kind": "did_web_document",
+            "boundary": {
+              "from_method_history_head": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "to_method_history_head": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "from_version_id": "synthetic-jcs-sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "to_version_id": "synthetic-jcs-sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb"
+            },
+            "evidence": {
+              "kind": "ak.did.binding_evidence.v1",
+              "method": "web",
+              "document_digest": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "method_proofs": []
+            }
+          },
+          "normalized_did_document": {
+            "did": "did:web:successor-station.example",
+            "contexts": [
+              "https://www.w3.org/ns/did/v1"
+            ],
+            "controller_dids": [
+              "did:web:successor-station.example"
+            ],
+            "also_known_as": [],
+            "verification_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1",
+                "controller_did": "did:web:successor-station.example",
+                "verification_method_suite": "JsonWebKey2020",
+                "public_key_material": {
+                  "publicKeyJwk": {
+                    "kty": "OKP",
+                    "crv": "Ed25519",
+                    "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                  }
+                },
+                "extensions": []
+              }
+            ],
+            "authentication": [],
+            "assertion_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1"
+              }
+            ],
+            "key_agreements": [],
+            "capability_invocations": [],
+            "capability_delegations": [],
+            "services": [
+              {
+                "uri": "did:web:successor-station.example#arkret",
+                "protocol_names": [
+                  "ArkretService"
+                ],
+                "endpoint": "https://successor-station.example/",
+                "extensions": [
+                  {
+                    "name": "service_kind",
+                    "value": "station"
+                  }
+                ]
+              }
+            ],
+            "metadata": {},
+            "extensions": []
+          }
+        }
+      },
+      "peer_row_signer_evidence_ref": "ak:signer_evidence:sha256:516534e9b6a50bf9a0f6715aa364586906311a8e54af9d240a86feb3fafff9ab",
+      "evidence": {
+        "device_projection_attestation": {
+          "attestation": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            },
+            "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+            "device_signing_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+            "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+            "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "authorized_generation_ref": 7,
+            "device_status": "active",
+            "attested_at": "2026-09-20T00:00:00.000Z",
+            "expires_at": "2026-09-20T00:00:30.000Z",
+            "authorization_window": {
+              "not_before": "2026-09-20T00:00:00.000Z",
+              "expires_at": "2026-09-20T01:00:00.000Z"
+            },
+            "owner_transfer_acceptance_intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd"
+          },
+          "proof": {
+            "verification_method": "did:web:successor-station.example#assertion-1",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..KndbCwBS2d_NHsMQHveIa2ohougtkpgW89cqRqj09E8OI6emSlxPgVsBQ0Fxd6YJUFIWGT4eIqjA4482pl3wAg"
+          }
+        },
+        "service_resolution": {
+          "service_id": "ak:did_core:web:successor-station.example",
+          "service_kind": "station",
+          "method_history_evidence": {
+            "evidence_kind": "did_web_document",
+            "boundary": {
+              "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
+            },
+            "evidence": {
+              "kind": "ak.did.binding_evidence.v1",
+              "method": "web",
+              "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "method_proofs": []
+            }
+          },
+          "normalized_did_document": {
+            "did": "did:web:successor-station.example",
+            "contexts": [
+              "https://www.w3.org/ns/did/v1"
+            ],
+            "controller_dids": [
+              "did:web:successor-station.example"
+            ],
+            "also_known_as": [],
+            "verification_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1",
+                "controller_did": "did:web:successor-station.example",
+                "verification_method_suite": "JsonWebKey2020",
+                "public_key_material": {
+                  "publicKeyJwk": {
+                    "kty": "OKP",
+                    "crv": "Ed25519",
+                    "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                  }
+                },
+                "extensions": []
+              }
+            ],
+            "authentication": [],
+            "assertion_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1"
+              }
+            ],
+            "key_agreements": [],
+            "capability_invocations": [],
+            "capability_delegations": [],
+            "services": [
+              {
+                "uri": "did:web:successor-station.example#arkret",
+                "protocol_names": [
+                  "ArkretService"
+                ],
+                "endpoint": "https://successor-station.example/",
+                "extensions": [
+                  {
+                    "name": "service_kind",
+                    "value": "station"
+                  }
+                ]
+              }
+            ],
+            "metadata": {},
+            "extensions": [
+              {
+                "name": "x_fixture_observation",
+                "value": "alternate"
+              }
+            ]
+          }
+        }
+      },
+      "evidence_ref": "ak:signer_evidence:sha256:932f7b90ae6448329c8598d767db039b7d6d94f80ea5ce784f26f073cee315b9",
+      "fresh_evidence": {
+        "device_projection_attestation": {
+          "attestation": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+              "station_id": "ak:did_core:web:successor-station.example"
+            },
+            "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+            "device_signing_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+            "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+            "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "authorized_generation_ref": 7,
+            "device_status": "active",
+            "attested_at": "2026-09-20T00:00:01.000Z",
+            "expires_at": "2026-09-20T00:00:31.000Z",
+            "authorization_window": {
+              "not_before": "2026-09-20T00:00:00.000Z",
+              "expires_at": "2026-09-20T01:00:00.000Z"
+            },
+            "owner_transfer_acceptance_intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd"
+          },
+          "proof": {
+            "verification_method": "did:web:successor-station.example#assertion-1",
+            "created_at": "2026-09-20T00:00:01.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..qADEIMBPtdazFchsm4HO0pPBvW9r9k-1ZgVaeDPVzKQ2m-vIGd3kSaK6Q-UMq3Z9nv4JxVicSK_wMOXepux7Dw"
+          }
+        },
+        "service_resolution": {
+          "service_id": "ak:did_core:web:successor-station.example",
+          "service_kind": "station",
+          "method_history_evidence": {
+            "evidence_kind": "did_web_document",
+            "boundary": {
+              "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
+            },
+            "evidence": {
+              "kind": "ak.did.binding_evidence.v1",
+              "method": "web",
+              "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "method_proofs": []
+            }
+          },
+          "normalized_did_document": {
+            "did": "did:web:successor-station.example",
+            "contexts": [
+              "https://www.w3.org/ns/did/v1"
+            ],
+            "controller_dids": [
+              "did:web:successor-station.example"
+            ],
+            "also_known_as": [],
+            "verification_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1",
+                "controller_did": "did:web:successor-station.example",
+                "verification_method_suite": "JsonWebKey2020",
+                "public_key_material": {
+                  "publicKeyJwk": {
+                    "kty": "OKP",
+                    "crv": "Ed25519",
+                    "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                  }
+                },
+                "extensions": []
+              }
+            ],
+            "authentication": [],
+            "assertion_methods": [
+              {
+                "verification_method": "did:web:successor-station.example#assertion-1"
+              }
+            ],
+            "key_agreements": [],
+            "capability_invocations": [],
+            "capability_delegations": [],
+            "services": [
+              {
+                "uri": "did:web:successor-station.example#arkret",
+                "protocol_names": [
+                  "ArkretService"
+                ],
+                "endpoint": "https://successor-station.example/",
+                "extensions": [
+                  {
+                    "name": "service_kind",
+                    "value": "station"
+                  }
+                ]
+              }
+            ],
+            "metadata": {},
+            "extensions": [
+              {
+                "name": "x_fixture_observation",
+                "value": "alternate"
+              }
+            ]
+          }
+        }
+      },
+      "fresh_evidence_ref": "ak:signer_evidence:sha256:378d4206667565245be437762f588a9153b91efa47ac96221bf177ea8bf3c1e6",
+      "forward_body": {
+        "branch": "authority_forward",
+        "event_submission": {
+          "event": {
+            "kind": "ak.realm.owner.transfer",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "payload": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "expected_state_digest": "sha256:4cd07db434164b221042f3e6b966241b8e4329f13a5c8bfe0215af3cad4f41ee",
+              "patch": {
+                "controller_actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:successor-station.example"
+                  }
+                }
+              },
+              "successor_acceptance": {
+                "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+                "signature_algorithm": "Ed25519",
+                "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+                "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+                "created_at": "2026-09-20T00:00:00.000Z",
+                "signature": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ"
+              }
+            },
+            "event_id": "ak:event:AYpXvJQcxb1TSx3SRkcZTxST4lNcbsQMmhkToX86Cc_5",
+            "producer_proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc",
+              "event_digest": "sha256:8a57bc941cc5bd534b1dd24647194f1493e2535c6ec40c9a1913a17f3a09cff9",
+              "created_at": "2026-09-20T00:00:00.000Z",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..6EBY9aQRcfSR7UKYPUuhqA17n2iNVEmBaPpsXLdMimyNZd1-8fbHLTWxo_9XP0bD6f5u2vLRU0_bVmvj4dJ2AQ"
+            }
+          }
+        },
+        "successor_device_evidence": {
+          "device_projection_attestation": {
+            "attestation": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "station_id": "ak:did_core:web:successor-station.example"
+              },
+              "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+              "device_signing_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+              "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+              "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "authorized_generation_ref": 7,
+              "device_status": "active",
+              "attested_at": "2026-09-20T00:00:00.000Z",
+              "expires_at": "2026-09-20T00:00:30.000Z",
+              "authorization_window": {
+                "not_before": "2026-09-20T00:00:00.000Z",
+                "expires_at": "2026-09-20T01:00:00.000Z"
+              },
+              "owner_transfer_acceptance_intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd"
+            },
+            "proof": {
+              "verification_method": "did:web:successor-station.example#assertion-1",
+              "created_at": "2026-09-20T00:00:00.000Z",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..KndbCwBS2d_NHsMQHveIa2ohougtkpgW89cqRqj09E8OI6emSlxPgVsBQ0Fxd6YJUFIWGT4eIqjA4482pl3wAg"
+            }
+          },
+          "service_resolution": {
+            "service_id": "ak:did_core:web:successor-station.example",
+            "service_kind": "station",
+            "method_history_evidence": {
+              "evidence_kind": "did_web_document",
+              "boundary": {
+                "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
+              },
+              "evidence": {
+                "kind": "ak.did.binding_evidence.v1",
+                "method": "web",
+                "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "method_proofs": []
+              }
+            },
+            "normalized_did_document": {
+              "did": "did:web:successor-station.example",
+              "contexts": [
+                "https://www.w3.org/ns/did/v1"
+              ],
+              "controller_dids": [
+                "did:web:successor-station.example"
+              ],
+              "also_known_as": [],
+              "verification_methods": [
+                {
+                  "verification_method": "did:web:successor-station.example#assertion-1",
+                  "controller_did": "did:web:successor-station.example",
+                  "verification_method_suite": "JsonWebKey2020",
+                  "public_key_material": {
+                    "publicKeyJwk": {
+                      "kty": "OKP",
+                      "crv": "Ed25519",
+                      "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                    }
+                  },
+                  "extensions": []
+                }
+              ],
+              "authentication": [],
+              "assertion_methods": [
+                {
+                  "verification_method": "did:web:successor-station.example#assertion-1"
+                }
+              ],
+              "key_agreements": [],
+              "capability_invocations": [],
+              "capability_delegations": [],
+              "services": [
+                {
+                  "uri": "did:web:successor-station.example#arkret",
+                  "protocol_names": [
+                    "ArkretService"
+                  ],
+                  "endpoint": "https://successor-station.example/",
+                  "extensions": [
+                    {
+                      "name": "service_kind",
+                      "value": "station"
+                    }
+                  ]
+                }
+              ],
+              "metadata": {},
+              "extensions": [
+                {
+                  "name": "x_fixture_observation",
+                  "value": "alternate"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "fresh_forward_body": {
+        "branch": "authority_forward",
+        "event_submission": {
+          "event": {
+            "kind": "ak.realm.owner.transfer",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "payload": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "expected_state_digest": "sha256:4cd07db434164b221042f3e6b966241b8e4329f13a5c8bfe0215af3cad4f41ee",
+              "patch": {
+                "controller_actor_id": {
+                  "kind": "account",
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                    "station_id": "ak:did_core:web:successor-station.example"
+                  }
+                }
+              },
+              "successor_acceptance": {
+                "context": "ak.realm_owner_transfer_acceptance_signature.v1",
+                "signature_algorithm": "Ed25519",
+                "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+                "signed_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+                "created_at": "2026-09-20T00:00:00.000Z",
+                "signature": "fVasS9q1G8FEXFRdjAicsXmjNrP1kZAw6Des1wvRaV7pmgJ1V0bDac3E_lUmvxfvV4TBZKQsfHNbdKlhTp4jCQ"
+              }
+            },
+            "event_id": "ak:event:AYpXvJQcxb1TSx3SRkcZTxST4lNcbsQMmhkToX86Cc_5",
+            "producer_proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc",
+              "event_digest": "sha256:8a57bc941cc5bd534b1dd24647194f1493e2535c6ec40c9a1913a17f3a09cff9",
+              "created_at": "2026-09-20T00:00:00.000Z",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..6EBY9aQRcfSR7UKYPUuhqA17n2iNVEmBaPpsXLdMimyNZd1-8fbHLTWxo_9XP0bD6f5u2vLRU0_bVmvj4dJ2AQ"
+            }
+          }
+        },
+        "successor_device_evidence": {
+          "device_projection_attestation": {
+            "attestation": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
+                "station_id": "ak:did_core:web:successor-station.example"
+              },
+              "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+              "device_signing_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+              "hpke_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+              "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "authorized_generation_ref": 7,
+              "device_status": "active",
+              "attested_at": "2026-09-20T00:00:01.000Z",
+              "expires_at": "2026-09-20T00:00:31.000Z",
+              "authorization_window": {
+                "not_before": "2026-09-20T00:00:00.000Z",
+                "expires_at": "2026-09-20T01:00:00.000Z"
+              },
+              "owner_transfer_acceptance_intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd"
+            },
+            "proof": {
+              "verification_method": "did:web:successor-station.example#assertion-1",
+              "created_at": "2026-09-20T00:00:01.000Z",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..qADEIMBPtdazFchsm4HO0pPBvW9r9k-1ZgVaeDPVzKQ2m-vIGd3kSaK6Q-UMq3Z9nv4JxVicSK_wMOXepux7Dw"
+            }
+          },
+          "service_resolution": {
+            "service_id": "ak:did_core:web:successor-station.example",
+            "service_kind": "station",
+            "method_history_evidence": {
+              "evidence_kind": "did_web_document",
+              "boundary": {
+                "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
+              },
+              "evidence": {
+                "kind": "ak.did.binding_evidence.v1",
+                "method": "web",
+                "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "method_proofs": []
+              }
+            },
+            "normalized_did_document": {
+              "did": "did:web:successor-station.example",
+              "contexts": [
+                "https://www.w3.org/ns/did/v1"
+              ],
+              "controller_dids": [
+                "did:web:successor-station.example"
+              ],
+              "also_known_as": [],
+              "verification_methods": [
+                {
+                  "verification_method": "did:web:successor-station.example#assertion-1",
+                  "controller_did": "did:web:successor-station.example",
+                  "verification_method_suite": "JsonWebKey2020",
+                  "public_key_material": {
+                    "publicKeyJwk": {
+                      "kty": "OKP",
+                      "crv": "Ed25519",
+                      "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                    }
+                  },
+                  "extensions": []
+                }
+              ],
+              "authentication": [],
+              "assertion_methods": [
+                {
+                  "verification_method": "did:web:successor-station.example#assertion-1"
+                }
+              ],
+              "key_agreements": [],
+              "capability_invocations": [],
+              "capability_delegations": [],
+              "services": [
+                {
+                  "uri": "did:web:successor-station.example#arkret",
+                  "protocol_names": [
+                    "ArkretService"
+                  ],
+                  "endpoint": "https://successor-station.example/",
+                  "extensions": [
+                    {
+                      "name": "service_kind",
+                      "value": "station"
+                    }
+                  ]
+                }
+              ],
+              "metadata": {},
+              "extensions": [
+                {
+                  "name": "x_fixture_observation",
+                  "value": "alternate"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "stable_business_digest": "sha256:4ea54ffdfbf62037dc06594efda71fa38e21d476712536b986923fd514f031a1",
+      "full_http_body_digest": "sha256:f1bcc6262f835931805f45053406abd70f75db7439e98b516734b30c22f59420",
+      "fresh_full_http_body_digest": "sha256:f9b01e8ec756719f38b4cd2ae5caf93ddb3668a8f56e85b76f0e3ea46b638932",
+      "cases": [
+        {
+          "name": "original_source",
+          "expected_result": "accept"
+        },
+        {
+          "name": "fresh_source_same_intent",
+          "expected_result": "accept"
+        },
+        {
+          "name": "candidate_before_source",
+          "expected_result": "reject"
+        },
+        {
+          "name": "candidate_after_source_expiry",
+          "expected_result": "reject"
+        },
+        {
+          "name": "future_source",
+          "expected_result": "reject"
+        },
+        {
+          "name": "old_source_expired",
+          "expected_result": "reject"
+        },
+        {
+          "name": "fresh_source_expired",
+          "expected_result": "reject"
+        },
+        {
+          "name": "c_row_ref_on_a_wrapper",
+          "expected_result": "reject"
+        },
+        {
+          "name": "c_signature_changed",
+          "expected_result": "reject"
+        },
+        {
+          "name": "c_intent_digest_changed",
+          "expected_result": "reject"
+        },
+        {
+          "name": "ordinary_c_row_for_owner",
+          "expected_result": "reject"
+        },
+        {
+          "name": "contact_query",
+          "expected_result": "reject"
+        },
+        {
+          "name": "batch_query",
+          "expected_result": "reject"
+        }
+      ],
+      "retention_boundary": "archive_input_coordinates are pre-acceptance reference inputs. Native admission must atomically bind the actual resulting Event/RealmCommit and original W1 full wrapper/ref, and handoff its complete opaque management-state set; this KAT does not manufacture a successful native Commit, private archive or handoff.",
+      "archive_input_coordinates": {
+        "event_id": "ak:event:AYpXvJQcxb1TSx3SRkcZTxST4lNcbsQMmhkToX86Cc_5",
+        "intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
+        "successor_proof_digest": "sha256:1de4ac2a3c97795e6486ae1569b9528dc6d709644dee114b7e4f6dbb9606bc3f",
+        "successor_evidence_ref": "ak:signer_evidence:sha256:932f7b90ae6448329c8598d767db039b7d6d94f80ea5ce784f26f073cee315b9"
+      }
+    }
+  }
 }

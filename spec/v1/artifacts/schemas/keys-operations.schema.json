@@ -182,7 +182,7 @@
     },
     "device_projection_attestation_core": {
       "type": "object",
-      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted RealmCommit, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+      "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted RealmCommit, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3. The finite owner-transfer peer purpose alone may add owner_transfer_acceptance_intent_digest; this is covered by the unchanged full-wrapper payload_digest and original origin proof. It does not appear in the self verified_device_projection.",
       "required": [
         "account_id",
         "device_id",
@@ -259,6 +259,10 @@
           },
           "additionalProperties": false,
           "description": "Exact source device authorization window. null expiry means no time limit. This is distinct from attestation cache freshness; ordinary publication uses this window and applicable revocation closures."
+        },
+        "owner_transfer_acceptance_intent_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "Present if and only if the origin is answering peer purpose realm_owner_transfer_acceptance, after checking the exact finite intent and original successor signature against current native Human Account Device sources and the raw Device key-use ceiling. Exactly SHA256(JCS(intent)). This signed field is not a generic verified flag, scope mirror or root authority. Ordinary directory/query purposes MUST omit it. The origin expiry is min(attested_at+30 seconds, actual source/Device window deadlines), and the governor checks this deadline again after every acceptance lock; it is not a lease."
         }
       },
       "additionalProperties": false
@@ -835,11 +839,12 @@
     },
     "peer_keys_query_purpose": {
       "type": "string",
-      "description": "Declared use of the requested directory rows. The destination authorizes each purpose independently and MUST NOT clear the broadest one once.",
+      "description": "Declared use of the requested directory rows. The destination authorizes each purpose independently and MUST NOT clear the broadest one once. realm_owner_transfer_acceptance is the finite successor-signature purpose only, with its required exact intent and acceptance; it grants no media/encryption/MLS or root permission.",
       "enum": [
         "e2ee_message_encryption",
         "mls_group_admission",
-        "call_media"
+        "call_media",
+        "realm_owner_transfer_acceptance"
       ],
       "x-arkret-value-ownership": {
         "class": "owned_symbol",
@@ -848,7 +853,8 @@
         "values": [
           "e2ee_message_encryption",
           "mls_group_admission",
-          "call_media"
+          "call_media",
+          "realm_owner_transfer_acceptance"
         ]
       }
     },
@@ -903,7 +909,7 @@
     },
     "peer_keys_query_request_body": {
       "type": "object",
-      "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract. Realm requester is restricted to MLS admission in its own Realm, with ordinary Account device targets only. The relationship realm_id MUST equal requester_actor_id.realm_actor_id.realm_id; current governor and both joined memberships are independently verified. Existing MLS capability, membership and policy rules remain unchanged.",
+      "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract. Realm requester is restricted to MLS admission in its own Realm, with ordinary Account device targets only. The relationship realm_id MUST equal requester_actor_id.realm_actor_id.realm_id; current governor and both joined memberships are independently verified. Existing MLS capability, membership and policy rules remain unchanged. Owner-transfer acceptance additionally binds the original Account author/Realm and exactly one successor Account+Device to the finite intent. The origin validates current native Human Device key scope, lifecycle, generation, window and that original successor signature before issuing the existing signed row with the intent digest; no raw scope list is returned.",
       "required": [
         "request_id",
         "purpose",
@@ -932,6 +938,23 @@
         "device_keys": {
           "$ref": "#/$defs/query_account_device_selectors",
           "description": "Targets for this destination only: every account_id.station_id MUST equal the authenticated Destination-Service-ID."
+        },
+        "owner_transfer_acceptance": {
+          "type": "object",
+          "required": [
+            "intent",
+            "acceptance"
+          ],
+          "properties": {
+            "intent": {
+              "$ref": "./event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript"
+            },
+            "acceptance": {
+              "$ref": "./detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Required exactly for purpose=realm_owner_transfer_acceptance. Exact original finite intent and independent successor signature; no final EventId or extra current-scope mirror. Source-Service-ID is the original author Account Station, never a governor impersonating that Account."
         }
       },
       "additionalProperties": false,
@@ -992,6 +1015,72 @@
                   }
                 }
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "realm_owner_transfer_acceptance",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/if/properties/purpose",
+                  "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/if/properties/purpose",
+                  "values": [
+                    "realm_owner_transfer_acceptance"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          "then": {
+            "required": [
+              "requester_account_id",
+              "owner_transfer_acceptance"
+            ],
+            "properties": {
+              "relationship_basis": {
+                "properties": {
+                  "kind": {
+                    "const": "realm_membership",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis/properties/kind",
+                      "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis/properties/kind",
+                      "values": [
+                        "realm_membership"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              },
+              "device_keys": {
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "device_ids": {
+                      "minItems": 1,
+                      "maxItems": 1,
+                      "$ref": "#/$defs/query_account_device_selectors/items/properties/device_ids"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "owner_transfer_acceptance"
+              ]
             }
           }
         }

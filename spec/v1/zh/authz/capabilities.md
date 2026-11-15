@@ -159,7 +159,33 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 current-v1 **不定义** authority-policy override current state、role-assignment current state 或 deployment-local owner override。owner 的 direct Event coverage 与 grant issuer ceiling 分别是 fixed reducer semantics bundle 中冻结的 `ak.realm.owner.target_event_kinds` 与 `grant_authority_actions`；偏离默认只能通过本规范已经定义的显式 capability grant、revoke、constraint 与对应 policy control state 表达。实现不得从未知 current state、配置文件、`ServiceDescribe`、membership role 或 UI role 标签扩张/收窄这两个集合。这样 current state 缺席不是 fallback，而是 current-v1 的唯一协议状态。
 
-**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root current state 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST 以 `realm_authority_root_conflict` fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖完整 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
+**Authority-root successor counters（normative）**：`ak.realm.owner.transfer` 与 `ak.realm.authority.reset` 都以签名内的 `expected_state_digest` 对 authority-root current state 做 CAS，故 successor counter 没有 author 可选值。transfer 的 `payload.patch` 只允许 `controller_actor_id`；registered reducer contract 必须从该 digest 锁定的冻结前态计算 `controller_epoch = checked_add(prestate.controller_epoch, 1)`。reset 不携带 `patch`；contract 必须计算 `authority_generation = checked_add(prestate.authority_generation, 1)`。两项加法均受 [`encoding.md` §1](../conformance/encoding.md) JSON safe-integer 上限约束，溢出 MUST 以 `realm_authority_root_conflict` fail closed；不得 wrap、饱和或保留旧值。transfer 保留 authority generation，reset 保留 controller 与 controller epoch。`successor_acceptance` 覆盖下述有限 intent 中除自身以外的完整业务 payload 及 `expected_state_digest`，因此也唯一绑定 computed successor epoch，无需在 wire 上复述它。并发或 stale 前态仍由同一 CAS 拒绝。
+
+**普通协作 Realm 的可操作 root 资格（normative）**：普通 Collaboration 首次建根与 owner transfer 的 prospective controller 必须使用相同资格门：完整普通 Human Account，以及该账号真实 current accepted Account Device 的原生身份签署来源。必须核完整 AccountId（含 Station）、已接受主体分类／joined membership、Account lifecycle、具体 Device、原授权 Event、current generation、未撤销及其实际公钥／方法。不能只按 `ActorId` union、DID 文档、membership、`created_by` 或自报公钥推导 root 资格。首次 bootstrap 的 joined membership 沿该原子 unit 的原 staged 规则，不要求建根前已存在成员行；PCR／Agent control／Direct 的专用 genesis 合同及治理 Station 资格不被本段改写。
+
+owned Agent 的普通行为仍须与主人当前行动权求 AND；转根后 `Root(Agent) AND Root(owner)` 在二者不同且唯一 root 下不可满足，故不得把 Agent 写成普通 Collaboration prospective root，不得为此删掉 AND／管理 gate。RealmActor 的 control key 仅供已登记 realm_control kinds，其业务 Device 依赖真实 terminal child，而 root_control_only 不能由 child grant 获得；Service 同样没有本规范已登记的独立 native root 路径。因此 Agent／RealmActor／Service prospective 分支当前 MUST fail closed，不能借新 acceptance context 扩充 key 用途或提供 root 例外；Applet 不是 Actor。该资格门只约束新的普通建根／转移，不重写已 accepted 历史、原 Grant 或专用控制 Realm。未来支持其它角色须先闭合其可操作根控来源，不能由 union 的可解析性推定支持。
+
+**独立 successor acceptance（normative）**：`payload.successor_acceptance` MUST 是现 shared `DetachedObjectSignature` 的 closed `realm_owner_transfer_acceptance_signature` 分支，context 唯一为 `ak.realm_owner_transfer_acceptance_signature.v1`。旧非空字符串／开放 Map、显式 null、错误 context／algorithm 都不属于合同。该签名的 registered unsigned projection 精确为：
+
+```text
+{
+  scope_ref: enclosing Event.scope_ref,
+  actor_id: enclosing Event.actor_id,
+  payload_without_successor_acceptance: {
+    realm_id: payload.realm_id,
+    expected_state_digest: payload.expected_state_digest,
+    patch: {controller_actor_id: payload.patch.controller_actor_id}
+  }
+}
+```
+
+它的 closed schema 为 `event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript`。scope 必须是目标普通 Collaboration 的合法 Realm scope，payload.realm_id／outer Realm 必须相等；两 Actor 均逐字保留完整身份。固定 context 已唯一选择 Event kind，不重复 kind。successor 先按现 detached-object 规则对 `SHA256(JCS(intent))` 构造签名；current controller 再对包含该 acceptance 的完整最终 Event 作原 producer proof，最后派生 EventId。intent 不含 acceptance、自身签名、外层 producer_proof 或 EventId；不得签一个含自身的 payload，也不得用最终 EventId approval 冒替预签同意。更改 scope／当前 actor／前态 digest／目标 patch 任一项都须重新取得 successor 签名。
+
+normal first-admission 必须独立解析 patch 指定 successor 的真实 current accepted Account Device 身份 key；它不是外层作者 Device。Human `ak.device.authorize.scopes` 省略时沿原无显式 ceiling；若声明 string-list，此有限 acceptance 用途必须逐字包含已有 `ak.realm.owner.transfer`。未知 token、空列表或 wildcard 不授本用途，显式 null 原 payload 非法（possession transcript 的省略归一化 null 不改变 payload 合同）。这只是 Device-key 用途 ceiling，不要求 prospective 在成为 controller 前已经拥有不可 grant 的 root action。当前作者自己的 root_control_only、approval／quota 和所有原 current 门独立保持。
+
+跨站 successor 当前来源仅走 [`device-lifecycle.md` §8.2.1](../crypto-media/device-lifecycle.md#821-跨站-peer-设备目录与-prekey-lookupnormative) 的有限 owner-transfer peer 用途与独立 `successor_device_evidence`，不能用媒体／MLS目录目的冒取材料。原作者自己的 Station 正当查询 successor Station；治理方不创建代理账号，不直读 foreign PCR。C 的原签绑定本 intent，≤30s 观察在最终接纳锁后仍须有效；这不承诺跨站即时原子或租约。首次接受的原 C 完整证据／自己的 ref／B proof 与原 Event／Commit 在同事务保留，后来的 exact replay／handoff 不重取当前 key 改释历史。
+
+实际治理 Station 必须在原 root CAS 的同一接纳 cut 重核双方身份／资格、successor 原方法／key 撤销与代次、expected root digest 及签名；来源不可得时沿既有不可用合同拒绝，不能伪造 verified flag、用外层签名代替第二主体，或跨服务读其它业务库。任一首次门失败不得写 root、Commit 或消费 approval／quota。exact 已 accepted 完整 Event 则沿原件路返回同一个原 Commit，不按后来 successor 换 key／生命周期或当前 controller 重做一次转移。未 accepted 的签名不等于已接受事实；stale digest、A→B→A 不同 epoch、overflow 和并发仍由原 CAS／checked_add 拒绝。
 
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；

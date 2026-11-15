@@ -1414,7 +1414,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/current_call_recording_artifact/properties/value",
-          "notes": "call-state.md section 4.1: atomically create pending with capture permission. call_capture_pending_details copies payload.capture_metadata and attaches the accepted envelope EventID under recording_start_event_id or transcript_start_event_id selected by capture_kind. No producer-supplied self EventID is accepted."
+          "notes": "call-state.md section 4.1: atomically create pending with capture permission. call_capture_pending_details copies payload.capture_metadata and attaches the accepted envelope EventID under recording_start_event_id or transcript_start_event_id selected by capture_kind. No producer-supplied self EventID is accepted. Recording Start freezes the current same-scope accepted winning MLS key_ref; pending details copy the exact raw key_ref. Ready retains it and uses the single RTC XChaCha STREAM codec in call-state section 5.3; no latest-epoch substitution or attachment Context."
         },
         {
           "state_family": "call_transcript_artifact",
@@ -6506,7 +6506,7 @@
             "authority_event_ref"
           ],
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/realm_authority_root_value",
-          "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0. authority_event_ref is preserved with authority_generation; the current revision is not the delegation anchor."
+          "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0. authority_event_ref is preserved with authority_generation; the current revision is not the delegation anchor. First admission independently verifies the closed successor acceptance and current Human Account Device root eligibility from capabilities.md section 3.2 under the same acceptance cut; author root control is a separate gate. Exact accepted Event retry preserves the original Commit and does not re-exercise transfer authority."
         }
       ],
       "effect_ownership": {

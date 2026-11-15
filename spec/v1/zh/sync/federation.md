@@ -132,6 +132,8 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)，正负例由
 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
+Owner-transfer 的独立 successor 不借 primary producer 来源：仅该 kind 的 authority_forward 单 Event 另必携 `successor_device_evidence`。原作者 OwnStation 通过既有 peer keys lookup 的有限 `realm_owner_transfer_acceptance` purpose 取得 C 原签 intent-bound 当前观察，G 按 [device-lifecycle §8.2.1](../crypto-media/device-lifecycle.md#821-跨站-peer-设备目录与-prekey-lookupnormative) 独立核完整来源与最后接纳 deadline。fresh sibling 排除稳定业务 digest，HTTP 完整 body 仍全部认证；原 B proof／A Event 不变、accepted 原件／私有 C 证据不可覆盖。C 不是外层作者，现 actual-producer historical fact/query 不被扩充为 B key 查询。
+
 Realm Bot／Ghost 直接由所属 Realm 当前治理方验证 realm_control 中的身份、控制、Device 与当前业务门；不得携跨站 Account 来源证明。普通 Account 的 producer_device_evidence 合同保持不变。历史复制只披露最小 realm_device fact，私有控制原件不进入成员 fanout。
 
 #### 4.1.1 Realm fanout 目标集合与持久 intent（normative）

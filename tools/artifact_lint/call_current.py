@@ -14,6 +14,7 @@ from referencing import Registry, Resource
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .core import ARTIFACTS, Lint, load_json
+from tools.call_recording_codec import b64u, open_recording, run_codec_case, seal, unb64u
 from tools.generate_call_current_fixture import (
     ACTOR, OTHER, VECTOR, build_fixture, call_write_indices, jcs, project, revision,
     sign_snapshot, source, target, typed_id,
@@ -208,6 +209,8 @@ def refresh_allowed(roster, moderation, actor, device):
 
 
 def run_case(fixture, name):
+    if name.startswith('recording_codec_'):
+        return run_codec_case(fixture['capture_transcripts']['recording_codec_kat'], name)
     case = next((case for case in fixture['cases'] if case['name'] == name), {})
     snapshot = copy.deepcopy(fixture['checkpoints'][case.get('checkpoint', -1)])
     request, response = copy.deepcopy(fixture['request_context']), copy.deepcopy(fixture['response_context'])
@@ -355,6 +358,17 @@ def run_case(fixture, name):
 def validate_capture_transcripts(fixture):
     """Verify signed capture originals and independently fold the two axes."""
     transcript = fixture['capture_transcripts']
+    kat = transcript['recording_codec_kat']
+    if kat['start_event'] != transcript['original_rows'][0]['event']:
+        raise ValueError('recording KAT must use the original signed Start')
+    for vector in kat['vectors']:
+        artifact, expected = seal(unb64u(vector['plaintext']), vector['artifact'], kat['start_event'], kat['qualified_source'])
+        if artifact != vector['artifact'] or expected != vector['expected']:
+            raise ValueError('recording RFC 9420 or XChaCha byte KAT drift')
+        if b64u(open_recording(unb64u(expected['ciphertext']), artifact, kat['start_event'], kat['qualified_source'])) != vector['plaintext']:
+            raise ValueError('recording decoded bytes')
+    if kat['vectors'][0]['artifact'] != transcript['original_rows'][3]['event']['payload']['recording_transition']['capture_metadata']['artifact']:
+        raise ValueError('recording ready must bind the actual ciphertext KAT')
     states, results, starts, stops = {}, {}, {}, {}
     grant = transcript['initiator_grant_source']
     originals = [grant, *transcript['original_rows']]

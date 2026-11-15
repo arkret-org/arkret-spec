@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:64815cec6e0e6b5d0bc300eee171f3e3e7657a1b39c04c4a45a87065a3862264",
+  "contract_digest": "sha256:0a47ff29339938877ab6195854a8787ed9c128d3a1a1a7b49f0c5389f75d10cf",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -20401,6 +20401,10 @@
               },
               "atomic_producer_evidence": {
                 "$ref": "#/$defs/audit_pair_producer_evidence"
+              },
+              "successor_device_evidence": {
+                "$ref": "./account-device-signer-evidence.schema.json",
+                "description": "Required only for authority_forward event_submission whose exact Event kind is ak.realm.owner.transfer; forbidden for all other kinds, MLS, atomic and replication branches. Complete original successor Account Station evidence carrying owner_transfer_acceptance_intent_digest for the exact finite intent, independently verified from primary producer_device_evidence. Fresh transport evidence is excluded from the stable forward-body/idempotency projection just like existing mutable producer evidence, but remains included in the full HTTP authenticated body. The successor signature and full producer Event remain byte-identical across refreshed evidence; accepted exact Event retry returns original outcome before new-admission freshness."
               }
             },
             "oneOf": [
@@ -20541,6 +20545,11 @@
                       "required": [
                         "atomic_producer_evidence"
                       ]
+                    },
+                    {
+                      "required": [
+                        "successor_device_evidence"
+                      ]
                     }
                   ]
                 }
@@ -20599,6 +20608,11 @@
                     {
                       "required": [
                         "producer_agent_evidence"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "successor_device_evidence"
                       ]
                     }
                   ]
@@ -20668,6 +20682,11 @@
                       "required": [
                         "content_backup_sources"
                       ]
+                    },
+                    {
+                      "required": [
+                        "successor_device_evidence"
+                      ]
                     }
                   ]
                 }
@@ -20736,6 +20755,11 @@
                       "required": [
                         "content_backup_sources"
                       ]
+                    },
+                    {
+                      "required": [
+                        "successor_device_evidence"
+                      ]
                     }
                   ]
                 }
@@ -20749,6 +20773,64 @@
                     "producer_device_evidence",
                     "producer_agent_evidence"
                   ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "branch": {
+                      "const": "authority_forward",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/branch",
+                        "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/branch",
+                        "values": [
+                          "authority_forward"
+                        ]
+                      }
+                    },
+                    "event_submission": {
+                      "properties": {
+                        "event": {
+                          "properties": {
+                            "kind": {
+                              "const": "ak.realm.owner.transfer",
+                              "x-arkret-value-ownership": {
+                                "class": "namespaced_symbol",
+                                "authority": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind",
+                                "values": [
+                                  "ak.realm.owner.transfer"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "kind"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "event"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "branch",
+                    "event_submission"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "successor_device_evidence"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "successor_device_evidence"
+                    ]
+                  }
                 }
               }
             ],
@@ -25424,7 +25506,9 @@
           },
           "size_bytes": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 16,
+            "maximum": 8796109799424,
+            "description": "Exact stored ciphertext octet length B, including all 16-byte segment tags. Plaintext length and segment count are uniquely derived with segment_bytes, never separate wire members; see call-state.md section 5.3."
           },
           "duration_ms": {
             "type": "integer",
@@ -25518,26 +25602,21 @@
             "required": [
               "encryption_algorithm",
               "exporter_label",
-              "context"
+              "context",
+              "key_ref",
+              "nonce_prefix",
+              "segment_bytes"
             ],
             "properties": {
               "encryption_algorithm": {
                 "type": "string",
-                "enum": [
-                  "mls_exporter_aead_xchacha20poly1305",
-                  "mls_exporter_aead_aes_256_gcm",
-                  "mls_exporter_aead_xchacha20poly1305_stream",
-                  "mls_exporter_aead_aes_256_gcm_stream"
-                ],
+                "const": "mls_exporter_aead_xchacha20poly1305_stream",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
                   "authority": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
                   "owner": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/encryption_algorithm",
                   "values": [
-                    "mls_exporter_aead_xchacha20poly1305",
-                    "mls_exporter_aead_aes_256_gcm",
-                    "mls_exporter_aead_xchacha20poly1305_stream",
-                    "mls_exporter_aead_aes_256_gcm_stream"
+                    "mls_exporter_aead_xchacha20poly1305_stream"
                   ]
                 }
               },
@@ -25584,9 +25663,21 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "key_ref": {
+                "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+              },
+              "nonce_prefix": {
+                "$ref": "./blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/nonce_prefix",
+                "pattern": "^[A-Za-z0-9_-]{25}[AQgw]$",
+                "description": "Canonical base64url-no-pad of exactly 19 CSPRNG octets, frozen with one encryption attempt. Reuse only for byte-identical ciphertext replay."
+              },
+              "segment_bytes": {
+                "$ref": "./blob.schema.json#/$defs/encrypted_attachment/oneOf/1/properties/segment_bytes"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Single RTC recording STREAM codec. key_ref is byte-equivalent to the original accepted recording Start capture_metadata.key_ref. Source scope/genesis/epoch are verified before the registered RTC MLS-Exporter; this is not AttachmentContentKeyContext. Nonce, online AAD and ciphertext-length inversion are normative in call-state.md section 5.3."
           },
           "call_recording_retention": {
             "type": "object",
@@ -38459,6 +38550,26 @@
                         "additionalProperties": false
                       },
                       {
+                        "type": "object",
+                        "required": [
+                          "key_ref",
+                          "retention",
+                          "recording_start_event_id"
+                        ],
+                        "properties": {
+                          "key_ref": {
+                            "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+                          },
+                          "retention": {
+                            "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention"
+                          },
+                          "recording_start_event_id": {
+                            "$ref": "./common-ids.schema.json#/$defs/event_id"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
                         "allOf": [
                           {
                             "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
@@ -38547,28 +38658,18 @@
                     "then": {
                       "properties": {
                         "details": {
+                          "type": "object",
                           "required": [
+                            "key_ref",
                             "retention",
                             "recording_start_event_id"
                           ],
-                          "not": {
-                            "anyOf": [
-                              {
-                                "required": [
-                                  "recording_stop_event_id"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "failure_reason_code"
-                                ]
-                              }
-                            ]
-                          },
-                          "type": "object",
                           "properties": {
+                            "key_ref": {
+                              "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+                            },
                             "retention": {
-                              "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata/properties/retention"
+                              "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention"
                             },
                             "recording_start_event_id": {
                               "$ref": "./common-ids.schema.json#/$defs/event_id"
@@ -43440,7 +43541,8 @@
               "ak.realm_actor_recovery_acceptance_signature.v1",
               "ak.realm_actor_content_backup_admission_signature.v1",
               "ak.realm_actor_content_backup_offer_signature.v1",
-              "ak.realm_actor_content_backup_confirmation_signature.v1"
+              "ak.realm_actor_content_backup_confirmation_signature.v1",
+              "ak.realm_owner_transfer_acceptance_signature.v1"
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
@@ -43460,7 +43562,8 @@
                 "ak.realm_actor_recovery_acceptance_signature.v1",
                 "ak.realm_actor_content_backup_admission_signature.v1",
                 "ak.realm_actor_content_backup_offer_signature.v1",
-                "ak.realm_actor_content_backup_confirmation_signature.v1"
+                "ak.realm_actor_content_backup_confirmation_signature.v1",
+                "ak.realm_owner_transfer_acceptance_signature.v1"
               ]
             }
           },
@@ -43795,6 +43898,28 @@
                       "owner": "detached-object-signature.schema.json#/$defs/realm_actor_content_backup_confirmation_signature/allOf/1/properties/context",
                       "values": [
                         "ak.realm_actor_content_backup_confirmation_signature.v1"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "realm_owner_transfer_acceptance_signature": {
+            "allOf": [
+              {
+                "$ref": "#"
+              },
+              {
+                "properties": {
+                  "context": {
+                    "const": "ak.realm_owner_transfer_acceptance_signature.v1",
+                    "x-arkret-value-ownership": {
+                      "class": "namespaced_symbol",
+                      "authority": "detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature/allOf/1/properties/context",
+                      "owner": "detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature/allOf/1/properties/context",
+                      "values": [
+                        "ak.realm_owner_transfer_acceptance_signature.v1"
                       ]
                     }
                   }
@@ -59529,11 +59654,14 @@
               },
               "capture_metadata": {
                 "type": "object",
-                "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result current state.",
+                "description": "Initial immutable capture evidence. retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state. This wire payload MUST NOT carry recording_start_event_id or transcript_start_event_id: the accepted Event identity is derived only after digesting this payload, and the reducer stamps that identity into the projected result current state. Recording starts freeze the exact current accepted winning MLS state in key_ref; transcript starts retain their existing shape and do not carry this recording-only member.",
                 "required": [
                   "retention"
                 ],
                 "properties": {
+                  "key_ref": {
+                    "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+                  },
                   "retention": {
                     "allOf": [
                       {
@@ -59563,7 +59691,47 @@
                 "additionalProperties": false
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "capture_kind": {
+                      "const": "recording",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_kind",
+                        "owner": "event-payload.schema.json#/$defs/call_recording_start_payload/allOf/0/if/properties/capture_kind",
+                        "values": [
+                          "recording"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "capture_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "capture_metadata": {
+                      "required": [
+                        "key_ref"
+                      ]
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "capture_metadata": {
+                      "properties": {
+                        "key_ref": false
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           },
           "call_create_payload": {
             "type": "object",
@@ -61857,7 +62025,7 @@
                     "$ref": "#/$defs/applet_managed_device_scopes"
                   }
                 ],
-                "description": "realm_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority."
+                "description": "realm_managed_delegation MUST use the paired list; all other branches retain the string-list contract. No string codec represents managed scope authority. For native Human Account Device owner-transfer acceptance, omitted scopes retain the original no-explicit-ceiling semantics; an explicit string list MUST literally contain ak.realm.owner.transfer. Empty, unknown, wildcard or explicit null never authorizes this purpose. This checks Device-key use only, not prospective root authority; see capabilities.md section 3.2."
               },
               "not_before": {
                 "$ref": "#/$defs/timestamp"
@@ -66691,18 +66859,57 @@
                 "properties": {
                   "controller_actor_id": {
                     "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                    "description": "Exact ActorId of the successor that becomes the root controller. Its control proof MUST bind this complete identity; a bare principal DID or parallel Station sidecar is insufficient."
+                    "description": "Exact full successor ActorId. Actor syntax alone grants no root eligibility: ordinary Collaboration roots require the native accepted Human Account Device source defined in capabilities.md section 3.2. Unsupported Agent, Service and RealmActor targets fail closed; Applet is not an Actor."
                   }
                 },
                 "additionalProperties": false,
                 "description": "The authority-root member selected by the author. The reducer also increments controller_epoch from the CAS-frozen pre-state; every other member is preserved verbatim."
               },
               "successor_acceptance": {
-                "$ref": "#/$defs/signature_material",
-                "description": "Independent acceptance proof from the successor. The current controller proof, this proof, the payload and expected_state_digest MUST all enter the same signing transcript. The successor controller_epoch is uniquely computed from the expected pre-state, so neither party signs a producer-supplied counter."
+                "$ref": "./detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature",
+                "description": "Independent successor acceptance over realm_owner_transfer_acceptance_transcript, never over itself or the final EventId. The current controller then signs the complete Event including this carrier. The receiver independently resolves the patch-selected successor current accepted Device key and limited key-purpose ceiling; outer author Device evidence is insufficient."
               }
             },
             "additionalProperties": false
+          },
+          "realm_owner_transfer_acceptance_transcript": {
+            "type": "object",
+            "required": [
+              "scope_ref",
+              "actor_id",
+              "payload_without_successor_acceptance"
+            ],
+            "properties": {
+              "scope_ref": {
+                "$ref": "./event-envelope.schema.json#/properties/scope_ref"
+              },
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              "payload_without_successor_acceptance": {
+                "type": "object",
+                "required": [
+                  "realm_id",
+                  "expected_state_digest",
+                  "patch"
+                ],
+                "properties": {
+                  "realm_id": {
+                    "$ref": "#/$defs/realm_owner_transfer_payload/properties/realm_id"
+                  },
+                  "expected_state_digest": {
+                    "$ref": "#/$defs/realm_owner_transfer_payload/properties/expected_state_digest"
+                  },
+                  "patch": {
+                    "$ref": "#/$defs/realm_owner_transfer_payload/properties/patch"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "description": "Receiver-derived finite intent for the owner-transfer context. Copy the enclosing scope_ref and full actor_id and exactly the three payload members shown; exclude successor_acceptance, producer_proof and EventId. The fixed context uniquely selects ak.realm.owner.transfer. Scope is the target ordinary Collaboration Realm, checked against payload.realm_id and the exact current root.",
+            "x-arkret-signature-domain": "ak.realm_owner_transfer_acceptance_signature.v1"
           },
           "realm_policy_bundle_payload": {
             "type": "object",
@@ -80445,7 +80652,7 @@
           },
           "device_projection_attestation_core": {
             "type": "object",
-            "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted RealmCommit, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3.",
+            "description": "Origin Station assertion that this exact device projection is the account's current accepted one. It is the whole verification closure of the Station-to-Station device directory read and of the account_device signer evidence: the attested body carries no PCR genesis receipt, no device authorization chain and no accepted RealmCommit, because that material is account-internal governance and is disclosed only through ak.self.identity.read.resolution_audit.v1 under exact current-holder authorization. Required device_authorize_event_id and authorized_generation_ref fields describe the closed shape of a returned usable row; they do not require an unauthorized device to have a partial projection. A device with no current accepted authorization is omitted or reported through the non-enumerating failure shape. attested_at is a monotone freshness marker and, with authorized_generation_ref, is the cache key of device-lifecycle.md section 8.3. The finite owner-transfer peer purpose alone may add owner_transfer_acceptance_intent_digest; this is covered by the unchanged full-wrapper payload_digest and original origin proof. It does not appear in the self verified_device_projection.",
             "required": [
               "account_id",
               "device_id",
@@ -80522,6 +80729,10 @@
                 },
                 "additionalProperties": false,
                 "description": "Exact source device authorization window. null expiry means no time limit. This is distinct from attestation cache freshness; ordinary publication uses this window and applicable revocation closures."
+              },
+              "owner_transfer_acceptance_intent_digest": {
+                "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+                "description": "Present if and only if the origin is answering peer purpose realm_owner_transfer_acceptance, after checking the exact finite intent and original successor signature against current native Human Account Device sources and the raw Device key-use ceiling. Exactly SHA256(JCS(intent)). This signed field is not a generic verified flag, scope mirror or root authority. Ordinary directory/query purposes MUST omit it. The origin expiry is min(attested_at+30 seconds, actual source/Device window deadlines), and the governor checks this deadline again after every acceptance lock; it is not a lease."
               }
             },
             "additionalProperties": false
@@ -81098,11 +81309,12 @@
           },
           "peer_keys_query_purpose": {
             "type": "string",
-            "description": "Declared use of the requested directory rows. The destination authorizes each purpose independently and MUST NOT clear the broadest one once.",
+            "description": "Declared use of the requested directory rows. The destination authorizes each purpose independently and MUST NOT clear the broadest one once. realm_owner_transfer_acceptance is the finite successor-signature purpose only, with its required exact intent and acceptance; it grants no media/encryption/MLS or root permission.",
             "enum": [
               "e2ee_message_encryption",
               "mls_group_admission",
-              "call_media"
+              "call_media",
+              "realm_owner_transfer_acceptance"
             ],
             "x-arkret-value-ownership": {
               "class": "owned_symbol",
@@ -81111,7 +81323,8 @@
               "values": [
                 "e2ee_message_encryption",
                 "mls_group_admission",
-                "call_media"
+                "call_media",
+                "realm_owner_transfer_acceptance"
               ]
             }
           },
@@ -81166,7 +81379,7 @@
           },
           "peer_keys_query_request_body": {
             "type": "object",
-            "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract. Realm requester is restricted to MLS admission in its own Realm, with ordinary Account device targets only. The relationship realm_id MUST equal requester_actor_id.realm_actor_id.realm_id; current governor and both joined memberships are independently verified. Existing MLS capability, membership and policy rules remain unchanged.",
+            "description": "Station-to-Station device directory and published prekey-bundle read. It is the only registered carrier for a cross-Station keys/query target: the client asks its own Station, which authenticates itself with its own RFC 9421 service signature and never forwards a client SessionGrant, DPoP or any local bearer. Single authority, single hop, read only. Cross-Station single-use material stays with the MLS KeyPackage claim contract. Realm requester is restricted to MLS admission in its own Realm, with ordinary Account device targets only. The relationship realm_id MUST equal requester_actor_id.realm_actor_id.realm_id; current governor and both joined memberships are independently verified. Existing MLS capability, membership and policy rules remain unchanged. Owner-transfer acceptance additionally binds the original Account author/Realm and exactly one successor Account+Device to the finite intent. The origin validates current native Human Device key scope, lifecycle, generation, window and that original successor signature before issuing the existing signed row with the intent digest; no raw scope list is returned.",
             "required": [
               "request_id",
               "purpose",
@@ -81195,6 +81408,23 @@
               "device_keys": {
                 "$ref": "#/$defs/query_account_device_selectors",
                 "description": "Targets for this destination only: every account_id.station_id MUST equal the authenticated Destination-Service-ID."
+              },
+              "owner_transfer_acceptance": {
+                "type": "object",
+                "required": [
+                  "intent",
+                  "acceptance"
+                ],
+                "properties": {
+                  "intent": {
+                    "$ref": "./event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript"
+                  },
+                  "acceptance": {
+                    "$ref": "./detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Required exactly for purpose=realm_owner_transfer_acceptance. Exact original finite intent and independent successor signature; no final EventId or extra current-scope mirror. Source-Service-ID is the original author Account Station, never a governor impersonating that Account."
               }
             },
             "additionalProperties": false,
@@ -81255,6 +81485,72 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "purpose": {
+                      "const": "realm_owner_transfer_acceptance",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/if/properties/purpose",
+                        "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/if/properties/purpose",
+                        "values": [
+                          "realm_owner_transfer_acceptance"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "purpose"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "requester_account_id",
+                    "owner_transfer_acceptance"
+                  ],
+                  "properties": {
+                    "relationship_basis": {
+                      "properties": {
+                        "kind": {
+                          "const": "realm_membership",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis/properties/kind",
+                            "owner": "keys-operations.schema.json#/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis/properties/kind",
+                            "values": [
+                              "realm_membership"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    },
+                    "device_keys": {
+                      "minItems": 1,
+                      "maxItems": 1,
+                      "items": {
+                        "properties": {
+                          "device_ids": {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "$ref": "#/$defs/query_account_device_selectors/items/properties/device_ids"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "owner_transfer_acceptance"
+                    ]
                   }
                 }
               }
@@ -117550,7 +117846,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:3871b9e2e5d671cae0b2809d809bc1b9e13a1e53183c1f5a2615bb4cd7a949e6"
+      "digest": "sha256:bc24d43716dae3b49c6bdabccd0282312c582c38bf1388768da5617135d1310f"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117610,7 +117906,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:48168e549636570e1c2ad7f7969892e157fe6a4c47a68cf06a0d8ec7c3496185"
+      "digest": "sha256:8ddcf0da2cfe50820dd58abb5342a43e9be83dbf218e6dd3237b4157c0f9d506"
     },
     {
       "file": "operation-clause-registry.json",
@@ -117642,7 +117938,7 @@
     },
     {
       "file": "proof-context-registry.json",
-      "digest": "sha256:19c8319edb4042ab7c5fa59d1d027abe0f1df37b7886064a44fbde48b109283c"
+      "digest": "sha256:e9b85b89b3de09228a7ccaeac16912bea27c82a6bfedae9fa8a112f3c33cd8a5"
     },
     {
       "file": "protocol-layer-registry.json",
@@ -117690,11 +117986,11 @@
     },
     {
       "file": "test-material-registry.json",
-      "digest": "sha256:77c31f5b423d8e64fcb70a594b22e6ca5a29f1ace4d002d010ca4d7bf8ec5760"
+      "digest": "sha256:76797e383ac16dedb2abd69540ef8fa5e43909fd933da8d202643680085d51a8"
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:ba153ff8030a6500cd7b95ea3bbc2778825e6d5b1ca0fd2d69dab42946ecf3b7"
+      "digest": "sha256:331294f0938c8bf133b9b1ff52f2e25b6f28110323a0cfaf6ea5c3bb92595a10"
     }
   ],
   "openapi": {

@@ -1,5 +1,6 @@
 """Independent capture permission and result carrier counterexamples."""
 import copy
+import hashlib
 from pathlib import Path
 import unittest
 
@@ -7,6 +8,7 @@ from tools.artifact_lint.core import schema_validator, Lint
 from tools.artifact_lint.foundation import lint_value_projection
 from tools.artifact_lint.call_current import validate_capture_transcripts
 from tools.generate_call_current_fixture import build_fixture
+from tools import call_recording_codec as codec
 
 SCHEMAS = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas'
 
@@ -114,6 +116,91 @@ class CallCaptureResultContract(unittest.TestCase):
         self.assertFalse(validator.is_valid(event))
         event.pop('authorization_ref')
         self.assertFalse(validator.is_valid(event))
+
+    def test_recording_start_and_pending_freeze_key_ref_but_transcript_does_not(self):
+        validator = schema_validator(SCHEMAS / 'event-payload.schema.json', '#/$defs/call_recording_start_payload')
+        start = copy.deepcopy(self.transcript['original_rows'][0]['event']['payload'])
+        self.assertTrue(validator.is_valid(start))
+        del start['capture_metadata']['key_ref']
+        self.assertFalse(validator.is_valid(start))
+        transcript = copy.deepcopy(self.transcript['original_rows'][4]['event']['payload'])
+        self.assertTrue(validator.is_valid(transcript))
+        transcript['capture_metadata']['key_ref'] = self.transcript['original_rows'][0]['event']['payload']['capture_metadata']['key_ref']
+        self.assertFalse(validator.is_valid(transcript))
+        current_validator = schema_validator(SCHEMAS / 'current-state.schema.json', '')
+        pending = copy.deepcopy(next(row for row in self.transcript['checkpoints'][0]['current_state_entries'] if row['selector']['kind'] == 'call_recording_artifact'))
+        self.assertTrue(current_validator.is_valid(pending))
+        del pending['value']['details']['key_ref']
+        self.assertFalse(current_validator.is_valid(pending))
+
+    def test_exporter_uses_both_rfc9420_steps_not_a_shortcut(self):
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
+        kat = self.transcript['recording_codec_kat']
+        vector = kat['vectors'][0]
+        secret = codec.unb64u(kat['qualified_source']['exporter_secret'], 32)
+        context = codec.jcs(vector['artifact']['encryption']['context'])
+        def independent_expand(secret, label, context):
+            full = b'MLS 1.0 ' + label.encode('ascii')
+            self.assertLess(len(full), 64)
+            self.assertLess(len(context), 64)
+            info = (32).to_bytes(2, 'big') + bytes([len(full)]) + full + bytes([len(context)]) + context
+            return HKDFExpand(algorithm=hashes.SHA256(), length=32, info=info).derive(secret)
+        derived = independent_expand(secret, codec.LABEL, b'')
+        actual = independent_expand(derived, 'exported', hashlib.sha256(context).digest())
+        self.assertEqual(codec.b64u(actual), vector['expected']['key'])
+        self.assertNotEqual(actual, independent_expand(secret, codec.LABEL, hashlib.sha256(context).digest()))
+
+    def test_real_stream_vectors_include_empty_and_exact_segment_without_an_empty_tail(self):
+        kat = self.transcript['recording_codec_kat']
+        for vector in kat['vectors']:
+            with self.subTest(vector=vector['name']):
+                raw = codec.unb64u(vector['expected']['ciphertext'])
+                plaintext = codec.unb64u(vector['plaintext'])
+                size, count = codec.dimensions(len(raw), vector['artifact']['encryption']['segment_bytes'])
+                self.assertEqual(size, len(plaintext))
+                self.assertEqual(count, len(vector['expected']['segment_nonces']))
+                self.assertEqual(codec.open_recording(raw, vector['artifact'], kat['start_event'], kat['qualified_source']), plaintext)
+                if vector['name'] in ('empty', 'exact_segment'):
+                    self.assertEqual(count, 1)
+
+    def test_correct_blob_digest_does_not_bypass_a_bad_aead_tag_or_aad(self):
+        kat = self.transcript['recording_codec_kat']
+        for name in ('tag_changed_digest_updated', 'wrong_aad_media_type', 'wrong_epoch_secret',
+                     'truncate_updated_length_and_digest', 'append_updated_length_and_digest'):
+            with self.subTest(mutation=name):
+                with self.assertRaisesRegex(ValueError, 'segment authentication'):
+                    codec.run_codec_case(kat, 'recording_codec_' + name)
+
+    def test_ciphertext_length_inversion_is_unique_and_rejects_noncanonical_gaps(self):
+        for length in (1024, 262144, 8388608):
+            for size in (0, 1, length - 1, length, length + 1, 2 * length, 2 * length + 1):
+                count = max(1, (size + length - 1) // length)
+                self.assertEqual(codec.dimensions(size + 16 * count, length), (size, count))
+            for ciphertext in (*range(16), *range(length + 17, length + 33)):
+                with self.assertRaises(ValueError): codec.dimensions(ciphertext, length)
+        for value in (True, 1.5, -1, 1 << 64):
+            with self.assertRaises(ValueError): codec.dimensions(value, 1024)
+
+    def test_online_aad_excludes_future_totals_and_mutable_metadata(self):
+        artifact = copy.deepcopy(self.transcript['recording_codec_kat']['vectors'][0]['artifact'])
+        prior = codec.segment_aad(artifact, 0, False)
+        artifact['size_bytes'] += 1000
+        artifact['blob_ref'] = 'ak:blob:sha256:' + 'f' * 64
+        artifact['retention']['retention_expires_at'] = '2028-09-20T00:00:00.000Z'
+        self.assertEqual(codec.segment_aad(artifact, 0, False), prior)
+        self.assertNotEqual(codec.segment_aad(artifact, 0, True), prior)
+        self.assertNotEqual(codec.segment_aad(artifact, 1, False), prior)
+
+    def test_recording_codec_is_closed_and_cannot_rebind_the_original_state(self):
+        kat = self.transcript['recording_codec_kat']
+        for name, expected in codec.CODEC_CASES:
+            with self.subTest(case=name):
+                try: actual = codec.run_codec_case(kat, name)
+                except (ValueError, KeyError): actual = 'reject'
+                self.assertEqual(actual, expected)
+        with self.assertRaisesRegex(ValueError, 'changed after Start'):
+            codec.run_codec_case(kat, 'recording_codec_changed_key_ref_encoding')
 
 
 if __name__ == '__main__':

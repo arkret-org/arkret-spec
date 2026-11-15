@@ -309,6 +309,8 @@ inject_frame_key(key_bytes: 32-byte secret,
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decryption_allowed=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
 - Conformance negative vector `ak.vector.media_binding.e2ee_key_source.v1`：backend 用自家密钥 → 客户端 MUST 拒绝并报 `e2ee_key_source_unauthorised`。
 
+录制 artifact 的文件编码与 frame-key injection 分离：录制只使用 [call-state.md §5.3](./call-state.md#53-录制-blob-的单一-stream-编码normative) 的原 Start key_ref／RTC key 与独立 STREAM AAD。backend 不得把 frame key、KMS 自生 key 或附件 key schedule 当录制 key；本节不新增 key 注入 HTTP 接口。
+
 Conformance vectors for the full media binding framework：
 
 - `ak.vector.media_binding.focus_selection_oldest_membership.v1` — §5 oldest_membership 选举正确性。

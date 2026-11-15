@@ -103,6 +103,66 @@
       "pointer": "/delegated_actor_locator_kat/cases/2/signed_request_receipt/signature",
       "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
       "why": "The delegated Actor branch reuses the same Contact receipt proof carrier. This exact binding keeps its compact detached JWS shape under generic fixture schema validation as well as the dedicated KAT checker."
+    },
+    {
+      "fixture": "call-current-fixture.json",
+      "pointer": "/capture_transcripts/recording_codec_kat/start_event",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "why": "The RTC codec byte KAT carries the exact original signed Start; actual qualified MLS source and exporter secret are reference inputs, not native authority proof."
+    },
+    {
+      "fixture": "call-current-fixture.json",
+      "pointer": "/capture_transcripts/recording_codec_kat/start_event/payload",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/call_recording_start_payload",
+      "why": "The recording-only original Start freezes key_ref before its own EventId and RTC key derivation; raw Event payload is not constrained by envelope schema alone."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/event",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "why": "The current controller signs the final Event with the independently signed successor acceptance; the exact original Event must validate as a closed wire instance."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/unsigned_projection",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript",
+      "why": "The finite successor signing projection excludes itself and the final EventId, and binds the exact target, original controller and root prestate."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/acceptance",
+      "schema_ref": "schemas/detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature",
+      "why": "The successor carrier is the registered closed detached signature, never a nonempty string or open map."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/prestate_root",
+      "schema_ref": "schemas/current-state.schema.json#/$defs/realm_authority_root_value",
+      "why": "The explicit reference root value is a genuine typed CAS input, not a new root object or portable authority proof."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/transport/query",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",
+      "why": "Exact registered owner-transfer peer-purpose and full successor-source transport carrier. Cryptographic source bytes are real; native method/HTTPS/current authority remains an explicit reference boundary."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/transport/evidence",
+      "schema_ref": "schemas/account-device-signer-evidence.schema.json",
+      "why": "Exact registered owner-transfer peer-purpose and full successor-source transport carrier. Cryptographic source bytes are real; native method/HTTPS/current authority remains an explicit reference boundary."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/transport/fresh_evidence",
+      "schema_ref": "schemas/account-device-signer-evidence.schema.json",
+      "why": "Exact registered owner-transfer peer-purpose and full successor-source transport carrier. Cryptographic source bytes are real; native method/HTTPS/current authority remains an explicit reference boundary."
+    },
+    {
+      "fixture": "detached-object-signature-kat-fixture.json",
+      "pointer": "/owner_transfer/transport/forward_body",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body",
+      "why": "Exact registered owner-transfer peer-purpose and full successor-source transport carrier. Cryptographic source bytes are real; native method/HTTPS/current authority remains an explicit reference boundary."
     }
   ]
 }
