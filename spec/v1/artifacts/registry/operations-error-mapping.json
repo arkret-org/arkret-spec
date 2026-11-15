@@ -1689,7 +1689,7 @@
         "param_invalid",
         "not_found"
       ],
-      "description": "param_invalid covers history_depth outside the closed range 0..256, after_resolution_event_ref supplied with history_depth 0, and reason resolution_history_ancestor_unknown when the cursor is not in this account's current resolution lineage. Unknown account, wrong authority pair and unauthorized caller share not_found so the surface cannot be used to enumerate accounts.",
+      "description": "param_invalid covers max_predecessor_event_count outside the closed range 0..256, after_resolution_event_ref supplied with max_predecessor_event_count 0, and reason resolution_history_ancestor_unknown when the cursor is not in this account's current resolution lineage. Unknown account, wrong authority pair and unauthorized caller share not_found so the surface cannot be used to enumerate accounts.",
       "codes": []
     },
     {

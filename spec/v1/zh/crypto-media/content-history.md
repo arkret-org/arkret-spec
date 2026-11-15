@@ -3,7 +3,7 @@ title: 可恢复内容加密与历史交付
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-13
+updated: 2026-11-15
 ---
 
 # 可恢复内容加密与历史交付
@@ -192,7 +192,7 @@ current Recovery 来源，接受后不随 Recovery current revision 改写。普
 以及未替换 manager／recipient 的 Recovery 来源推进，MUST NOT 隐式要求重选 series。Station MUST 独立
 验证历史 series 原件、原签和选择时资格，并在当前锁内核同一 manager_ref、recipient_ref、exact scope、
 未退休的 selected series 及 pending=null；不能仅凭不等的 recovery_ref 拒绝仍有效的历史 selection。
-新 PUT 的 auth_binding.recovery_ref MUST 取本次 current Recovery 来源，而非复制历史 series.recovery_ref。
+新 PUT 的 authorization_binding.recovery_ref MUST 取本次 current Recovery 来源，而非复制历史 series.recovery_ref。
 同一 current cut 指本次一起核验各对象的当前有效性，不要求不同对象的历史写入 ref 相同；manager／
 recipient 真正替换后的 fresh-series 要求、当前 Device／generation／业务／MLS 等全部门保持不变。
 
@@ -206,11 +206,11 @@ predecessor 与 supersedes digest，不能用另一个 Circle 的包补 predeces
 原生 root envelope 禁止 expires_at，显式 null 同样非法；原生 metadata 也不携 expiry。首次 PUT 后的原包／
 完整来源／root 索引／固定结果／coverage 是持久 custody，普通 expiry SQL 过滤、查询层隐藏或后台 TTL 清理均
 不得令其失踪或删除；只按本节正式 root 保管／充分替代合同处理，旧 Account／Agent expiry 规则不改变。
-`auth_binding` 精确为 `{kind:"realm_device",manager_ref,recovery_ref,recipient_ref,device_generation}`，
+`authorization_binding` 精确为 `{kind:"realm_device",manager_ref,recovery_ref,recipient_ref,device_generation}`，
 其中前三个 ref 是原接受来源的完整 CommittedEventRef，device_generation 是正整数 Realm-native 代次。
 它不是 PCR device_generation_ref；原生分支禁止 recovery_policy_ref、source_commit_ref、Agent custody 字段与
 Agent signature 分支。实际 Device Ed 签名覆盖完整 envelope；签名 proof 的 DeviceId、原 authorize Event 与 method
-必须匹配真实主体及当前原生授权。原生 AAD 在既有固定 base 中另纳入完整 auth_binding，不能塞入 x_* 或改变
+必须匹配真实主体及当前原生授权。原生 AAD 在既有固定 base 中另纳入完整 authorization_binding，不能塞入 x_* 或改变
 普通 Account／Agent 的 AAD；精确转录见 [key-management §7.5.6](../identity/key-management.md#756-realm_actor_recovery)。
 
 首次 PUT 必须在同一原生锁定 cut 重查当前治理任期、manager／登记、双业务 gate、无冲突 recovery pending、
@@ -260,7 +260,7 @@ Actor、exact scope、当前 head 及 packet digest，发放和消费均重查�
 备份／series／ciphertext、服务端单次 challenge、nonce、audience／service 与时间窗口；不得套 Account、
 recovery session 或 Agent custody 字段。unlock proof 的 manager_ref／recovery_ref 与 requester Device／generation
 是本次真实 current cut 的请求资格；recipient_ref 则必须精确指向目标原包历史 accepted recipient 声明，按该原
-声明独立历史验真并与完整 signed envelope_digest 绑定，不得强逼等于当前 recipient。目标原包 auth_binding
+声明独立历史验真并与完整 signed envelope_digest 绑定，不得强逼等于当前 recipient。目标原包 authorization_binding
 及 admission 内全部原始 refs 保持冻结，不因本次 requester／recipient／manager 变化而改写。
 不能用历史包原权威给当前 requester 授权，也不能因旧作者撤销或原 refs 与当前不同而否定真实旧签名。
 没有新增 backup resource GET 或明文根 RPC；除§3.2.5明确登记的
@@ -275,7 +275,7 @@ Station 必须独立完整验证原声明／DID／series、current reset→exact
 current 投影与 typed 输入；不得把 create 原件中的 creation_scope／external_ref 或其它有限 scope 外资料下发 Device。
 Device 不自行回放 control／Actor DID／governance 历史，也不能从 metadata 或嵌套值推导 Event 坐标。
 只有两个 selector 在同一 cut 完整且 Device／代次／current series 均有效时，响应才可携非 null 的
-next_prepare_input={auth_binding,content_backup_recipient,active_series_id}；Device 逐字 echo，不自行拼装引用。
+next_prepare_input={authorization_binding,content_backup_recipient,active_series_id}；Device 逐字 echo，不自行拼装引用。
 公共 metadata／next_prepare_input 是本次 own-Station bound 供给，不冒充嵌套 Event 历史来源，不附加读取原控制
 Event 或按 signer 新发现网络的权利；Manager 的完整归档原件与私密验证闭包保持独立角色来源。
 这些来源不含 archive 私钥，不授业务权限。Device 的最小 admission 只含正式回执登记的 exact Actor／Scope、

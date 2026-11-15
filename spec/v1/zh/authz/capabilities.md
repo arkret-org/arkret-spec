@@ -3,7 +3,7 @@ title: Capability Model
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-18
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -531,7 +531,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `allowed_relation_kinds` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_relation_kinds` |
 | `allowed_from_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_from_container_refs` |
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
-| `wip_limit_override_allowed` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override_allowed`（看板容器 WIP 上限覆盖） |
+| `active_strand_count_override_allowed` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `active_strand_count_override_allowed`（看板容器 WIP 上限覆盖） |
 | `allowed_history_access_values` | `confidentiality` | `visibility` | `allowed_history_access_values` |
 | `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（仅 `true` 允许读取 redacted stub；`false` / 缺省拒绝） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
@@ -548,7 +548,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `authority_path_ids` | `authority_control` | — | `authority_path_ids`（授权链 DID core id 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
 | `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
-| `rate_limit` | `quota` | `rate` | `max_operation_count`, `period`, `constraint_scope`, `burst` |
+| `rate_limit` | `quota` | `rate` | `max_operation_count`, `period`, `constraint_scope`, `burst_operation_count` |
 | `resource_limit` | `quota` | `resource` | `max_resource_count`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required`（grant 层开关；与 Realm 治理面 `policy_action.value.approval_required` 是两个独立开关，取严相交的裁决见 [`../models/governance-objects.md` §3.5](../models/governance-objects.md)） |

@@ -20,7 +20,7 @@
         "source_ref": "accepted_recovery_policy.policy_id",
         "source_digest": "accepted_recovery_policy_canonical_digest",
         "generation_ref": "policy_version(decimal)",
-        "basis_ref": "accepted_recovery_policy.acceptance_basis",
+        "basis_ref": "accepted_recovery_policy.acceptance_basis_ref",
         "authorization_rules": "only recovery factors admitted by the Account Authority for the named account subject"
       },
       "defined_in": "zh/identity/account-lifecycle.md"
@@ -35,8 +35,8 @@
         "source_ref": "accepted_recovery_policy.policy_id",
         "source_digest": "accepted_recovery_policy_canonical_digest",
         "generation_ref": "policy_version(decimal)",
-        "basis_ref": "accepted_recovery_policy.acceptance_basis",
-        "authorization_rules": "one rule per allowed proof kind; did_root/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k"
+        "basis_ref": "accepted_recovery_policy.acceptance_basis_ref",
+        "authorization_rules": "one rule per allowed proof kind; did_root/recovery_unlock/trusted service use min_signature_count 1, device_quorum uses device_quorum.min_device_count"
       },
       "defined_in": "zh/crypto-media/device-lifecycle.md#14-pcr-policy-device-recovery"
     },

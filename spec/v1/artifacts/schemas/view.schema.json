@@ -408,7 +408,7 @@
           "enum": [
             "selection_policy",
             "page_size",
-            "wip_limit_enforcement"
+            "active_strand_count_enforcement"
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
@@ -417,7 +417,7 @@
             "values": [
               "selection_policy",
               "page_size",
-              "wip_limit_enforcement"
+              "active_strand_count_enforcement"
             ]
           }
         }
@@ -614,7 +614,7 @@
           "enum": [
             "selection_policy",
             "page_size",
-            "wip_limit_enforcement"
+            "active_strand_count_enforcement"
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
@@ -623,7 +623,7 @@
             "values": [
               "selection_policy",
               "page_size",
-              "wip_limit_enforcement"
+              "active_strand_count_enforcement"
             ]
           }
         }

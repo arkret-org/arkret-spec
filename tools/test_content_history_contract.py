@@ -1087,9 +1087,9 @@ class ScopeRetirementContractTest(unittest.TestCase):
     def test_cleanup_bindings_keep_authenticated_origin_and_current_holder_roles(self):
         import yaml
         api = yaml.safe_load((ART / 'openapi/arkret-service-api.openapi.yaml').read_text(encoding='utf-8'))
-        for prefix, schemes in [('peer', {'httpMessageSignature', 'sourceServiceId', 'destinationServiceId',
-                                          'sourceTrustDomain', 'destinationTrustDomain', 'contentDigest'}),
-                                ('self', {'sessionGrantAuth', 'dpopProof'})]:
+        for prefix, schemes in [('peer', {'HttpMessageSignature', 'SourceServiceId', 'DestinationServiceId',
+                                          'SourceTrustDomain', 'DestinationTrustDomain', 'ContentDigest'}),
+                                ('self', {'SessionGrantAuth', 'DpopProof'})]:
             operation = api['paths'][f'/_arkret/{prefix}/mls/recovery-scope-cleanup']['post']
             self.assertEqual(len(operation['security']), 1)
             self.assertEqual(set(operation['security'][0]), schemes)

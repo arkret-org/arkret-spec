@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-02
+updated: 2026-11-15
 see_also:
   - ../index.md
   - architecture.md
@@ -252,6 +252,7 @@ see_also:
 | `E2EE` | End-to-End Encryption | 端到端加密 | §3 CC-04（大小写规则）；[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) |
 | `DM` | Direct Message | 直接会话 | [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) |
 | `HLC` | Hybrid Logical Clock | 混合逻辑时钟 | §2 `HLC` 条目；[`../conformance/encoding.md` §7](../conformance/encoding.md) |
+| `WIP` | Work in Progress | List 在制量 | [`../models/space-hierarchy.md` §6](../models/space-hierarchy.md#6-workflow-containers)：同一 Board 下 position current 指向目标 List 的 distinct 非终态 Strand 数量；上限与执行方式分别为 `max_active_strand_count`、`active_strand_count_enforcement`，`list_wip` 是该合同既有的审批 context。 |
 
 ### 4.2 外部标准与算法缩写（informative）
 

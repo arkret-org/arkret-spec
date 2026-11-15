@@ -36,6 +36,12 @@ class RealmActorBackupContractTest(unittest.TestCase):
     def test_frozen_fixture_is_exactly_reproducible(self):
         self.assertEqual(self.frozen, self.f)
 
+    def test_ambiguous_authorization_binding_alias_is_rejected(self):
+        packet = copy.deepcopy(self.f["native_packet"])
+        packet["auth_binding"] = packet.pop("authorization_binding")
+        with self.assertRaises((ValueError, KeyError)):
+            validate_native_shape(packet)
+
     def test_rfc9180_seal_open_and_original_ed_transcripts(self):
         packet = self.f["native_packet"]
         self.assertEqual(open_backup(packet,self.private(),self.public()),self.f["plaintext"])
@@ -64,7 +70,7 @@ class RealmActorBackupContractTest(unittest.TestCase):
         agent["custodian_actor_id"]=old["envelope"]["actor_id"]
         agent["custody_authorization_ref"]=token("event",99)
         self.assertEqual(backup_aad(agent),backup_aad(old["envelope"]))
-        self.assertNotIn("auth_binding",json.loads(backup_aad(agent)))
+        self.assertNotIn("authorization_binding",json.loads(backup_aad(agent)))
 
     def test_archive_key_is_exact_original_native_key_agreement(self):
         public=check_recipient(self.f["recipient"],self.f["native_history"],0)
@@ -85,9 +91,9 @@ class RealmActorBackupContractTest(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises((ValueError,InvalidSignature)):
                 check_recipient(descriptor,history,0)
 
-    def test_auth_binding_enters_signature_and_aead_without_normalization(self):
+    def test_authorization_binding_enters_signature_and_aead_without_normalization(self):
         packet=copy.deepcopy(self.f["native_packet"])
-        packet["auth_binding"]["device_generation"]+=1
+        packet["authorization_binding"]["device_generation"]+=1
         with self.assertRaises(InvalidSignature):open_backup(packet,self.private(),self.public())
         self.sign_packet(packet)
         with self.assertRaises(InvalidTag):open_backup(packet,self.private(),self.public())
@@ -117,10 +123,10 @@ class RealmActorBackupContractTest(unittest.TestCase):
             if change=="account":mixed["actor_id"]={"kind":"account","account_id":{"principal_id":"ak:did_core:web:alice.example","station_id":"ak:did_core:web:station.example"}}
             if change=="method":mixed["encryption"]["recipient_method"]="recovery_public_key"
             if change=="agent_proof":mixed["signature_proof"]["agent_authorization_event_ref"]=token("event",22)
-            if change=="extra_auth":mixed["auth_binding"]["x_extra"]=1
-            if change=="alias":mixed["auth_binding"]["device_generation_ref"]=mixed["auth_binding"].pop("device_generation")
-            if change=="null":mixed["auth_binding"]["recipient_ref"]=None
-            if change=="boolean_generation":mixed["auth_binding"]["device_generation"]=True
+            if change=="extra_auth":mixed["authorization_binding"]["x_extra"]=1
+            if change=="alias":mixed["authorization_binding"]["device_generation_ref"]=mixed["authorization_binding"].pop("device_generation")
+            if change=="null":mixed["authorization_binding"]["recipient_ref"]=None
+            if change=="boolean_generation":mixed["authorization_binding"]["device_generation"]=True
             if change=="nonce":mixed["encryption"]["aead"]["nonce"]="AA"
             if change=="two_roots":mixed["contents"]*=2
             if change=="other_item":mixed["contents"][0]["item_kind"]="secret_storage"
@@ -208,7 +214,7 @@ class RealmActorBackupContractTest(unittest.TestCase):
         with self.assertRaises(ValueError):store.put(packet,current,pointer,self.public())
         self.assertEqual(store.__dict__,before)
         unsigned=unsigned_envelope(packet)
-        unsigned["auth_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
+        unsigned["authorization_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
         packet=seal(unsigned,self.f["plaintext"],unb64(current["recipient"]["public_key_base64url"]),
             bytes.fromhex(self.f["test_material"]["ephemeral_private_hex"]),
             bytes.fromhex(self.f["test_material"]["device_seed_hex"]))
@@ -232,12 +238,12 @@ class RealmActorBackupContractTest(unittest.TestCase):
             packet,current,pointer=self.inputs()
             current["recovery_ref"]={**committed(86,5),"stream_ref":copy.deepcopy(pointer["recovery_ref"]["stream_ref"])}
             unsigned=unsigned_envelope(packet)
-            unsigned["auth_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
+            unsigned["authorization_binding"]["recovery_ref"]=copy.deepcopy(current["recovery_ref"])
             if field in {"manager_ref","recipient_ref"}:
                 value={**value,"stream_ref":copy.deepcopy(current[field]["stream_ref"])}
             current[field]=value
             if field in {"manager_ref","recipient_ref"}:
-                unsigned["auth_binding"][field]=copy.deepcopy(value)
+                unsigned["authorization_binding"][field]=copy.deepcopy(value)
             packet=seal(unsigned,self.f["plaintext"],unb64(current["recipient"]["public_key_base64url"]),
                 bytes.fromhex(self.f["test_material"]["ephemeral_private_hex"]),
                 bytes.fromhex(self.f["test_material"]["device_seed_hex"]))

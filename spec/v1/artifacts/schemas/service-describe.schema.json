@@ -328,9 +328,11 @@
                 "minimum": 1,
                 "x-arkret-member-role": "count"
               },
-              "burst": {
+              "burst_request_count": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "x-arkret-member-role": "count",
+                "description": "Optional HTTP request token-bucket capacity in requests for this rate-limit entry."
               },
               "max_bytes": {
                 "type": "integer",

@@ -1717,7 +1717,7 @@
         }
       ],
       "x-arkret-name-role": "request_body",
-      "description": " Native manager_ref/recovery_ref identify current requesting qualification; historical target packet original auth_binding and original author remain unchanged. recipient_ref selects the exact target original recipient declaration. Device challenge is current selected head only and binds current requester/authorization/generation/full actor/exact scope/complete envelope digest. Manager known exact-packet archive recovery remains independent of bulk inventory and requires current actor/scope/history qualification."
+      "description": " Native manager_ref/recovery_ref identify current requesting qualification; historical target packet original authorization_binding and original author remain unchanged. recipient_ref selects the exact target original recipient declaration. Device challenge is current selected head only and binds current requester/authorization/generation/full actor/exact scope/complete envelope digest. Manager known exact-packet archive recovery remains independent of bulk inventory and requires current actor/scope/history qualification."
     },
     "keys_backups_unlock_challenge": {
       "type": "object",
@@ -2938,7 +2938,7 @@
         "created_at",
         "ciphertext_digest",
         "encryption",
-        "auth_binding"
+        "authorization_binding"
       ],
       "properties": {
         "backup_id": {
@@ -3029,8 +3029,8 @@
           },
           "additionalProperties": false
         },
-        "auth_binding": {
-          "$ref": "./key-backup.schema.json#/$defs/realm_actor_backup_auth_binding"
+        "authorization_binding": {
+          "$ref": "./key-backup.schema.json#/$defs/realm_actor_backup_authorization_binding"
         }
       },
       "additionalProperties": false,

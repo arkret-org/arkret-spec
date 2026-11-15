@@ -95,7 +95,7 @@ def proof_inputs(verification_method: str) -> list[tuple[str, dict[str, object],
             {
                 "kind": "device_quorum",
                 "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "threshold": 2,
+                "min_device_count": 2,
                 "signatures": [
                     {
                         "device_id": "ak:device:019b6a40-0000-7000-8000-000000000004",

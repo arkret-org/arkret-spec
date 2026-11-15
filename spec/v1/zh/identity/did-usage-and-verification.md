@@ -3,7 +3,7 @@ title: DID 使用与验证边界
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -60,8 +60,9 @@ constraint 确定性生成，只用于复核与漂移检测，不作为独立协
 2. representation profile：`did_core_id`、`did` 或 `did_url`。
 
 W3C DID Document 的 `controller` 因而可以同时是 external-standard-owned 字段和 `did` representation；
-这不是类别重叠。外部 literal object 必须以精确 schema path、`x-arkret-external-literal-object` 和外部规范
-anchor 登记，例外不得传播到 Arkret normalized projection、policy 或 API wrapper。
+这不是类别重叠。外部 literal 字段必须在精确 schema owner 的 `x-arkret-external-literal-object` 中以
+`external_properties` 逐字段登记，并给出外部规范 anchor；未列入的成员仍属于 Arkret，例外不得传播到
+子对象、Arkret normalized projection、policy 或 API wrapper。
 
 ### 2.1 三种 representation profile
 

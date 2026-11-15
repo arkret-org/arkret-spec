@@ -3,7 +3,7 @@ title: DID Identity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-12
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -199,7 +199,7 @@ DID 托管域名、Station 服务域名和 handle 域名是**三个独立的标�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Station，也**不**是用户公开 handle。
 - Station 变更端口、增加 mirror 或切换第三方 host 时，service owner 更新 DID Document 的服务入口；调用方按对应 adapter 验证 DID 原生历史、当前状态、endpoint 及防回滚约束。这只是同一 `station_id` 的路由刷新，不改变 AccountId。service core 改变则形成新的 AccountId，不能把旧账号的 membership 或数据静默迁移过去。
-- DID Document 中的 `type="ArkretService", serviceKind="station"` service entry 不是账号选择或 Realm-scoped 路由 authority。membership 直接保存完整 `ActorId`；account 分支已经包含 `principal_id + station_id`，事件、sync、to-device、push 与 KeyPackage 投递据此选择账号及服务路由，不再存在第二套 joined-member ActorId routing projection 状态或 DID Document 默认回退。
+- DID Document 中的 `type="ArkretService", service_kind="station"` service entry 不是账号选择或 Realm-scoped 路由 authority。membership 直接保存完整 `ActorId`；account 分支已经包含 `principal_id + station_id`，事件、sync、to-device、push 与 KeyPackage 投递据此选择账号及服务路由，不再存在第二套 joined-member ActorId routing projection 状态或 DID Document 默认回退。
 - **DID 只作为 identity anchor。** Principal DID method log 只承载 active update root、pre-rotation commitment、method-native history 与 witness evidence。DID Document 不得用 `service`、verification relationship 或 fragment 指派设备 authority，也不得承载设备、recovery policy、capability 或业务 profile state。
 - **设备密钥不写入 DID method key log。** `device_public_key_did` 只由 PCR accepted `ak.device.authorize` 进入设备集投影。普通业务 Event proof 保留签名时的 DID URL；verifier 以 fragment 选择 accepted PCR device evidence、执行 generation fence，并验证该设备属于 Event `actor_id` 指定的 account / service。不得把 ActorId 当作 DID URL 拼接 fragment，也不得回退到 DID Document verification method 充当设备授权。
 - Genesis/re-anchor verifier 只从对应 DID history 解析 identity root。首设备和 replacement device 的 candidate key来自同批 descriptor/authorize payload，通过 unit-local overlay 验证；DID resolver 不提供该 key。
@@ -463,7 +463,7 @@ verification 侧反向执行——「把 log entry 当作字符串，把从 DID 
 
 ### 3.7 服务身份自举（Service Identity Bootstrap）
 
-一个服务的 `service_id` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ak.session.grant`、RealmCommit、claim attestation）、其派生子身份（如 `{service_id}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
+一个服务的 `service_id` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`SessionGrant`、RealmCommit、claim attestation）、其派生子身份（如 `{service_id}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
 
 本节规范服务如何获得并持有自身 service identity。目标是让部署**无需人工 mint DID 字符串即可启动**，同时以 fail-closed 纪律防止身份被代持或被静默替换。约束按重要性排列：
 
@@ -641,7 +641,7 @@ Profile 是该 current state 的公开 **current projection**，可以发布当�
 
 账号内部 PCR genesis/RealmCommit/history 作为审计材料，只能由授权 operation `ak.self.identity.read.resolution_audit.v1` 返回，其授权只取绑定 exact `account_id` 的 current holder session。recovery actor 必须先完成既有 recovery transaction、成为 current holder 后再读；v1 **MUST NOT** 为同一审计数据另建 recovery-session/capability 授权支路。**caller 自报的 intent 不构成授权**，因为任何已认证调用者都能自报。unknown 账号、错误 authority pair 与无权调用者 **MUST** 共用同一反枚举结果。该面复用统一 evidence 形状：exact genesis/current/predecessor Event、genesis receipt 与覆盖 current Event 的 accepted RealmCommit；verifier 通过登记 reducer 重放 current Event，v1 **MUST NOT** 再叠加 resolution 专用的 state-current state Merkle proof。这样避免为单一字段建立第二套不可复用证明系统。这些字段不改变 external identity，也 **MUST NOT** 成为普通 federated Event 验证的前置条件；普通 Event 只验证 in-envelope producer proof 与 可携带 producer signer evidence。
 
-审计面的 history 披露上限是闭合的：`history_depth` 取值范围 `0..256`，缺省 `0`（只返回 current head），越界 **MUST** `param_invalid`，实现 **MUST NOT** 用私有上限静默替换。`after_resolution_event_ref` 把披露区间排他性截止在调用方已持有的 ancestor，该 ref **MUST** 是本账号 current lineage 内的 genesis Event 或已接受 `ak.identity.resolution.update`，否则 **MUST** `param_invalid` 并带 reason `resolution_history_ancestor_unknown`；它与 `history_depth = 0` 同时出现同样 **MUST** `param_invalid`。返回的 predecessor 段 **MUST** 连续且不跳条，条数 **MUST NOT** 超过 `history_depth`；到达 head 0 或该 ancestor 时 `history_complete = true`，否则 `history_complete = false` 且 **MUST** 从最旧一条已披露 resolution Event（未披露 predecessor 时为 current Event）的 signed `payload.expected_commit_id` 精确解析同一完整 Account／PCR lineage 中的 accepted covering RealmCommit，并返回其 `event_ref` 作为 `next_audit_cursor`。revision 的 `commit_id`／`stream_position`、Commit 的 Realm／stream／Event 与该 Event 作为直接前驱的关系 MUST 全部一致；不得从 envelope precondition、whole-value guard、自报 payload 回声或另一 PCR 的 Commit 推断前驱。被省略的历史是 unknown，不是 absent。
+审计面的 history 披露上限是闭合的：`max_predecessor_event_count` 取值范围 `0..256`，缺省 `0`（只返回 current head），越界 **MUST** `param_invalid`，实现 **MUST NOT** 用私有上限静默替换。`after_resolution_event_ref` 把披露区间排他性截止在调用方已持有的 ancestor，该 ref **MUST** 是本账号 current lineage 内的 genesis Event 或已接受 `ak.identity.resolution.update`，否则 **MUST** `param_invalid` 并带 reason `resolution_history_ancestor_unknown`；它与 `max_predecessor_event_count = 0` 同时出现同样 **MUST** `param_invalid`。返回的 predecessor 段 **MUST** 连续且不跳条，条数 **MUST NOT** 超过 `max_predecessor_event_count`；到达 head 0 或该 ancestor 时 `history_complete = true`，否则 `history_complete = false` 且 **MUST** 从最旧一条已披露 resolution Event（未披露 predecessor 时为 current Event）的 signed `payload.expected_commit_id` 精确解析同一完整 Account／PCR lineage 中的 accepted covering RealmCommit，并返回其 `event_ref` 作为 `next_audit_cursor`。revision 的 `commit_id`／`stream_position`、Commit 的 Realm／stream／Event 与该 Event 作为直接前驱的关系 MUST 全部一致；不得从 envelope precondition、whole-value guard、自报 payload 回声或另一 PCR 的 Commit 推断前驱。被省略的历史是 unknown，不是 absent。
 
 外部接收方**不要求**为任意其他 principal 持久保存 current resolution binding。普通 profile 浏览可以消费公开 projection；human 历史 device/Event evidence使用 genesis receipt 钉住的 registration evidence 与 PCR authorization chain，不重新取得 latest projection。只有 §4 的 current external claim、method successor、optional DID-root recovery 与持续 DID governance 调用点才刷新 current evidence；无法刷新时仅这些动作 fail closed。
 
@@ -649,7 +649,7 @@ DID hosting 位置或其它 resolution 成分变化，只要 adapter 仍投影�
 
 #### PCR 审计载体的原件配对
 
-`principal_resolution_audit_evidence` 的 `genesis_commits` 恰为两个原始连续 Commit，依序覆盖 `principal_genesis_event` 与 `founding_device_authorize_event`；`accepted_commit` 覆盖 `current_resolution_event`。`predecessor_resolution_events` 按从新到旧的顺序披露，每项必须有同序一一对应的 `predecessor_resolution_commits` 原件，逐项绑定相同 PCR stream、Event ref、generation 与原始签名。不得从 current state 重建 Commit，不得用单个 genesis Commit 代替原子 genesis 对。此修正只闭合已登记审计证据的完整表示，不改变读取授权、history_depth／cursor 边界或 PCR 治理资格。
+`principal_resolution_audit_evidence` 的 `genesis_commits` 恰为两个原始连续 Commit，依序覆盖 `principal_genesis_event` 与 `founding_device_authorize_event`；`accepted_commit` 覆盖 `current_resolution_event`。`predecessor_resolution_events` 按从新到旧的顺序披露，每项必须有同序一一对应的 `predecessor_resolution_commits` 原件，逐项绑定相同 PCR stream、Event ref、generation 与原始签名。不得从 current state 重建 Commit，不得用单个 genesis Commit 代替原子 genesis 对。此修正只闭合已登记审计证据的完整表示，不改变读取授权、max_predecessor_event_count／cursor 边界或 PCR 治理资格。
 
 #### 4.2.1 `did:webvh` 健康检查
 
@@ -789,7 +789,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 3. Station Account Authority 生成一次性 challenge。challenge MUST 绑定用途、目标 Station、origin / audience、过期时间和随机 nonce。
 4. 客户端使用该 DID 当前有效的 `authentication` verification method、已授权 device key，或被有效 session / device grant 覆盖的临时 key 签名 challenge。
 5. Station Account Authority 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
-6. 验证通过后，Station MAY 创建 exact `AccountId {principal_id, station_id}`，并签发短期 `ak.session.grant` 或登记 device binding；不得创建可脱离 `station_id` 的泛化 service-account identity。
+6. 验证通过后，Station MAY 创建 exact `AccountId {principal_id, station_id}`，并签发短期 `SessionGrant` 或登记 device binding；不得创建可脱离 `station_id` 的泛化 service-account identity。
 
 签名 payload SHOULD 使用结构化 canonical JSON，至少包含：
 
@@ -932,10 +932,9 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     }
   ],
   "arkret_governance": {
-    "profile": "ak.organization.governance.v1",
     "threshold": {
-      "required": 2,
-      "eligible_methods": [
+      "min_signature_count": 2,
+      "allowed_verification_methods": [
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-1",
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-2",
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-3"
@@ -945,13 +944,14 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
       {
         "service_id": "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
         "purposes": ["station", "space_endorsement"],
-        "validFrom": "2026-04-26T00:00:00Z",
-        "validUntil": null
+        "not_before": "2026-04-26T00:00:00.000Z"
       }
     ]
   }
 }
 ```
+上述 `arkret_governance` 及其子成员是本节描述的 Arkret 自有治理 metadata，不是 W3C DID Core 或 VC 的逐字字段；外层 `verificationMethod`、`assertionMethod`、`publicKeyMultibase` 与 `serviceEndpoint` 继续保留外部标准拼写。`threshold.min_signature_count` 是 application-level multi-proof 要求的不同有效 verification method 签名数下界，允许的方法由 `allowed_verification_methods` 指明；它不声明 method-native FROST 的参与者或份额参数，后者由所属 method/profile 验证。委派的 `not_before` / `expires_at` 按 canonical timestamp 解释；本例省略 `expires_at` 表示未设置时间上界，出现时不得为 `null`。本例沿用本节已有的治理 extension 语义，不声明未登记的 profile，也不增加操作或授权路径。
+
 规则：
 
 - Organization principal MUST 由其 DID Document / method history 中的密钥或委托服务控制。
@@ -969,21 +969,21 @@ Organization principal 是一个可控制的 DID principal，有 DID Document、
 1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id` 与该 Realm **已签名 genesis** 的 exact `purpose="principal_control"`。比较项 MUST 取自作者签名的 closed `ak.schema.realm_genesis.v1` 原文，MUST NOT 取 materialized `fields.purpose` 投影或任何 profile 字符串。
 2. 组织 DID Document / governance profile 显式委派的 Account Authority 或 `ArkretGovernanceService`，其 delegation purpose MUST 覆盖 `principal_control_realm_bootstrap`，事件 MUST 记录实际执行主体（例如 `executed_by` 或组织侧 governance decision id），且接收方必须按事件时间解析该 delegation。
 
-OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `ak.session.grant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ak.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
+OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `SessionGrant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ak.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
 
 #### 标准 service entry 类型
 
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |
 | --- | --- | --- | --- |
 | `ArkretGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
-| `ArkretService` + `serviceKind="station"` | Principal / Organization / Agent | service bootstrap / discoverable Station hint（非强制投递入口） | §3.7 / `ServiceDidEndpoint` |
+| `ArkretService` + `service_kind="station"` | Principal / Organization / Agent | service bootstrap / discoverable Station hint（非强制投递入口） | §3.7 / `ServiceDidEndpoint` |
 | `ArkretManagedPrincipalController` | Agent | entry 0 中 create-locked controller delegation | `key-management.md` §4.1 |
 | `ArkretPrincipalControlRealm` | Agent | entry 1 中 create-locked PCR 四元组反向指针 | `key-management.md` §4.1 |
 
 本表的机器真相源是
 [`did-document-contract-registry.json`](../../artifacts/registry/did-document-contract-registry.json)。
 接收方只接受 registry 登记的 DID service type。specialized organization/Agent type 不得替代 service bootstrap 的
-`ArkretService + serviceKind`。
+`ArkretService + service_kind`。
 
 自己 Station 为客户端解析组织控制或准备组织操作时，MUST 验证：
 
@@ -998,7 +998,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 `threshold` 可以在不同层实现，但 DID Document / governance policy MUST 明确声明 profile：
 
 - **method-native threshold signature**：DID method 或底层 key type 原生支持阈值签名（例如 FROST 生成单一 verification method 签名）。验证方按 method history 验证一个签名，但必须能从 governance evidence 确认阈值参数和参与 key set。
-- **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Arkret / governance service 按 `threshold.required`、eligible methods、purpose、expiry 和 history head 检查 quorum。
+- **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Arkret / governance service 按 `threshold.min_signature_count`、`threshold.allowed_verification_methods`、purpose、expiry 和 history head 检查 quorum。
 - **governance service attestation**：组织 DID 委派的 service DID 聚合审批并签发 attestation。该 service 本身必须由 organization DID 委派，attestation 必须保留参与 signer、policy version、decision id 和 audit digest。
 
 实现不得仅因为 DID method 支持 witness（例如 `did:webvh` witness）就把 witness 当作 threshold signature。Witness 证明历史可见性或日志一致性；治理结果证明治理授权。
@@ -1017,7 +1017,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 
 **新 service delegation**：
 
-1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、validFrom / validUntil 和 revocation path。
+1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、`not_before` / `expires_at` 和 revocation path。
 2. quorum proof 覆盖完整 proposal。
 3. DID Document service entry 或 Arkret `ak.realm.organization` / policy state 发布 delegation。
 4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Realm policy。

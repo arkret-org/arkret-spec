@@ -73,16 +73,16 @@ class OpenApiSessionGrantAuthLintTest(unittest.TestCase):
     def test_bearer_regression_is_rejected(self) -> None:
         def mutate(document: dict) -> None:
             operation = self._operation(document, OPERATIONS[2])
-            operation["security"][0] = {"bearerAuth": []}
+            operation["security"][0] = {"BearerAuth": []}
 
         failures = self._run(mutate)
-        self.assertTrue(any("must require sessionGrantAuth" in failure for failure in failures), failures)
-        self.assertTrue(any("must not use bearerAuth" in failure for failure in failures), failures)
+        self.assertTrue(any("must require SessionGrantAuth" in failure for failure in failures), failures)
+        self.assertTrue(any("must not use BearerAuth" in failure for failure in failures), failures)
 
     def test_session_grant_without_dpop_is_rejected(self) -> None:
         def mutate(document: dict) -> None:
             operation = self._operation(document, OPERATIONS[3])
-            operation["security"][0] = {"sessionGrantAuth": []}
+            operation["security"][0] = {"SessionGrantAuth": []}
 
         failures = self._run(mutate)
         self.assertTrue(any("same security alternative" in failure for failure in failures), failures)
@@ -92,9 +92,9 @@ class OpenApiSessionGrantAuthLintTest(unittest.TestCase):
             operation = self._operation(document, OPERATIONS[4])
             operation["security"].append(
                 {
-                    "httpMessageSignature": [],
-                    "sourceServiceId": [],
-                    "destinationServiceId": [],
+                    "HttpMessageSignature": [],
+                    "SourceServiceId": [],
+                    "DestinationServiceId": [],
                 }
             )
 

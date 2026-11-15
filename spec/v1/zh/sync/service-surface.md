@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-11-15
 see_also:
   - service-http-binding.md
   - authority-commit-log.md
@@ -64,7 +64,7 @@ Account Authority 是 Station 的账号准入逻辑入口，不是独立 Realm a
 
 ### 2.6 Service DID 权威入口与路由解析（normative）
 
-服务调用方 MUST 验证 `did_core_id` 对应的 method-native 当前状态、唯一 `ArkretService` entry、`serviceKind` 和 canonical HTTPS endpoint。缓存、邀请和 Directory 行都是 locator。
+服务调用方 MUST 验证 `did_core_id` 对应的 method-native 当前状态、唯一 `ArkretService` entry、`service_kind` 和 canonical HTTPS endpoint。缓存、邀请和 Directory 行都是 locator。
 
 Station MAY 按 media-service-binding §2.1 兼任媒体 credential issuer；此时验证和 Describe 仍选择真实 station 角色，并继续独立核 Realm 当前 assignment、媒体 profile／backend sub-profile 与已登记 token operation bundle。此职责不新增 service_kind 或独立 Service DID，不允许把 station route 重标为 media_service，也不改变媒体传输拓扑。
 

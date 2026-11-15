@@ -306,13 +306,13 @@
         {
           "id": "external-literal-objects",
           "basis": "external_literal",
-          "reason": "An object that mirrors an external specification verbatim declares x-arkret-external-literal-object on its own schema node. Keeping the fact in the schema is what makes the exemption exact: it covers only the properties that node declares and cannot be reached through $ref, a shared type name or a same-named property elsewhere.",
+          "reason": "An external literal owner declares specification, anchor and an exact external_properties list on its own schema node. Only those directly declared members retain the external spelling; every unlisted member remains Arkret-owned, including newly added extensions. Ownership never follows a $ref, shared type name, nested object or same-named field.",
           "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json",
           "external_anchor": "The external specification named by the annotation's specification member, pinned by its https anchor fragment"
         }
       ],
       "enforcement": "predicate+registry",
-      "enforcement_scope": "The predicate decides the name; the schema-level x-arkret-external-literal-object annotation decides which exact objects sit outside the Arkret lexicon. A fully snake_case marker may still be required by NC-IDROLE-001 for an external literal such as RFC 9457 instance.",
+      "enforcement_scope": "The predicate decides the property spelling; required exact external_properties metadata determines which individual properties are external. Missing, empty, duplicate and stale lists fail closed. Identifier-role and collection checks use the same per-property ownership. The truth of an external-standard claim still requires semantic review; RFC 9457 instance stays external while Arkret problem extensions do not.",
       "exact_path_exceptions": []
     }
   ],
@@ -430,6 +430,11 @@
     {
       "rule_id": "NC-FIELDCASE-001",
       "candidate": "$Op",
+      "expected": "reject"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "auth_binding",
       "expected": "reject"
     }
   ],
@@ -571,6 +576,11 @@
     {
       "rule_id": "NC-TYPE-001",
       "candidate": "SessionGrantResponseBody",
+      "expected": "accept"
+    },
+    {
+      "rule_id": "NC-LEXEME-001",
+      "candidate": "authorization_binding",
       "expected": "accept"
     }
   ]

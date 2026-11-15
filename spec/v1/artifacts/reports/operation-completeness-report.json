@@ -2029,7 +2029,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
       "openapi_component_refs": {
-        "response": "#/components/schemas/EventView"
+        "response": "#/components/schemas/CommittedEventView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

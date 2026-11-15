@@ -174,7 +174,7 @@ def validate_snapshot(snapshot, request, response, keys, *, known_rows=(), histo
                 raise ValueError('source scope')
             if int(commit['governance_generation']) > generation or commit['stream_position'] > row['revision']['stream_position']:
                 raise ValueError('source beyond accepted axis')
-        if last['value']['op'] in ('join', 'remove_participant'):
+        if last['value']['operation'] in ('join', 'remove_participant'):
             if not any(entry['tag_id'] == last['tag_id'] for entry in entries):
                 raise ValueError('observable latest source omitted')
         elif any(entry['source_commit']['stream_position'] >= last['source_commit']['stream_position'] for entry in entries):
@@ -222,10 +222,10 @@ def run_case(fixture, name):
                 'kick_old_leg', 'kick_later_legal_join', 'restore_preserves_kick', 'full_actor_station_isolation'):
         if name == 'empty_roster_latest_leave':
             row = axis_row(fixture['checkpoints'][9], 'roster')
-            return 'accept' if row['value']['entries'] == [] and row['value']['last_source']['value']['op'] == 'leave' and row['revision'] == revision(fixture['original_rows'][9]['commit']) else 'reject'
+            return 'accept' if row['value']['entries'] == [] and row['value']['last_source']['value']['operation'] == 'leave' and row['revision'] == revision(fixture['original_rows'][9]['commit']) else 'reject'
         if name == 'empty_moderation_latest_restore':
             row = axis_row(fixture['checkpoints'][5], 'moderation')
-            return 'accept' if row['value']['entries'] == [] and row['value']['last_source']['value']['op'] == 'restore_participant' and row['revision'] == revision(fixture['original_rows'][5]['commit']) else 'reject'
+            return 'accept' if row['value']['entries'] == [] and row['value']['last_source']['value']['operation'] == 'restore_participant' and row['revision'] == revision(fixture['original_rows'][5]['commit']) else 'reject'
         if name == 'unwritten_axis_absent':
             return 'accept' if not any(r['selector']['kind'] in ('call_roster', 'call_moderation') for r in fixture['checkpoints'][0]['current_state_entries']) else 'reject'
         if name == 'full_actor_station_isolation':

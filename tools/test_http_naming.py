@@ -1,9 +1,15 @@
 """Mutations cover the distinct HTTP and operation naming namespaces."""
 
 import copy
+import json
 import unittest
+from urllib.parse import quote, unquote
 
-from .artifact_lint.http_naming import http_naming_errors, operation_id_errors, path_name_errors, transport_naming_errors, http_index_errors
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+
+from .artifact_lint.http_naming import http_naming_errors, operation_id_errors, path_name_errors, transport_naming_errors, http_index_errors, SCALAR_PARAMETER_REFS
+from .artifact_lint.core import ARTIFACTS, Lint, load_json, load_yaml
 
 
 def specimen():
@@ -12,7 +18,8 @@ def specimen():
     operation = {
         "operationId": endpoint,
         "parameters": [
-            {"in": "path", "name": "strand_id", "required": True},
+            {"in": "path", "name": "strand_id", "required": True,
+             "schema": {"$ref": "../schemas/strand.schema.json#/properties/id"}},
             {"in": "query", "name": "include_payload"},
             {"in": "header", "name": "Arkret-Operation"},
         ],
@@ -22,6 +29,270 @@ def specimen():
 
 
 class HttpNamingTests(unittest.TestCase):
+    def test_registered_scalar_carrier_targets_resolve_to_real_schemas(self):
+        for name, reference in SCALAR_PARAMETER_REFS.items():
+            with self.subTest(name=name, reference=reference):
+                filename, pointer = reference.split("#", 1)
+                node = json.loads((ARTIFACTS / "schemas" / filename).read_text(encoding="utf-8"))
+                for token in pointer.split("/")[1:]:
+                    token = token.replace("~1", "/").replace("~0", "~")
+                    node = node[int(token)] if isinstance(node, list) else node[token]
+                self.assertIsInstance(node, (dict, bool))
+
+    def test_every_component_reference_namespace_uses_canonical_pascal_case(self):
+        for group in ("schemas", "requestBodies", "parameters", "responses", "headers", "examples",
+                      "securitySchemes", "links", "callbacks", "pathItems", "mediaTypes"):
+            document, rows = specimen()
+            document["components"] = {group: {"ValidName": {}}}
+            self.assertEqual(http_naming_errors(document, rows), [], group)
+            for name in ("lowerCamel", "snake_case", "HTTPProof", "Bad_Name"):
+                document["components"] = {group: {name: {}}}
+                self.assertTrue(http_naming_errors(document, rows), (group, name))
+
+    def test_metadata_keys_are_checked_at_oas_objects_without_scanning_instances(self):
+        document, rows = specimen()
+        document["x-arkret-policy"] = {"valid_name": True}
+        document["components"] = {"examples": {"Sample": {"value": {
+            "x-arkret-policy": {"lowerCamel": True}}}}}
+        document["components"]["schemas"] = {"SampleValue": {"type": "object", "default": {
+            "x-arkret-policy": {"lowerCamel": True}}}}
+        operation = next(iter(document["paths"].values()))["get"]
+        operation["x-arkret-auth"] = {"holder_proof": True}
+        self.assertEqual(http_naming_errors(document, rows), [])
+        operation["x-arkret-auth"]["service_signature"] = {"delivery_authentication_record": {"requestBodyField": False}}
+        self.assertTrue(any("requestBodyField" in error for error in http_naming_errors(document, rows)))
+        operation["x-arkret-auth"]["service_signature"] = [{"requestBodyField": False}]
+        self.assertTrue(http_naming_errors(document, rows))
+        del operation["x-arkret-auth"]["service_signature"]
+        operation["x-arkret-value-ownership"] = {"class": "external_literal", "values": [{"externalCamel": True}]}
+        self.assertEqual(http_naming_errors(document, rows), [])
+        document["x-arkret-policy"]["lowerCamel"] = True
+        self.assertTrue(any("fixed extension metadata keys" in error for error in http_naming_errors(document, rows)))
+        del document["x-arkret-policy"]["lowerCamel"]
+        operation["x-arkret-auth"]["holderProof"] = True
+        self.assertTrue(http_naming_errors(document, rows))
+        del operation["x-arkret-auth"]["holderProof"]
+        operation["callbacks"] = {"Callback": {"{$request.body#/url}": {"post": {
+            "x-arkret-auth": {"holderProof": True}}}}}
+        self.assertTrue(http_naming_errors(document, rows))
+
+    def test_scalar_identifier_names_cannot_use_a_bare_or_wrong_terminal(self):
+        for schema in ({"type": "string"}, {"type": "string", "pattern": "^.*$"},
+                       {"$ref": "../schemas/common-ids.schema.json#/$defs/realm_id"}):
+            document, rows = specimen()
+            next(iter(document["paths"].values()))["get"]["parameters"][0]["schema"] = schema
+            self.assertTrue(http_naming_errors(document, rows), schema)
+
+    def test_real_http_binding_names_and_identity_carriers_are_closed(self):
+        lint = Lint()
+        document = load_yaml(lint, ARTIFACTS / "openapi/arkret-service-api.openapi.yaml")
+        registry = load_json(lint, ARTIFACTS / "registry/operation-registry.json")
+        self.assertEqual(lint.errors, [])
+        self.assertEqual(http_naming_errors(document, registry["operations"]), [])
+        for path, name, carrier in (
+            ("/_arkret/self/authz/invites", "subject_account_id", "account_id"),
+            ("/_arkret/self/authz/effective-grants", "subject_actor_id", "actor_id"),
+        ):
+            parameters = document["paths"][path]["get"]["parameters"]
+            selected = [value for value in parameters if value.get("in") == "query" and value.get("name") == name]
+            self.assertEqual(len(selected), 1)
+            self.assertFalse(selected[0]["required"])
+            self.assertEqual(selected[0]["content"]["application/json"]["schema"],
+                             {"$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier})
+            self.assertFalse({"subject", "subject_station_id"} & {value.get("name") for value in parameters})
+
+    def test_compound_query_identity_name_cannot_hide_a_bare_or_different_carrier(self):
+        for name, carrier in (("subject_account_id", "account_id"), ("subject_actor_id", "actor_id"),
+                              ("source_realm_actor_id", "realm_actor_id")):
+            document, rows = specimen()
+            parameter = {"in": "query", "name": name, "content": {"application/json": {
+                "schema": {"$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier}}}}
+            next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+            self.assertEqual(http_naming_errors(document, rows), [])
+            for changed in (
+                {"in": "query", "name": name, "schema": {"type": "string"}},
+                {**parameter, "schema": {"type": "string"}},
+                {"in": "query", "name": name, "content": {"application/json": {"schema": {"type": "object"}}}},
+                {"in": "query", "name": name, "content": {"application/json": {"schema": {
+                    "$ref": "../schemas/common-ids.schema.json#/$defs/did_core_id"}}}},
+            ):
+                invalid = copy.deepcopy(document)
+                next(iter(invalid["paths"].values()))["get"]["parameters"][1] = changed
+                self.assertTrue(http_naming_errors(invalid, rows), (name, changed))
+
+    def test_compound_query_schema_local_references_and_flat_deep_object(self):
+        document, rows = specimen()
+        parameter = {"in": "query", "name": "realm_actor_id", "style": "deepObject", "explode": True,
+                     "schema": {"$ref": "#/components/schemas/RealmActorId"}}
+        document["components"] = {"schemas": {"RealmActorId": {
+            "$ref": "../schemas/common-ids.schema.json#/$defs/realm_actor_id"}}}
+        next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+        self.assertEqual(http_naming_errors(document, rows), [])
+        for changed in ({**parameter, "explode": False}, {**parameter, "name": "actor_id"},
+                        {**parameter, "schema": {"$ref": "#/components/schemas/Missing"}}):
+            invalid = copy.deepcopy(document)
+            next(iter(invalid["paths"].values()))["get"]["parameters"][1] = changed
+            self.assertTrue(http_naming_errors(invalid, rows), changed)
+        document["components"]["schemas"]["RealmActorId"] = {"$ref": "#/components/schemas/RealmActorId"}
+        self.assertTrue(http_naming_errors(document, rows))
+
+    def test_repeated_compound_identity_values_require_decoded_content_schemas(self):
+        for name, carrier in (("account_ids", "account_id"), ("source_actor_ids", "actor_id"),
+                              ("target_realm_actor_ids", "realm_actor_id")):
+            document, rows = specimen()
+            item = {"type": "string", "contentMediaType": "application/json", "contentSchema": {
+                "$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier}}
+            parameter = {"in": "query", "name": name, "style": "form", "explode": True,
+                         "schema": {"type": "array", "items": item}}
+            next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+            self.assertEqual(http_naming_errors(document, rows), [])
+            invalid_items = [
+                {"type": "string"},
+                {"type": "string", "contentMediaType": "application/json"},
+                {key: value for key, value in item.items() if key != "contentMediaType"},
+                {**item, "contentMediaType": "text/plain"},
+                {**item, "contentEncoding": "base64"},
+                {**item, "type": "object"},
+                {**item, "contentSchema": {"type": "object"}},
+                {**item, "contentSchema": {"$ref": "../schemas/common-ids.schema.json#/$defs/did_core_id"}},
+                {**item, "contentSchema": {"$ref": "../schemas/common-ids.schema.json#/$defs/" + (
+                    "account_id" if carrier != "account_id" else "actor_id")}},
+            ]
+            for changed_item in invalid_items:
+                invalid = copy.deepcopy(document)
+                selected = next(iter(invalid["paths"].values()))["get"]["parameters"][1]
+                selected["schema"]["items"] = changed_item
+                with self.subTest(name=name, item=changed_item):
+                    self.assertTrue(http_naming_errors(invalid, rows))
+            for changed in (
+                {**parameter, "style": "deepObject"}, {**parameter, "style": "simple"},
+                {**parameter, "explode": False}, {**parameter, "in": "path"},
+                {**parameter, "content": {"application/json": {"schema": parameter["schema"]}}},
+                {**parameter, "schema": {"type": "string"}},
+            ):
+                invalid = copy.deepcopy(document)
+                next(iter(invalid["paths"].values()))["get"]["parameters"][1] = changed
+                errors = http_naming_errors(invalid, rows)
+                with self.subTest(name=name, parameter=changed):
+                    self.assertTrue(any("compound identity collection" in error for error in errors), errors)
+
+    def test_repeated_identity_content_schema_follows_local_aliases(self):
+        document, rows = specimen()
+        document["components"] = {"schemas": {
+            "ActorId": {"$ref": "../schemas/common-ids.schema.json#/$defs/actor_id"},
+            "EncodedActor": {"type": "string", "contentMediaType": "application/json",
+                             "contentSchema": {"$ref": "#/components/schemas/ActorId"}},
+            "EncodedActors": {"type": "array", "items": {"$ref": "#/components/schemas/EncodedActor"}},
+        }}
+        parameter = {"in": "query", "name": "actor_ids", "style": "form", "explode": True,
+                     "schema": {"$ref": "#/components/schemas/EncodedActors"}}
+        next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+        self.assertEqual(http_naming_errors(document, rows), [])
+        for reference in ("#/components/schemas/Missing", "#/components/schemas/ActorId"):
+            invalid = copy.deepcopy(document)
+            invalid["components"]["schemas"]["ActorId"] = {"$ref": reference}
+            self.assertTrue(http_naming_errors(invalid, rows), reference)
+
+    def test_repeated_identity_aliases_reject_shape_and_content_siblings_at_every_layer(self):
+        document, rows = specimen()
+        annotation = {"description": "The same complete decoded identity.", "title": "Identity alias"}
+        document["components"] = {"schemas": {
+            "ActorId": {"$ref": "../schemas/common-ids.schema.json#/$defs/actor_id", **annotation},
+            "ActorIdAlias": {"$ref": "#/components/schemas/ActorId", **annotation},
+            "EncodedActor": {"type": "string", "contentMediaType": "application/json",
+                             "contentSchema": {"$ref": "#/components/schemas/ActorIdAlias", **annotation}},
+            "EncodedActorAlias": {"$ref": "#/components/schemas/EncodedActor", **annotation},
+            "EncodedActors": {"type": "array", "items": {
+                "$ref": "#/components/schemas/EncodedActorAlias", **annotation}},
+            "EncodedActorsAlias": {"$ref": "#/components/schemas/EncodedActors", **annotation},
+        }}
+        parameter = {"in": "query", "name": "actor_ids", "style": "form", "explode": True,
+                     "schema": {"$ref": "#/components/schemas/EncodedActorsAlias", **annotation}}
+        operation = next(iter(document["paths"].values()))["get"]
+        operation["parameters"][1] = parameter
+        self.assertEqual(http_naming_errors(document, rows), [])
+        path = next(iter(document["paths"]))
+        cases = (
+            (("paths", path, "get", "parameters", 1, "schema"), {"type": "string"}),
+            (("components", "schemas", "EncodedActorsAlias"), {"minItems": 1}),
+            (("components", "schemas", "EncodedActors", "items"), {"contentEncoding": "base64"}),
+            (("components", "schemas", "EncodedActorAlias"), {"contentMediaType": "text/plain"}),
+            (("components", "schemas", "EncodedActor", "contentSchema"), {"type": "string"}),
+            (("components", "schemas", "ActorIdAlias"), {"allOf": [{"type": "string"}]}),
+            (("components", "schemas", "ActorId"), {"type": "string"}),
+        )
+        for parts, sibling in cases:
+            invalid = copy.deepcopy(document)
+            target = invalid
+            for part in parts:
+                target = target[part]
+            target.update(sibling)
+            errors = http_naming_errors(invalid, rows)
+            with self.subTest(path=parts, sibling=sibling):
+                self.assertTrue(any("transparent aliases" in error for error in errors), errors)
+
+    def test_single_compound_identity_canonical_references_allow_only_annotations(self):
+        annotations = {"title": "Identity alias", "description": "One complete identity.", "$comment": "Alias.",
+                       "examples": [], "default": {}, "deprecated": False, "readOnly": True, "writeOnly": False}
+        for carrier in ("actor_id", "account_id", "realm_actor_id"):
+            for local in (False, True):
+                document, rows = specimen()
+                reference = {"$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier, **annotations}
+                if local:
+                    document["components"] = {"schemas": {"Identity": reference}}
+                    schema = {"$ref": "#/components/schemas/Identity", **annotations}
+                else:
+                    schema = reference
+                parameter = {"in": "query", "name": carrier, "content": {"application/json": {"schema": schema}}}
+                next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+                self.assertEqual(http_naming_errors(document, rows), [])
+                for sibling in ({"type": "string"}, {"properties": {"unknown_member": {}}},
+                                {"contentEncoding": "base64"}, {"contentSchema": {"type": "string"}}):
+                    invalid = copy.deepcopy(document)
+                    target = (invalid["components"]["schemas"]["Identity"] if local else
+                              next(iter(invalid["paths"].values()))["get"]["parameters"][1]["content"]["application/json"]["schema"])
+                    target.update(sibling)
+                    errors = http_naming_errors(invalid, rows)
+                    with self.subTest(carrier=carrier, local=local, sibling=sibling):
+                        self.assertTrue(any("transparent aliases" in error for error in errors), errors)
+
+    def test_real_repeated_actor_ids_decode_before_canonical_identity_validation(self):
+        """Content annotations identify the decoded schema; receivers perform validation."""
+        lint = Lint()
+        document = load_yaml(lint, ARTIFACTS / "openapi/arkret-service-api.openapi.yaml")
+        parameters = document["paths"]["/_arkret/self/committed-events/subscribe"]["get"]["parameters"]
+        parameter = next(value for value in parameters if value.get("name") == "actor_ids")
+        items = parameter["schema"]["items"]
+        filename, pointer = items["contentSchema"]["$ref"].split("#", 1)
+        canonical = json.loads((ARTIFACTS / "openapi" / filename).read_text(encoding="utf-8"))
+        registry = Registry().with_resource(canonical["$id"], Resource.from_contents(canonical))
+        validator = Draft202012Validator({"$ref": canonical["$id"] + "#" + pointer}, registry=registry)
+        account = {"kind": "account", "account_id": {
+            "principal_id": "ak:did_core:web:alice.example", "station_id": "ak:did_core:web:station.example"}}
+        missing_station = {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:alice.example"}}
+        for value, valid in (
+            (account, True), ({"kind": "service", "service_id": "ak:did_core:web:service.example"}, True),
+            (missing_station, False), ({}, False), ("did:web:alice.example", False),
+            ({**account, "unknown_member": True}, False),
+        ):
+            jcs = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            encoded = quote(jcs, safe="")
+            decoded = json.loads(unquote(encoded, encoding="utf-8", errors="strict"))
+            with self.subTest(value=value):
+                self.assertEqual(validator.is_valid(decoded), valid)
+        with self.assertRaises(json.JSONDecodeError):
+            json.loads(unquote(quote("did:web:alice.example", safe="")))
+        self.assertTrue(Draft202012Validator(items).is_valid(json.dumps(missing_station)))
+
+    def test_canonical_public_dto_mirrors_cannot_create_type_name_aliases(self):
+        document, rows = specimen()
+        reference = {"$ref": "../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView"}
+        document["components"] = {"schemas": {"CommittedEventView": reference}}
+        self.assertEqual(http_naming_errors(document, rows), [])
+        document["components"]["schemas"] = {"EventView": reference}
+        errors = http_naming_errors(document, rows)
+        self.assertTrue(any("canonical public DTO mirror" in error for error in errors), errors)
+
     def test_prose_http_index_rejects_stale_missing_extra_and_duplicate_rows(self):
         row = {"operation_id": "ak.self.account_data.read.list.v1", "http": "GET /_arkret/self/account-data"}
         row_text = "| `ak.self.account_data.read.list.v1` | `GET /_arkret/self/account-data` | - | - | refs |"
@@ -42,7 +313,7 @@ class HttpNamingTests(unittest.TestCase):
         document, rows = specimen()
         self.assertEqual(http_naming_errors(document, rows), [])
         document["external_examples"] = {"url": "https://identity.example/.well-known/openid-configuration", "verificationMethod": "external"}
-        document["components"] = {"securitySchemes": {"dpopProof": {"in": "header", "name": "DPoP"}}}
+        document["components"] = {"securitySchemes": {"DpopProof": {"in": "header", "name": "DPoP"}}}
         self.assertEqual(http_naming_errors(document, rows), [])
         rows[0]["http"] = "POST /_arkret/self/strands/{strand_id}/messages"
         self.assertTrue(http_naming_errors(document, rows))

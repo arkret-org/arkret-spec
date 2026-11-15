@@ -894,15 +894,15 @@
           "method_history_evidence": {
             "evidence_kind": "did_web_document",
             "boundary": {
-              "from_method_history_head": "sha256:6faad773202e120018cddface1f751c05d21c3c272d92cce5fe09323341e1e8b",
-              "to_method_history_head": "sha256:6faad773202e120018cddface1f751c05d21c3c272d92cce5fe09323341e1e8b",
-              "from_version_id": "synthetic-jcs-sha256:6faad773202e120018cddface1f751c05d21c3c272d92cce5fe09323341e1e8b",
-              "to_version_id": "synthetic-jcs-sha256:6faad773202e120018cddface1f751c05d21c3c272d92cce5fe09323341e1e8b"
+              "from_method_history_head": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "to_method_history_head": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "from_version_id": "synthetic-jcs-sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
+              "to_version_id": "synthetic-jcs-sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb"
             },
             "evidence": {
               "kind": "ak.did.binding_evidence.v1",
               "method": "web",
-              "document_digest": "sha256:6faad773202e120018cddface1f751c05d21c3c272d92cce5fe09323341e1e8b",
+              "document_digest": "sha256:fcc2f94d9e3b50e417c116b9bd8a833fdca9a043e012ea02e1132f48dec24cbb",
               "method_proofs": []
             }
           },
@@ -948,7 +948,7 @@
                 "endpoint": "https://successor-station.example/",
                 "extensions": [
                   {
-                    "name": "serviceKind",
+                    "name": "service_kind",
                     "value": "station"
                   }
                 ]
@@ -959,7 +959,7 @@
           }
         }
       },
-      "peer_row_signer_evidence_ref": "ak:signer_evidence:sha256:485c63d6eaa7bfcbd73159d3816015d2a128b510c5bcdefd147eb5785823099a",
+      "peer_row_signer_evidence_ref": "ak:signer_evidence:sha256:516534e9b6a50bf9a0f6715aa364586906311a8e54af9d240a86feb3fafff9ab",
       "evidence": {
         "device_projection_attestation": {
           "attestation": {
@@ -993,15 +993,15 @@
           "method_history_evidence": {
             "evidence_kind": "did_web_document",
             "boundary": {
-              "from_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "to_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "from_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "to_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91"
+              "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
             },
             "evidence": {
               "kind": "ak.did.binding_evidence.v1",
               "method": "web",
-              "document_digest": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
+              "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
               "method_proofs": []
             }
           },
@@ -1047,7 +1047,7 @@
                 "endpoint": "https://successor-station.example/",
                 "extensions": [
                   {
-                    "name": "serviceKind",
+                    "name": "service_kind",
                     "value": "station"
                   }
                 ]
@@ -1063,7 +1063,7 @@
           }
         }
       },
-      "evidence_ref": "ak:signer_evidence:sha256:6ab7139bf81739312c4b3a35f980e2dba9039629ad534d19d6dfd0dd485ffc7d",
+      "evidence_ref": "ak:signer_evidence:sha256:932f7b90ae6448329c8598d767db039b7d6d94f80ea5ce784f26f073cee315b9",
       "fresh_evidence": {
         "device_projection_attestation": {
           "attestation": {
@@ -1097,15 +1097,15 @@
           "method_history_evidence": {
             "evidence_kind": "did_web_document",
             "boundary": {
-              "from_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "to_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "from_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-              "to_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91"
+              "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+              "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
             },
             "evidence": {
               "kind": "ak.did.binding_evidence.v1",
               "method": "web",
-              "document_digest": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
+              "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
               "method_proofs": []
             }
           },
@@ -1151,7 +1151,7 @@
                 "endpoint": "https://successor-station.example/",
                 "extensions": [
                   {
-                    "name": "serviceKind",
+                    "name": "service_kind",
                     "value": "station"
                   }
                 ]
@@ -1167,7 +1167,7 @@
           }
         }
       },
-      "fresh_evidence_ref": "ak:signer_evidence:sha256:5a91e0b4cfdc3eb769ad2eef1a90c2407d2327dc38fa08165eb8b38529f62310",
+      "fresh_evidence_ref": "ak:signer_evidence:sha256:378d4206667565245be437762f588a9153b91efa47ac96221bf177ea8bf3c1e6",
       "forward_body": {
         "branch": "authority_forward",
         "event_submission": {
@@ -1250,15 +1250,15 @@
             "method_history_evidence": {
               "evidence_kind": "did_web_document",
               "boundary": {
-                "from_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "to_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "from_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "to_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91"
+                "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
               },
               "evidence": {
                 "kind": "ak.did.binding_evidence.v1",
                 "method": "web",
-                "document_digest": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
+                "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
                 "method_proofs": []
               }
             },
@@ -1304,7 +1304,7 @@
                   "endpoint": "https://successor-station.example/",
                   "extensions": [
                     {
-                      "name": "serviceKind",
+                      "name": "service_kind",
                       "value": "station"
                     }
                   ]
@@ -1403,15 +1403,15 @@
             "method_history_evidence": {
               "evidence_kind": "did_web_document",
               "boundary": {
-                "from_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "to_method_history_head": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "from_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
-                "to_version_id": "synthetic-jcs-sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91"
+                "from_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_method_history_head": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "from_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
+                "to_version_id": "synthetic-jcs-sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633"
               },
               "evidence": {
                 "kind": "ak.did.binding_evidence.v1",
                 "method": "web",
-                "document_digest": "sha256:a5aee98249c14c5575976064f49b8d8d9ca953496b3565e34bf4df04404bcc91",
+                "document_digest": "sha256:9fa4c0607c0931641858229dac5a9179232464f10d43e117ac77ca5eccf03633",
                 "method_proofs": []
               }
             },
@@ -1457,7 +1457,7 @@
                   "endpoint": "https://successor-station.example/",
                   "extensions": [
                     {
-                      "name": "serviceKind",
+                      "name": "service_kind",
                       "value": "station"
                     }
                   ]
@@ -1475,8 +1475,8 @@
         }
       },
       "stable_business_digest": "sha256:4ea54ffdfbf62037dc06594efda71fa38e21d476712536b986923fd514f031a1",
-      "full_http_body_digest": "sha256:019a05b1c641efb85927417bc4becd81ba0bd7a0f018566c2fbc18df155619ca",
-      "fresh_full_http_body_digest": "sha256:44bf3c37d6323f70c55d22853e3531adbfdfe96612749957add3953feaf0fce5",
+      "full_http_body_digest": "sha256:f1bcc6262f835931805f45053406abd70f75db7439e98b516734b30c22f59420",
+      "fresh_full_http_body_digest": "sha256:f9b01e8ec756719f38b4cd2ae5caf93ddb3668a8f56e85b76f0e3ea46b638932",
       "cases": [
         {
           "name": "original_source",
@@ -1536,7 +1536,7 @@
         "event_id": "ak:event:AYpXvJQcxb1TSx3SRkcZTxST4lNcbsQMmhkToX86Cc_5",
         "intent_digest": "sha256:c6628b8050b72a1465b81fd10ac7d9a2bd8460f8a47e1d352e058e4988e331fd",
         "successor_proof_digest": "sha256:1de4ac2a3c97795e6486ae1569b9528dc6d709644dee114b7e4f6dbb9606bc3f",
-        "successor_evidence_ref": "ak:signer_evidence:sha256:6ab7139bf81739312c4b3a35f980e2dba9039629ad534d19d6dfd0dd485ffc7d"
+        "successor_evidence_ref": "ak:signer_evidence:sha256:932f7b90ae6448329c8598d767db039b7d6d94f80ea5ce784f26f073cee315b9"
       }
     }
   }

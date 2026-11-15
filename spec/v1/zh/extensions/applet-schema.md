@@ -3,7 +3,7 @@ title: Applet Schema and Field Reference
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -117,7 +117,7 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_signals` | yes | 派生 registration 的 encrypted Signal Extension 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
-| `limits` | yes | max transaction events、payload bytes、rate limit hint。 |
+| `limits` | yes | `max_transaction_event_count`、`max_payload_bytes` 与 `max_transaction_count_per_minute` 资源提示。 |
 | `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
 | `delegation_policy` | yes | delegated native-user acting 请求；默认 false。 |
 | `e2ee_policy` | yes | MLS join 请求；默认 false。 |
@@ -127,6 +127,8 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `expires_at` | optional | package 可安装截止时间。 |
 | `created_at` | yes | package 创建时间。 |
 | `proof` | yes | controller DID detached proof。 |
+
+`limits.max_transaction_count_per_minute` 是 Applet Service 对入站 `ak.edge.applet.command.transaction.v1` 每分钟调用数的上限提示；一次 transaction 调用计为一项，不按批内 Event／Signal 数计数。批内 Event 数与字节仍分别受 `max_transaction_event_count`、`max_payload_bytes` 限制。该提示不是 quota grant，也不另建 HTTP 限流权威；实际窗口、执行与重试指引仍遵循该服务 `ServiceDescribe.rate_limit_policy` 的既有合同。
 
 Package -> registration 派生映射:
 

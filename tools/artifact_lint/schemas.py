@@ -4287,7 +4287,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     # A rejected DID service type is only allowed to be *named by the rule that
     # rejects it*. Anywhere else in the artifact tree -- a fixture value, an error
     # description, a schema enum -- it reads as a second, dual-read spelling of
-    # `ArkretService` + `serviceKind`, which is exactly what the closure forbids.
+    # `ArkretService` + `service_kind`, which is exactly what the closure forbids.
     rejection_rule_paths = {
         "contract-registry.json": "$.did_document_contract_registry.registry_rules[3]",
         "did-document-contract-registry.json": "$.registry_rules[3]",
@@ -4319,7 +4319,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                 lint.fail(
                     artifact_path,
                     f"{candidate_path} names rejected DID service type {hit}; use "
-                    "ArkretService plus serviceKind (or the registered specialized type)",
+                    "ArkretService plus service_kind (or the registered specialized type)",
                 )
 
     forbidden_digest_owner_paths = {

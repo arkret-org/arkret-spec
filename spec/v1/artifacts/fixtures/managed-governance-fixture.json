@@ -90,7 +90,7 @@
               }
             }
           ],
-          "threshold": 1,
+          "min_approver_count": 1,
           "max_age_seconds": 3600
         }
       }

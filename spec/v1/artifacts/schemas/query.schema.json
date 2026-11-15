@@ -80,14 +80,14 @@
       "type": "object",
       "required": [
         "field",
-        "op"
+        "operator"
       ],
       "properties": {
         "field": {
           "type": "string",
           "pattern": "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
         },
-        "op": {
+        "operator": {
           "type": "string",
           "enum": [
             "eq",
@@ -105,8 +105,8 @@
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "query.schema.json#/$defs/field_filter/properties/op",
-            "owner": "query.schema.json#/$defs/field_filter/properties/op",
+            "authority": "query.schema.json#/$defs/field_filter/properties/operator",
+            "owner": "query.schema.json#/$defs/field_filter/properties/operator",
             "values": [
               "eq",
               "neq",

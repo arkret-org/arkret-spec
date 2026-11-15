@@ -3,7 +3,7 @@ title: Governance Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -110,7 +110,7 @@ Schema id: `ak.schema.policy.v1`
 | `policy_kind` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_access, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | non-empty `array<PolicyRule>` | `minItems=1`；每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。纯默认策略也必须显式写一条覆盖目标 scope 的规则，不接受空数组。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
-| `default_review_requirement` | conditional | `object` | 管理Policy默认require_review时必填的完整批准人、threshold与期限。 | 不生成grant。 |
+| `default_review_requirement` | conditional | `object` | 管理Policy默认require_review时必填的完整批准人、min_approver_count与期限。 | 不生成grant。 |
 | `default_operations` | conditional | non-empty `array<enum(join, publish, create_bot, map_ghost)>` | require_review 管理默认适用的 join/publish/create_bot/map_ghost 子集；同时必填审批要求。 | 未选操作默认 deny。 |
 | `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
@@ -153,8 +153,8 @@ Moderation policy（审核与治理决策流程）见 [`../governance/content-mo
 
 `ak.policy.action` 在 v1 只有一个 family，写入 current state `policy_action`。payload 必须携带 required
 `value`，并在 `policy_id` / `action_id` 中恰好携带一个作为 subject；`value` 必须是 closed
-`{action,approval_required,approval_quorum,policy_scope}`，其中 `action` 是完整 `ak.*` action token、
-`approval_quorum >= 1`、`policy_scope` 是完整 typed resource/DID ref。v1 不按 subject id 分派 action body，
+`{action,approval_required,min_approver_count,policy_scope}`，其中 `action` 是完整 `ak.*` action token、
+`min_approver_count >= 1`、`policy_scope` 是完整 typed resource/DID ref。v1 不按 subject id 分派 action body，
 也不允许 `state` / `reason`、平铺 action 字段或未知 value 字段；违者 `schema_violation`。机器真源为
 [`policy_action_state_payload`](../../artifacts/schemas/event-payload.schema.json)。
 
@@ -229,8 +229,8 @@ approval constraint。它 MUST 在跨 grant 合并
 设命中集合为 `H`，有效要求按下式合并：
 
 - `effective_approval_required` = `H` 中各 `value.approval_required` 的**逻辑或**；
-- `effective_approval_quorum` = `H` 中 `approval_required=true` 的那些配置的
-  `value.approval_quorum` 的**最大值**（当 `effective_approval_required=false` 时无定义，也不使用）。
+- `effective_min_approver_count` = `H` 中 `approval_required=true` 的那些配置的
+  `value.min_approver_count` 的**最大值**（当 `effective_approval_required=false` 时无定义，也不使用）。
 
 或与最大值都满足交换律与结合律，因此任意读取顺序得到同一结果；这与
 [§3.2](#32-schema-与字段) 同 `priority` 的 deny-overrides 和
@@ -253,7 +253,7 @@ approval constraint。它 MUST 在跨 grant 合并
   grant / policy 标识，表示本层对 `(action token, scope)` 的独立审批要求。本层 MUST 接受这两支——
   治理层的要求可以作用于不靠单份 grant 接纳的动作，实现 MUST NOT 为了满足 schema 伪造 `grant_id`；
   反向，一份 `realm_governance` 支证据 MUST NOT 被当成对某份特定 grant 的批准。
-- `approver_did` **不是**本次操作的发起者。自签名 MUST NOT 计票，否则 `approval_quorum=1` 等于没有要求；
+- `approver_did` **不是**本次操作的发起者。自签名 MUST NOT 计票，否则 `min_approver_count=1` 等于没有要求；
 - `approver_did` 自身持有一份对 `(A, T)` 有效的 capability grant；仅登记的两项 Applet 创建动作按
   [constraint-schema §9.1](../authz/constraint-schema.md) 的 `approver_capability_action` override，
   改验对实际 scope 的显式 `ak.realm.admin` grant，不以 root/owner 身份替代。签名 action 与被批准的
@@ -262,7 +262,7 @@ approval constraint。它 MUST 在跨 grant 合并
   否则任何人都能凑齐 quorum。
 
 **一票 = 一个互不相同的 `approver_did`**。同一 actor 的多份签名（无论 nonce 是否不同）计一票。
-当计入本层的不同 `approver_did` 数量 `>= effective_approval_quorum` 时，本层的要求被满足。
+当计入本层的不同 `approver_did` 数量 `>= effective_min_approver_count` 时，本层的要求被满足。
 
 因为每份签名绑定的是**本次**请求 body 的摘要，一次批准 MUST NOT 被复用到之后的任何操作，
 即便 action token 与目标完全相同；实现 MUST NOT 把满足过一次的 quorum 记成对该 `(action, scope)`
@@ -277,7 +277,7 @@ v1 **不**为本层新造错误码或 reason code。该判定属 `require_review
 也 MUST NOT 降级成 `quarantine`。
 
 Problem 顶层扩展成员 MUST 携带足以让调用方行动的信息：本次的 action token 与
-`effective_approval_quorum`，以及已计入的票数。它 **MUST NOT** 枚举命中了哪些配置的 subject
+`effective_min_approver_count`，以及已计入的票数。它 **MUST NOT** 枚举命中了哪些配置的 subject
 （`policy_id` / `action_id`），否则一个没有 Policy 读权限的调用方会从错误信封里推断出
 Realm 内 Policy 对象的存在与命名。
 

@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-18
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -68,7 +68,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
 | `authority_control` | — | core | 再授权深度、路径、`authority_scope` 等。 | core |
 | `authority_control` | `applet_authority` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
-| `quota` | `rate` | core | 操作频率（`max_operation_count` + `period` + `constraint_scope` + `burst`）。 | core |
+| `quota` | `rate` | core | 操作频率（`max_operation_count` + `period` + `constraint_scope` + `burst_operation_count`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resource_count` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = accepted PCR device 表达。 | `ak.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 approval workflow（v1 只有 `approval_mode=before_commit`）；审批证据是 §9.2 的 approval signature。 | `ak.profile.constraint.approval_workflow.v1` |
@@ -94,7 +94,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `field_access` 带 `condition.kind` | `realm_state` | (realm_id, source_commit_ref, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `kind_restriction` | `stateless` | (constraint_digest, op_target_kind) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_digest, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override_allowed`） | `realm_state` | (realm_id, source_commit_ref, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `active_strand_count_override_allowed`） | `realm_state` | (realm_id, source_commit_ref, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_labels`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `authority_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `authority_control` (`constraint_subkind=applet_authority`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
@@ -357,7 +357,7 @@ duration 使用 schema 定义的非负整数分量（年、月、周、日、时
   "allowed_to_container_refs": [
     "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
   ],
-  "wip_limit_override_allowed": false
+  "active_strand_count_override_allowed": false
 }
 ```
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` 不得直接生效。
@@ -489,7 +489,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
   "effect": "allow",
   "max_operation_count": 100,
   "period": "PT1H",
-  "burst": 10,
+  "burst_operation_count": 10,
   "constraint_scope": "per_space"
 }
 ```
@@ -506,7 +506,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 
 `max_operation_count` MUST 携带 `constraint_scope`。`period` 用于 quota 时 MUST 是可换算为固定毫秒数的非零 ISO 8601 duration，只允许 week / day / hour / minute / second；year / month 因长度随日历变化而 MUST 被 schema / reducer 拒绝。固定窗口 id 为 `floor(quota_verification_time_unix_ms / period_ms)`，以 Unix epoch UTC 对齐；实现不得按“该节点首次看到请求的时刻”各自滚动窗口。
 
-`constraint_subkind=rate` MUST 同时携带 `max_operation_count`、`period` 与 `constraint_scope`；任一缺失均为 `schema_violation`。`max_operation_count=0` 是合法的显式全拒绝窗口。`burst` 不得脱离 `max_operation_count` / `period` 单独出现。
+`constraint_subkind=rate` MUST 同时携带 `max_operation_count`、`period` 与 `constraint_scope`；任一缺失均为 `schema_violation`。`max_operation_count=0` 是合法的显式全拒绝窗口。`burst_operation_count` 不得脱离 `max_operation_count` / `period` 单独出现。
 
 **权威 counter 与多节点原子性（normative）**：每个 `(grant_id, constraint_id-or-canonical-hash, counter key, window_id)` 只能有一个**逻辑 quota authority**。这里“一个”指可由共识 / 事务数据库复制的单一线性化写入点，不要求单进程。执行该 operation 的 service 是 quota domain 的 owner；同一 service 的所有副本、region 与 worker MUST 在产生业务副作用前，对该 authority 执行原子的 `read current → verify limit → reserve/increment`，隔离级别必须保证两个并发请求不可能都观察同一个剩余额度后同时越界提交。按节点维护互不协调的本地 counter、异步汇总后容忍 overshoot、或把 `max_operation_count` 完整复制给每个节点均不符合 v1 hard-quota 语义。
 
@@ -515,7 +515,7 @@ quota authority MUST 同时满足：
 1. `quota_verification_time` 由 authority 的共享时钟 / transaction timestamp 固定，同一次求值只取一次，并受 §16.1 `ak.time_tolerance.temporal_constraint.v1` 运维门禁约束；caller / edge node 不得自报窗口时刻。
 2. 计数单位是 operation registry 为该 operation 声明的 idempotency identity；durable Event 写入以稳定 `event_id` 为 identity。相同 identity 的成功重试返回既有 outcome 且只计一次；同 identity 不同 canonical request digest 必须按 `duplicate_conflict` 拒绝；在进入任何业务副作用前被拒绝的请求不消耗额度。
 3. authority 不可达、无法证明最新 counter、事务冲突重试耗尽或窗口时刻不可确定时，hard quota MUST fail closed（`rate_limited` / `quota_exceeded` 或 `failed_precondition`），不得降级为 advisory allow。
-4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operation_count / period`，bucket capacity 为 `min(burst, max_operation_count)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operation_count`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
+4. `burst_operation_count` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operation_count / period`，bucket capacity 为 `min(burst_operation_count, max_operation_count)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operation_count`。`burst_operation_count` 绝不增加窗口总预算。未声明 `burst_operation_count` 时只执行 fixed-window 上限。
 
 `constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
 
@@ -642,7 +642,7 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 | --- | --- | --- |
 | `grant` | `{"context_kind":"grant","grant_id": GrantId}` | §9.1 挂在**一份具体 grant** 上的审批要求。`grant_id` MUST 是本次操作的某个**满足的依赖 grant**。 |
 | `realm_governance` | `{"context_kind":"realm_governance"}` | [`../models/governance-objects.md` §3.5](../models/governance-objects.md) 登记在 `(action token, scope)` 上的 Realm 治理面审批要求。 |
-| `list_wip` | `{"context_kind":"list_wip","list_space_id": SpaceId,"list_policy_revision": CurrentRevision}` | [`../models/space-hierarchy.md` §6](../models/space-hierarchy.md) 的精确目标 List 在超限且 `wip_limit_enforcement=require_review` 时独立施加的一票审批要求；revision 是该 List metadata typed current 的完整 `{commit_id,stream_position}`。 |
+| `list_wip` | `{"context_kind":"list_wip","list_space_id": SpaceId,"list_policy_revision": CurrentRevision}` | [`../models/space-hierarchy.md` §6](../models/space-hierarchy.md) 的精确目标 List 在超限且 `active_strand_count_enforcement=require_review` 时独立施加的一票审批要求；revision 是该 List metadata typed current 的完整 `{commit_id,stream_position}`。 |
 | `management` | `{"context_kind":"management","management_operation": ManagementOperation,"effective_scope": ScopeRef,"request_id": RequestId}` | [`managed-governance.md` §3](./managed-governance.md) 的私有耐久申请；operation 封闭为 `join/publish/create_bot/map_ghost`，scope 与 request id 绑定原候选及该申请的治理依据。 |
 
 `realm_governance` 支 MUST NOT 携带 `policy_id` / `action_id` 一类治理配置标识：
@@ -1592,7 +1592,7 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   "allowed_to_container_refs": [
     "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
   ],
-  "wip_limit_override_allowed": false
+  "active_strand_count_override_allowed": false
 }
 ```
 规则：
@@ -1603,7 +1603,7 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   和可移入的列 / collection。
 - `allowed_view_ids` 限定授权适用的 View；同一个 Strand item 出现在多个 View
   时不得自动继承移动权。
-- `wip_limit_override_allowed=false` 时，若目标 `Space(kind=list).fields.wip_limit_enforcement` 为 `reject`
+- `active_strand_count_override_allowed=false` 时，若目标 `Space(kind=list).fields.active_strand_count_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。
 
 

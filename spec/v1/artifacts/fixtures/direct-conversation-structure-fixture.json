@@ -329,7 +329,7 @@
       "value": {
         "title": "Topic",
         "fields": {
-          "wip_limit": 3
+          "max_active_strand_count": 3
         }
       },
       "expect_valid": false

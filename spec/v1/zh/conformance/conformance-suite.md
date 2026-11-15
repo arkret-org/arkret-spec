@@ -3,7 +3,7 @@ title: Conformance Suite（自动化互操作测试）
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-11-15
 sidebar:
   label: Conformance Suite
 ---
@@ -169,7 +169,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - scan 允许区间：`after_position` / `before_position` 各自的逐页结果、`truncated` 只反映获准可读的 Commit、`readable_floor` 在非零 floor 上给出可验证下端、空获准区间不等于空物理流，并在跨页上校验 `newer.previous_commit_ref == older.commit_id`。
 - 流枚举不饥饿：70 条可见流下枚举分页、显式 `stream_refs` 选择、第 65 条流在首页之后产生 Commit 仍能发现并续传、固定快照分页与每页权限重查。
 - CommittedEventView 完整性：full 分支的 `event.event_id` 与 `commit.event_ref` 不一致 MUST 拒绝；withheld 分支只允许 `{status:"withheld"}` 且不作为 reducer 输入；不得出现第三种 redacted／stub 形态。
-- 零窗口与空流：`window_limit=0` 只投递边界与上下文，`complete` 只证明投递完成，`limited` 只按 caller 可读区间解释，byte budget 只影响分段。
+- 零窗口与空流：`max_window_event_count=0` 只投递边界与上下文，`complete` 只证明投递完成，`limited` 只按 caller 可读区间解释，byte budget 只影响分段。
 
 ## 5. 组件级测试矩阵（必测）
 

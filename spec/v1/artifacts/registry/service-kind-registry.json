@@ -40,7 +40,7 @@
         },
         {
           "file": "schemas/service-operation-dtos.schema.json",
-          "pointer": "/$defs/ServiceDidEndpoint/properties/serviceKind/enum"
+          "pointer": "/$defs/ServiceDidEndpoint/properties/service_kind/enum"
         }
       ]
     },

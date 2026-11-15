@@ -495,7 +495,7 @@
       "required": [
         "kind",
         "challenge",
-        "threshold",
+        "min_device_count",
         "signatures"
       ],
       "properties": {
@@ -513,9 +513,10 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "threshold": {
+        "min_device_count": {
           "type": "integer",
-          "minimum": 2
+          "minimum": 2,
+          "x-arkret-member-role": "count"
         },
         "signatures": {
           "type": "array",
@@ -811,7 +812,7 @@
       "required": [
         "kind",
         "challenge",
-        "threshold",
+        "min_device_count",
         "signatures"
       ],
       "properties": {
@@ -829,9 +830,10 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "threshold": {
+        "min_device_count": {
           "type": "integer",
-          "minimum": 2
+          "minimum": 2,
+          "x-arkret-member-role": "count"
         },
         "signatures": {
           "type": "array",

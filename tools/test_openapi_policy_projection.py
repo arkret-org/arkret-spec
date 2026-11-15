@@ -31,11 +31,11 @@ class OpenApiPolicyProjectionTests(unittest.TestCase):
         }
         stale = """openapi: 3.2.0
 x-arkret-high-security-session-authentication-policy:
-  appliesToOperationIdPrefix: ak.self.
-  protectedOperationDefault: rfc9421_session_public_key_required
-  unauthenticatedPublicProjectionOperations:
+  applies_to_operation_id_prefix: ak.self.
+  protected_operation_default: rfc9421_session_public_key_required
+  unauthenticated_public_projection_operations:
   - ak.self.events.read.describe.v1
-  newOperationsFailClosed: true
+  new_operations_fail_closed: true
 info:
   title: Arkret Service API
   version: v1

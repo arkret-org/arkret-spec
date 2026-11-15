@@ -2641,16 +2641,16 @@
             {
               "type": "object",
               "required": [
-                "op",
+                "operation",
                 "participant"
               ],
               "properties": {
-                "op": {
+                "operation": {
                   "const": "join",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/0/properties/op",
-                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/0/properties/op",
+                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/0/properties/operation",
+                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/0/properties/operation",
                     "values": [
                       "join"
                     ]
@@ -2665,18 +2665,18 @@
             {
               "type": "object",
               "required": [
-                "op",
+                "operation",
                 "actor_id",
                 "device_id",
                 "expected_commit_id"
               ],
               "properties": {
-                "op": {
+                "operation": {
                   "const": "leave",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/1/properties/op",
-                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/1/properties/op",
+                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/1/properties/operation",
+                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/1/properties/operation",
                     "values": [
                       "leave"
                     ]
@@ -2702,16 +2702,16 @@
             {
               "type": "object",
               "required": [
-                "op",
+                "operation",
                 "removal"
               ],
               "properties": {
-                "op": {
+                "operation": {
                   "const": "remove_participant",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/0/properties/op",
-                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/0/properties/op",
+                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/0/properties/operation",
+                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/0/properties/operation",
                     "values": [
                       "remove_participant"
                     ]
@@ -2797,19 +2797,19 @@
             {
               "type": "object",
               "required": [
-                "op",
+                "operation",
                 "actor_id",
                 "restored_by",
                 "restored_at",
                 "expected_commit_id"
               ],
               "properties": {
-                "op": {
+                "operation": {
                   "const": "restore_participant",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/1/properties/op",
-                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/1/properties/op",
+                    "authority": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/1/properties/operation",
+                    "owner": "event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/1/properties/operation",
                     "values": [
                       "restore_participant"
                     ]
@@ -8138,7 +8138,7 @@
       "required": [
         "action",
         "approval_required",
-        "approval_quorum",
+        "min_approver_count",
         "policy_scope"
       ],
       "properties": {
@@ -8150,9 +8150,10 @@
           "type": "boolean",
           "x-arkret-member-role": "obligation"
         },
-        "approval_quorum": {
+        "min_approver_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "policy_scope": {
           "type": "string",
@@ -8407,9 +8408,11 @@
                   "maximum": 50,
                   "x-arkret-member-role": "count"
                 },
-                "include_member_events": {
+                "member_events_allowed": {
                   "type": "boolean",
-                  "default": false
+                  "default": false,
+                  "x-arkret-member-role": "permission",
+                  "description": "Whether the stored Realm preview policy permits member events in the disclosed history projection. This permission is not a per-request include switch."
                 },
                 "sender_profile": {
                   "type": "string",
@@ -10378,9 +10381,10 @@
                 "member_count_hysteresis": {
                   "type": "object",
                   "properties": {
-                    "absolute": {
+                    "absolute_count": {
                       "type": "integer",
-                      "minimum": 2
+                      "minimum": 2,
+                      "x-arkret-member-role": "count"
                     },
                     "ratio_basis_points": {
                       "type": "integer",

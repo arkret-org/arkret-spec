@@ -54,11 +54,14 @@ class NamingSurfaceInventoryTests(unittest.TestCase):
         self.assertTrue(any(row["name"] == "invented" and row["category"] == "data.member" for row in rows))
 
     def test_external_property_owner_does_not_propagate_to_nested_schema(self):
-        schema = {"x-arkret-external-literal-object": {"specification": "Example", "anchor": "https://example.org/spec#object"},
-                  "properties": {"camelCase": {"properties": {"inner_name": {"type": "string"}}}}}
+        schema = {"x-arkret-external-literal-object": {"specification": "Example", "anchor": "https://example.org/spec#object",
+                  "external_properties": ["camelCase"]},
+                  "properties": {"camelCase": {"properties": {"inner_name": {"type": "string"}}},
+                                 "owned_field": {"type": "string"}}}
         rows = {row["name"]: row for row in self.rows(schema) if row["category"] == "schema.property_name"}
         self.assertEqual(rows["camelCase"]["ownership"], "external_literal_object")
         self.assertEqual(rows["inner_name"]["ownership"], "arkret_or_undeclared")
+        self.assertEqual(rows["owned_field"]["ownership"], "arkret_or_undeclared")
 
     def test_enum_and_const_keep_exact_owner_and_scalar_type(self):
         schema = {"$defs": {"values": {"enum": ["accepted", 1, None],

@@ -3,7 +3,7 @@
     "normalized_document_schema_ref is the sole owner of the document_digest preimage; raw resolver bytes use raw_document_digest and no third DID-document digest name is permitted",
     "Every W3C DID Document member normatively consumed by Arkret MUST appear in known_members and MUST survive projection into normalized_document_schema_ref",
     "Unknown extension members are retained losslessly in sorted extension rows; duplicate or conflicting properties, ids, relationship entries, metadata keys or extension names fail closed before digesting",
-    "ArkretService plus serviceKind is the only service-identity bootstrap shape. ArkretStation and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
+    "ArkretService plus service_kind is the only service-identity bootstrap shape. ArkretStation and ArkretDirectory are not registered aliases and MUST be rejected as Arkret service types",
     "Specialized organization and Agent service types remain distinct from service bootstrap and use only their registered endpoint shapes"
   ],
   "normalized_document_schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/normalized_did_document",
@@ -65,7 +65,7 @@
       ],
       "service_endpoint_shape": "absolute_http_or_https_url",
       "required_extension_members": [
-        "serviceKind"
+        "service_kind"
       ],
       "service_kind_source": "registry/service-kind-registry.json valid_in=service_registration_key",
       "reverse_binding": true,

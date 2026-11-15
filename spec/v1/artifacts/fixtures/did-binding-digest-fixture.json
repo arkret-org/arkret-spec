@@ -56,7 +56,7 @@
               "endpoint": "https://ps.alice.example/",
               "extensions": [
                 {
-                  "name": "serviceKind",
+                  "name": "service_kind",
                   "value": "station"
                 }
               ]
@@ -69,13 +69,13 @@
         }
       },
       "expected": {
-        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"serviceKind\",\"value\":\"station\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#station\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
-        "document_digest": "sha256:10b3e107d51b7428103becb9345faf5c250f89832aac173657b16fb3dc0328ee"
+        "jcs_utf8": "{\"also_known_as\":[\"acct:alice@example.com\"],\"assertion_methods\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"authentication\":[{\"verification_method\":\"did:web:alice.example#key-1\"}],\"capability_delegations\":[],\"capability_invocations\":[],\"contexts\":[\"https://www.w3.org/ns/did/v1\"],\"controller_dids\":[],\"did\":\"did:web:alice.example\",\"extensions\":[],\"key_agreements\":[],\"metadata\":{\"primary_handle\":\"alice:example.com\"},\"services\":[{\"endpoint\":\"https://ps.alice.example/\",\"extensions\":[{\"name\":\"service_kind\",\"value\":\"station\"}],\"protocol_names\":[\"ArkretService\"],\"uri\":\"did:web:alice.example#station\"}],\"verification_methods\":[{\"controller_did\":\"did:web:alice.example\",\"extensions\":[],\"public_key_material\":{\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\"},\"verification_method\":\"did:web:alice.example#key-1\",\"verification_method_suite\":\"Multikey\"}]}",
+        "document_digest": "sha256:68a4ea500665b1c0cccd8b2d84efc0952751576024c3f574cc8e4622ae517a7e"
       },
       "assertions": [
         "re-serializing the same document with any other raw JSON property order MUST produce the same digest",
-        "removing also_known_as MUST change the digest to sha256:41a9952f2759044d26d640dba9c54b4d7702de30bc4ca5621a56667495e1fb58",
-        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:acbe292d7600ba1e26ca284e5f408795aae4ac3dc6247e4a4e312ae6ada5b251",
+        "removing also_known_as MUST change the digest to sha256:d34d2ef57520899cc87f1cc0ad60f3682f4a93d7703e357426d6830d97f73d54",
+        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:037eb484864b3bafb857255825359908e735c4444de5950a3c3856f18e1da69d",
         "duplicate or conflicting property, verification-method id, service id, metadata key, relationship or extension name MUST fail before digesting",
         "a raw resolver response digest MUST NOT be carried in document_digest; raw bytes use raw_document_digest"
       ]
@@ -161,5 +161,6 @@
         "an unknown policy_profile, an unknown profile_policy field, or a missing registered field MUST fail closed instead of digesting"
       ]
     }
-  ]
+  ],
+  "generated_by": "tools/regenerate_named_primitive_fixtures.py"
 }

@@ -6,7 +6,14 @@
   "x-arkret-external-literal-object": {
     "specification": "RFC 9457 Problem Details for HTTP APIs",
     "anchor": "https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1",
-    "reason": "The complete object uses the RFC literal member vocabulary; instance is the standard URI-reference member rather than an Arkret wrapper role."
+    "reason": "Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members retain local ownership.",
+    "external_properties": [
+      "type",
+      "title",
+      "status",
+      "detail",
+      "instance"
+    ]
   },
   "type": "object",
   "required": [

@@ -41,7 +41,7 @@ def envelope_bytes(envelope):
 
 
 def backup_aad(envelope):
-    """Existing base plus native auth_binding only; Account/Agent bytes stay unchanged."""
+    """Existing base plus native authorization_binding only; Account/Agent bytes stay unchanged."""
     value = {"schema": "ak.schema.key_backup.v1", **{name: envelope[name] for name in ("actor_id", "backup_kind", "backup_version", "created_at")}}
     value.update(device_id=envelope.get("device_id"),
         item_kinds=sorted({item["item_kind"] for item in envelope["contents"]}, key=lambda x: x.encode()),
@@ -49,7 +49,7 @@ def backup_aad(envelope):
     if "recipient_key_ref" in envelope["encryption"]:
         value["recipient_key_ref"] = envelope["encryption"]["recipient_key_ref"]
     if envelope["actor_id"].get("kind") == "realm":
-        value["auth_binding"] = envelope["auth_binding"]
+        value["authorization_binding"] = envelope["authorization_binding"]
     for name, extension in envelope["domain_separation"].get("aead_aad_extensions", {}).items():
         if not name.startswith("x_") or name in value:
             raise ValueError("invalid AAD extension")
@@ -88,7 +88,7 @@ def validate_native_shape(envelope):
     actor = envelope.get("actor_id", {})
     encryption = envelope.get("encryption", {})
     proof = envelope.get("signature_proof", {})
-    auth = envelope.get("auth_binding", {})
+    auth = envelope.get("authorization_binding", {})
     if (actor.get("kind") != "realm" or set(actor) != {"kind", "realm_actor_id"}
             or set(actor["realm_actor_id"]) != {"realm_id", "principal_id"}
             or encryption.get("recipient_method") != "realm_actor_recovery"
@@ -191,7 +191,7 @@ def admit_packet(envelope, current, pointer, author_public, existing=None):
             or envelope["device_id"] != current["device_id"]
             or envelope["signature_proof"]["device_authorize_event_id"] != current["authorization_event_id"]
             or envelope["signature_proof"]["verification_method"] != current["verification_method"]
-            or envelope["auth_binding"]["device_generation"] != current["device_generation"]
+            or envelope["authorization_binding"]["device_generation"] != current["device_generation"]
             or "retired" in [current["owner_status"],current["governance_status"]]):
         raise ValueError("original requester Device credential is no longer active")
     # Caller freshness/HTTP authentication is independent input qualification.
@@ -211,9 +211,9 @@ def admit_packet(envelope, current, pointer, author_public, existing=None):
             or PUT not in current["actions"] or current["device_id"] != envelope["device_id"]
             or current["authorization_event_id"] != envelope["signature_proof"]["device_authorize_event_id"]
             or current["verification_method"] != envelope["signature_proof"]["verification_method"]
-            or current["device_generation"] != envelope["auth_binding"]["device_generation"]
+            or current["device_generation"] != envelope["authorization_binding"]["device_generation"]
             or envelope["encryption"]["recipient_key_ref"] != current["recipient"]["key_agreement_ref"]
-            or any(envelope["auth_binding"][name] != current[name] for name in ["manager_ref", "recovery_ref", "recipient_ref"])):
+            or any(envelope["authorization_binding"][name] != current[name] for name in ["manager_ref", "recovery_ref", "recipient_ref"])):
         raise ValueError("native packet differs from its current authority cut")
     # The accepted pointer retains selection-time Recovery provenance.
     # Its original signature/authority is independently qualified by the caller.
@@ -295,7 +295,7 @@ def fixture():
     packet = {"backup_id": "ak:backup:019a0000-0000-7000-8000-000000000011",
         "actor_id": subject, "device_id": device, "backup_kind": "secret_storage", "backup_version": "kb_content_roots",
         "series_id": "ak:backup_series:019a0000-0000-7000-8000-000000000011", "series_sequence": 0,
-        "created_at": "2026-11-08T00:00:00.000Z", "auth_binding": {"kind": "realm_device", **references, "device_generation": 1},
+        "created_at": "2026-11-08T00:00:00.000Z", "authorization_binding": {"kind": "realm_device", **references, "device_generation": 1},
         "encryption": {"recipient_method": "realm_actor_recovery", "recipient_key_ref": recipient["key_agreement_ref"],
             "hpke_suite": SUITE, "aead": {"name": "chacha20_poly1305"}},
         "domain_separation": {"subdomain": "key_backup"},
@@ -306,7 +306,7 @@ def fixture():
         **{name: packet[name] for name in ["backup_id", "backup_kind", "series_id", "series_sequence"]}, "items": [entry]}
     sources = admission_fixture(packet, {"effective_scope": scope}, recipient, history, device_seed)
     references = {name: original_reference(sources["create_material"]) for name in ["manager_ref", "recovery_ref", "recipient_ref"]}
-    packet["auth_binding"].update(references)
+    packet["authorization_binding"].update(references)
     packet["signature_proof"]["device_authorize_event_id"] = sources["device_authorize_ref"]["event_id"]
     packet = seal(packet, plaintext, public, bytes([181]) * 32, device_seed)
     current = {"actor_id": subject, "effective_scope": scope, "root_context": context,
@@ -397,7 +397,7 @@ def fixture():
         "test_seed_hex":(bytes([152])*32).hex(),"canonical_hex":canonical(confirmation_input).hex(),"signature_input_hex":confirmation_bytes.hex()}
 
     metadata={name:packet[name] for name in ["backup_id","actor_id","backup_kind","backup_version","series_id","series_sequence",
-        "created_at","ciphertext_digest","encryption","device_id","auth_binding"]}
+        "created_at","ciphertext_digest","encryption","device_id","authorization_binding"]}
     metadata["encryption"]={name:packet["encryption"][name] for name in ["recipient_method","recipient_key_ref","hpke_suite"]}
     head_state={"realm_actor_id":subject["realm_actor_id"],"effective_scope":scope,**references,
         "authority_commit_id":series_source["commit"]["commit_id"],"secret_storage":{"state":"active",
@@ -557,11 +557,11 @@ def native_schema_cases(packet, pointer, recipient):
         cases.append({"name": "native_packet_forbids_expiry_" + name, "schema_ref": "schemas/key-backup.schema.json", "expect_valid": False, "instance": value})
     for name in ["old_generation_alias", "mixed_account_subject", "mixed_recipient", "agent_author", "extra_auth", "two_root_items", "aead_nonce"]:
         value=copy.deepcopy(packet)
-        if name=="old_generation_alias": value["auth_binding"]["device_generation_ref"]=value["auth_binding"].pop("device_generation")
+        if name=="old_generation_alias": value["authorization_binding"]["device_generation_ref"]=value["authorization_binding"].pop("device_generation")
         if name=="mixed_account_subject": value["actor_id"]={"kind":"account","account_id":{"principal_id":"ak:did_core:web:alice.example","station_id":"ak:did_core:web:station.example"}}
         if name=="mixed_recipient": value["encryption"]["recipient_method"]="recovery_public_key"
         if name=="agent_author": value["signature_proof"]["agent_authorization_event_ref"]=token("event",88)
-        if name=="extra_auth": value["auth_binding"]["unregistered"]=True
+        if name=="extra_auth": value["authorization_binding"]["unregistered"]=True
         if name=="two_root_items": value["contents"]*=2
         if name=="aead_nonce": value["encryption"]["aead"]["nonce"]=b64(bytes(12))
         cases.append({"name":"native_packet_rejects_"+name,"schema_ref":"schemas/key-backup.schema.json","expect_valid":False,"instance":value})
@@ -632,7 +632,7 @@ def station_resolution(history):
         "authentication": [{"verification_method": value} for value in state["authentication"]],
         "assertion_methods": [], "key_agreements": [], "capability_invocations": [], "capability_delegations": [],
         "services": [{"uri": row["id"], "protocol_names": [row["type"]], "endpoint": row["serviceEndpoint"],
-            "extensions": [{"name": "serviceKind", "value": row["serviceKind"]}]} for row in state["service"]],
+            "extensions": [{"name": "service_kind", "value": row["service_kind"]}]} for row in state["service"]],
         "metadata": {}, "extensions": []}
     head = history["log_entries"][-1]
     version = head["versionId"]
@@ -878,7 +878,7 @@ def verify_native_receipt(packet, native_source):
             or admission["realm_actor_id"] != packet["actor_id"]["realm_actor_id"]
             or admission["device_id"] != packet["device_id"] or admission["effective_scope"] != context["effective_scope"]
             or packet["signature_proof"]["device_authorize_event_id"] != ref["event_id"]
-            or any(packet["auth_binding"][name] != admission[name] for name in NATIVE_AUTH-{"kind"})):
+            or any(packet["authorization_binding"][name] != admission[name] for name in NATIVE_AUTH-{"kind"})):
         raise ValueError("native receipt does not bind this exact signed packet and authorized scope")
     return copy.deepcopy(admission)
 
@@ -936,7 +936,7 @@ def verify_inventory(manifest, expected_cut):
     for entry in manifest["entries"]:
         if entry["kind"]=="backup":
             packet=entry["backup"]
-            descriptor=declarations.get(canonical(packet["auth_binding"]["recipient_ref"]))
+            descriptor=declarations.get(canonical(packet["authorization_binding"]["recipient_ref"]))
             if descriptor is None or descriptor["key_agreement_ref"]!=packet["encryption"]["recipient_key_ref"]:
                 raise ValueError("missing original recipient declaration")
         else:
@@ -1004,7 +1004,7 @@ def open_handover(sealed,next_private,new_service_public,expected_cut,now):
         keys[identity]=private
     if set(keys)!=set(declarations):raise ValueError("missing original private recipient custody")
     for packet in packets.values():
-        identity=canonical(packet["auth_binding"]["recipient_ref"])
+        identity=canonical(packet["authorization_binding"]["recipient_ref"])
         source=next(entry["native_source"] for entry in plain["inventory_manifest"]["entries"] if entry["kind"]=="backup" and entry["backup"]["backup_id"]==packet["backup_id"])
         original_public=unb64(source["admission"]["device_public_key_base64url"])
         open_backup(packet,keys[identity],original_public)
@@ -1060,7 +1060,7 @@ def verify_device_put_response(packet,response,issuer_public):
             or admission["device_id"]!=packet["device_id"]
             or admission["effective_scope"]!=packet["contents"][0]["root_context"]["effective_scope"]
             or admission["device_authorize_ref"]["event_id"]!=packet["signature_proof"]["device_authorize_event_id"]
-            or any(admission[name]!=packet["auth_binding"][name] for name in NATIVE_AUTH-{"kind"})):
+            or any(admission[name]!=packet["authorization_binding"][name] for name in NATIVE_AUTH-{"kind"})):
         raise ValueError("native reply belongs to another original PUT")
     Ed25519PublicKey.from_public_bytes(unb64(admission["device_public_key_base64url"])).verify(
         unb64(packet["signature_proof"]["signature"]),envelope_bytes(packet))

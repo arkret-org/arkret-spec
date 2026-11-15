@@ -96,7 +96,8 @@
         ],
         "functions": [
           "prose.py:check_naming_predicates",
-          "semantic_naming.py:check_semantic_naming"
+          "semantic_naming.py:check_semantic_naming",
+          "forbidden_wire.py:vocabulary_errors"
         ],
         "registries": [
           "tools/naming-convention-rules.json"
@@ -104,11 +105,13 @@
       },
       "entry_points": [
         "naming_predicates",
-        "semantic_naming"
+        "semantic_naming",
+        "forbidden_wire_contexts"
       ],
       "tests": [
         "tools/test_naming_gate_lint.py",
-        "tools/test_semantic_naming.py"
+        "tools/test_semantic_naming.py",
+        "tools/test_forbidden_wire_contexts.py"
       ],
       "coverage_level": "partial",
       "residual_gap": "Every discovered schema enum/const is checked against its exact owner and classified literal grammar, including registered byte literals and reviewed numeric ranges. Ownership metadata, profile purpose and external-authority semantics still require review; discovery and lexical success do not prove that classification is correct."
@@ -488,7 +491,7 @@
         "tools/test_naming_gate_lint.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "valid_from, valid_until, not_after, cache_valid_until and retention_until are rejected by the alias table. `fresh_until` and `grace_until` are deliberately NOT aliases of expires_at: the first is a proof-freshness bound and the second is the `cutover_at < grace_until <= expires_at` phase bound, so a blanket _until ban would be wrong and no predicate attempts it."
+      "residual_gap": "valid_from, valid_until, not_after, cache_valid_until and retention_until are rejected by the alias table. Ordinary date-time members use _at; not_before, calendar recurrence until and exact externally owned literals retain their registered contracts. Selecting validity, freshness or process-time semantics still requires independent review; this alias predicate does not prove every timestamp member's semantic role."
     },
     {
       "rule_id": "NC-SIGNER-001",
@@ -546,7 +549,8 @@
         "identifier_role_suffixes"
       ],
       "tests": [
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_external_property_ownership.py"
       ],
       "coverage_level": "partial",
       "residual_gap": "Resolved carrier suffixes, cardinality and registered role grammar are checked mechanically. Whether the semantic role, subject class and external-owner claim match the actual protocol responsibility requires independent review."
@@ -835,7 +839,7 @@
         "tools/test_naming_gate_lint.py"
       ],
       "coverage_level": "partial",
-      "residual_gap": "Lifecycle naming remains a semantic review rule."
+      "residual_gap": "Existing canonical owners determine state/status field names; independent review decides whether a new main state or separate process report is needed, its authority and its distinction from an existing axis. Field spelling does not prove a shared FSM or legal transitions."
     },
     {
       "rule_id": "NC-ACTION-001",
@@ -997,7 +1001,7 @@
       "entry_points": [],
       "tests": [],
       "coverage_level": "partial",
-      "manual_review_reason": "Both fields carry the same value shape, a service identity, so no type or name evidence separates a routing target from a cryptographic audience binding; only the surrounding proof definition does. Review accepts this because each proof definition states its own audience binding, and a mismatch surfaces as a verification failure in the domain KAT rather than as silently wrong routing.",
+      "manual_review_reason": "A delivery or receipt target and a cryptographic audience may share the same stable Service identity carrier. Their surrounding delivery/proof contracts decide the role, historical binding and current route; names and terminal types alone cannot. Independent review verifies each owner, and domain KATs verify its binding, without treating an immutable historical recipient as a current HTTP route.",
       "manual_review_owner": "spec review of proof and delivery fields"
     },
     {
@@ -1109,7 +1113,8 @@
         "tools/test_openapi_property_case.py",
         "tools/test_schema_position_boundaries.py",
         "tools/test_wire_lexical_closure_lint.py",
-        "tools/test_naming_gate_lint.py"
+        "tools/test_naming_gate_lint.py",
+        "tools/test_external_property_ownership.py"
       ],
       "coverage_level": "full",
       "residual_gap": "All declared schema property names receive lexical checks and exact-owner external-marker validation. This mechanical coverage does not independently establish the truth of an external ownership claim."
@@ -1239,6 +1244,38 @@
       ],
       "coverage_level": "partial",
       "residual_gap": "All declared machine bindings are enumerated and their lexical forms, uniqueness and authority links checked; semantic action choice and whether a literal belongs to an external standard remain human review. Prose candidates are inventoried separately and are not counted as machine-decided semantics."
+    },
+    {
+      "rule_id": "NC-METADATA-001",
+      "title": "Fixed Arkret registry and OpenAPI extension members use snake_case",
+      "normative_anchor": {
+        "file": "spec/v1/zh/models/common-fields.md",
+        "section": "2.0",
+        "quote": "固定元数据名称"
+      },
+      "applies_to": [
+        "registry_metadata_property",
+        "openapi_extension_property"
+      ],
+      "enforcement_kind": "predicate",
+      "enforced_by": {
+        "predicates": [],
+        "functions": [
+          "naming.py:registry_metadata_key_errors",
+          "http_naming.py:http_naming_errors"
+        ],
+        "registries": []
+      },
+      "entry_points": [
+        "naming_predicates",
+        "http_naming"
+      ],
+      "tests": [
+        "tools/test_structural_vocabulary.py",
+        "tools/test_http_naming.py"
+      ],
+      "coverage_level": "partial",
+      "residual_gap": "The fixed-key predicate covers named native-custody and operation-authentication metadata owners. At actual OpenAPI positions, the HTTP predicate checks immediate extension members and recursively checks the declared fixed authentication/security extension objects; enum values, external literals and other value grammars are not metadata keys. Other registry objects and dynamic key domains remain subject to inventory and independent ownership review."
     }
   ]
 }

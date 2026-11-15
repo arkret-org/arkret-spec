@@ -176,7 +176,7 @@ def owner_transfer_source_resolution(alternate=False):
         "authentication": [], "assertion_methods": [{"verification_method": vm}],
         "key_agreements": [], "capability_invocations": [], "capability_delegations": [],
         "services": [{"uri": did+"#arkret", "protocol_names": ["ArkretService"],
-            "endpoint": "https://successor-station.example/", "extensions": [{"name": "serviceKind", "value": "station"}]}],
+            "endpoint": "https://successor-station.example/", "extensions": [{"name": "service_kind", "value": "station"}]}],
         "metadata": {}, "extensions": [{"name": "x_fixture_observation", "value": "alternate"}] if alternate else []}
     digest = "sha256:" + hashlib.sha256(jcs(doc)).hexdigest()
     version = "synthetic-jcs-sha256:" + digest[7:]
