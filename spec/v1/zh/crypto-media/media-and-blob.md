@@ -262,6 +262,8 @@ file-transfer 复用本节的段长、段数、nonce、末段与密文拼接算�
 逐段 AAD 的唯一合同在 [file-transfer.md §4](../models/file-transfer.md#4-加密与-key-delivery)。两种上下文不得
 混用 AAD，也不得为了套用 attachment 模型给 file-transfer record 添加未登记字段。
 
+Call recording 仅复用本节的 XChaCha STREAM nonce／分段／tag 拼接算法；其 Start 冻结 key_ref、RTC exporter、ciphertext 长度反解和独立在线 AAD 唯一合同在 [call-state.md §5.3](./call-state.md#53-录制-blob-的单一-stream-编码normative)。不得借附件 Context、salt、key commitment 或总长 AAD 冒替录制来源；本节附件合同不变。
+
 本节定义分块流式 AEAD scheme。其构造采用业界已生产化的 STREAM（OAE2，online authenticated encryption）形态，使接收方能在收到每个 segment 时增量验证并安全释放对应明文段，同时保留顶层单值整体完整性语义。
 
 #### 3.3.1 Segment 切分

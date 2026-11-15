@@ -314,10 +314,14 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
   "payload": {
     "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
-    "recording_agent_id": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
+    "recording_agent_id": "ak:did_core:web:recorder.example",
     "capture_kind": "recording",
     "mode": "audio_video",
-    "visible_notice": true
+    "visible_notice": true,
+    "capture_metadata": {
+      "key_ref": {"algorithm": "MLS", "group_state_ref": "ak:event:..."},
+      "retention": {"consent_confirmed": true, "retention_expires_at": "2027-09-20T00:00:00.000Z"}
+    }
   }
 }
 ```
@@ -327,6 +331,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 - `payload.mode` MUST 显式携带，封闭为 `audio` / `audio_video`；无缺省值，缺失 MUST `schema_violation`。
 - `payload.visible_notice` MUST 显式为 `true`；客户端 MUST 对所有参会者显示录制中。
 - `payload.capture_metadata` MUST NOT 携带 `recording_start_event_id` 或 `transcript_start_event_id`：本 Event 的 ID 依赖 payload digest，写入自身 ID 会形成无解自引用。`capture_metadata.retention.consent_confirmed` MUST 为 `true`，否则 reducer 在创建 capture 领域状态 current state 前拒绝 `recording_consent_required`。Event 完成 digest / ID 校验后，reducer 按 `capture_kind` 把完整 accepted Event identity 写入对应 projected artifact current state；该 receiver-derived 字段不属于原 Event preimage。start event 原子写入 capture FSM 与独立 artifact current state，不能先进入捕获态再补交同意事实。
+- recording Start 的 `capture_metadata.key_ref` MUST 按 §5.3 冻结同接纳截点的真实 accepted winning MLS state；pending result 复制该 exact 引用。该字段不适用于 transcript Start，不替代原 consent、capability、当前 Service 或原签门。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ak.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ak.call.recording.stop` event；holder of `ak.call.record` 通过 `ak.call.state` 写 `recording_transition={recording_id,from:"recording",to:"stopped"}`。若同时携带 `recording_transition.capture_metadata`，其中的 `recording_start_event_id` 继续指向该段的 `ak.call.recording.start` 作为 provenance；该 capture metadata 写入独立 artifact current state，不进入 FSM transition op。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `to="ready"`，否则保持 `stopped`。
 - 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ak.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新捕获态，但历史段以各自 `ak.call.recording.start` 与后续 `ak.call.state` event 保持可审计。
@@ -365,6 +370,50 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 - **`consent_confirmed` 的保证类别（normative，诚实标注）**：`consent_confirmed=true` 是**流程性约束**，**不是**密码学同意证明——它由发起方客户端单方面置真，协议层无法强制其真实性。实现、UI、采购或合规文案 MUST NOT 把 `consent_confirmed=true` 表述为"已获得（被录制方的）密码学同意"或等价措辞，避免 false-positive 合规声明；该字段只表示"发起方声明已在本端取得用户二次确认"。
 - **per-participant consent acknowledgment（更强合规 profile，normative）**：每个被录制方设备签名的 consent acknowledgment，其 signing input MUST 覆盖 `(call_id, recording_artifact_ref 或 capture epoch, consenting_actor_id, consenting_device_id, consented_at)`，签名身份按 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md) 的设备验签公钥目录解析并 fail-closed 验证。`security_class=high-confidentiality` 或启用 attested / disclosed audit profile 的 Realm MUST 启用该门禁；其它 Realm MAY 启用。启用时，reducer MUST 对缺少任一当前被录制方有效 acknowledgment 的捕获态 `failed_precondition` `reason_code="recording_consent_required"`，且成员加入、设备切换或 capture epoch 改变后 MUST 重新取得 ack 后才能继续捕获。该签名集合是 `disclosed_policy` 之上的 `attested`-类强保证，可作为可审计同意证据。未启用该 profile 的部署仍只具备上一条的流程性保证，不得声称等价。
 - ready 录制的 retention 只位于唯一 artifact；未产物阶段及转写的原 retention 路径保持。保留期与捕获 FSM 正交，不新增写入权或第二份可写镜像。
+
+### 5.3 录制 Blob 的单一 STREAM 编码（normative）
+
+本节补足 §5 的录制密文编码；不复用附件的 AttachmentContentKeyContext、content salt 或 key commitment。仅 Call recording 使用 `encryption_algorithm="mls_exporter_aead_xchacha20poly1305_stream"`；本对象不接受其它 whole-file／AES 算法或兼容分支。普通附件、file-transfer、frame 与转写各自合同不变。
+
+#### 5.3.1 Start 来源与 epoch
+
+recording Start 的 `capture_metadata.key_ref` MUST 是现 closed MLS 引用 `{algorithm:"MLS",group_state_ref}`（`blob.schema.json` 的同一字段类型）。首次接纳 MUST 从真实来源核对该引用对应同一 effective ScopeRef（含 Circle／Sidecar）、immutable genesis 和当前 accepted winning MLS state；该判定与原 Start 的接纳截点一致。不得用 timestamp 跨 stream 猜顺序、用 bare epoch 或 ready 时的 latest state 补值，也不得把引用存在或持钥等同授权。Event ref／等价 Event-content hash 的解析、producer proof、治理接受、winning state、scope 和独立历史读取资格沿 `media-and-blob.md` §3；不新增 hash 查询接口。
+
+Start 原件与其 accepted key source 必须可从原接受来源重建；pending current details MUST 复制原 `key_ref`、retention 并附原完整 `recording_start_event_id`。后继唯一 artifact 的 `encryption.key_ref` MUST 与原 signed Start 的引用 byte-equivalent，不能换成相同 epoch 的另一 raw 表示。它是后继自足解密描述与前态选择的固定绑定，不是独立可改写镜像。
+
+key_ref 唯一导出原 scope／genesis／epoch，不在 wire 重复传 epoch。实际 MLS checkpoint MUST 对应该 state；RTC key 继续为原六字段 Context 下的 `MLS-Exporter("ak.rtc-recording-key/v1", Context, 32)`（RFC 9420）。不得用当前群、另一同数字 epoch、附件 content root 或裸 key assertion 代替原来源。原 Start 已存在后才能得到其 EventId 和 RTC Context，因此不存在把自身 EventId 签回 Start 的循环。
+
+此单文件绑定固定原 Start epoch。producer 观察到经验证的 epoch／捕获资格变化时 MUST 停止向原段采集；不得合成未授权 Stop Event。 已认证的新 epoch frame-key 安装／新 epoch 媒体帧交付，MUST 先在同一真实本地 writer fence 停写旧 Start key_ref／K_e 段，再允许新 epoch 明文进入捕获管线；异步通知 recording job 稍后暂停不足以满足此要求。codec 本身不证明 adapter 已执行该 fence。通过既有授权 Stop 及新 recording_id／新 Start／新 key_ref 才能续段，原二次确认不得被跳过。旧段可以在后继 epoch 才发布 ready，但不得改用新 key_ref。即使最终才加密单文件，旧 epoch key 持有者仍可解原 K 加密的全部内容；不能声称一个 K 跨成员变更保护后续新 epoch 内容。缺原合法 key／checkpoint 时保持不可解密，不借 Welcome、Recovery 或当前 metadata 授予历史密钥。
+
+#### 5.3.2 唯一形状与字节
+
+`artifact.encryption` MUST 恰含 `encryption_algorithm`、`exporter_label`、`context`、`key_ref`、`nonce_prefix`、`segment_bytes`。前两者固定为本节算法与原 recording label；Context 保持 §5 六字段。`nonce_prefix` 是 canonical base64url-no-pad 的恰好 19 octets，production MUST 取 CSPRNG。`segment_bytes=L` 显式声明并沿既有 STREAM 的 1KiB–8MiB、段数 2^20 及 u32 index 上限；不存在 scheme、plaintext_size、segment_count、ciphertext_digest 或 content_digest wire 镜像。普通 Blob storage 的独立 classification 仍为 `{scheme:"ak.blob.stream_aead.v1"}`，上传授权不变。
+
+Blob 的 exact stored bytes 是各段 `ciphertext || 16-octet tag` 按顺序直接拼接，不嵌新的 header／framing。除最后一段外明文长度恰 L，最后为 1..L；空文件为唯一一个 0-byte 明文末段。nonce 严格是 `nonce_prefix[19] || u32_be(segment_index) || last_segment_flag`，flag 为单字节 0x00／0x01。每段从 0 连续编号，既有 STREAM 的 nonce、AEAD 和拼接算法不变。
+
+artifact.size_bytes 是包含所有 tag 的完整 stored ciphertext octet 数 B，必须等于真实 Blob 长度；不是明文长度。接收方必须用 checked arithmetic 计算 `N=max(1,ceil(B/(L+16)))`、`P=B-16N`，并回验 `N=max(1,ceil(P/L))` 及全部上限。B 必须至少 16；P 不得负，P=0 只允许 N=1，其它末段必须 1..L；不允许额外空尾段。ceil 必须用商／余数或受检等价计算，不能先溢出 B+L+15。因为 `(N-1)L<P<=NL` 蕴含 `(N-1)(L+16)<B<=N(L+16)`，反解唯一；不满足逆式的长度间隙必须拒绝。内存／offset／下载预算在分配前按既有 limits 核对，不 wrap 或 saturate。
+
+#### 5.3.3 独立在线 AAD
+
+每段 AAD MUST 恰为下列 closed object 的 RFC 8785 JCS UTF-8 bytes，无换行／BOM；index 是 uint，flag 是数值 0／1，由段位置计算，不接受 caller 副本：
+
+```text
+{encryption_algorithm, exporter_label, context, key_ref,
+ nonce_prefix, segment_bytes, media_type,
+ segment_index, last_segment_flag}
+```
+
+前七项来自完整已认证 artifact 及其原 Start；`media_type` 为媒体格式，Blob transport 仍为 application/octet-stream。AAD MUST NOT 携 BlobRef／内嵌 digest、B／P／N、created_at、retention 或 deletion_audit。这里的 key 与 AAD 属于 RTC，不得构造假的 EncryptedAttachment 来借附件编码。
+
+总长不入 AAD 允许未知总时长时在线加密：producer 至多保留最后一段，看到后继才把前段标 non-last；Stop 时将保留段标 last，精确 L 倍数不加空尾。不得因后续长度改变而重算已有 tag 或迫使 backend 持久化明文。接收方从 signed B 反解 N／P，严格按序与边界重建 nonce／AAD：截断会把旧 non-last nonce 的 flag 改成 last，追加会反向改变原 last；两者 tag 均失败。重排／重复受 index 约束。signed B／真实长度与完整 BlobRef 继续独立承诺整体，删去总长 AAD 不允许忽略任一校验。
+
+#### 5.3.4 重试、崩溃与接收
+
+同一 frozen attempt 的 exact retry MUST 重发同 ciphertext／BlobRef／key_ref／prefix／L，不重新加密。源 bytes、MIME、L、key source 或加密尝试改变时 MUST 取 fresh prefix；同 K 下不同 object／attempt 不得复用 prefix。同 Start 内恢复只复用已耐久冻结的 exact bytes；若不确定某段是否已输出，必须放弃该未发布尝试并取 fresh prefix，不能用旧 nonce 编码可能变化的输入。producer 并发所有权与恢复必须用真实持久原语，不以进程 mutex 或 caller bool 代替。发现 prefix 重复必须重抽；CSPRNG 不得被宣称数学上绝无碰撞。
+
+达到既有段数／资源上限或 epoch 变化时停止采集，禁止 index wrap 或 random fallback。已 accepted ready 的 response loss 不授权改 Blob／Context 或另造 artifact。新 key_ref 不授读取、删除或密钥披露权限；原 Start 一次性 approval／quota、ready 当前完整 Service 准入、Blob ACL、consent／retention／hold 门全部独立保持。
+
+接收方先验完整 artifact／真实来源／当前读取资格，再解析获准的原 key state；核实际 B、参数、反解和每段 tag／顺序／末段／长度，最终核完整 BlobRef。流式可按既有 STREAM 合同暂消费已过 tag 的段，但最终持久化或标完整前必须整体 digest 通过；失败丢弃不完整结果，不推进完整 checkpoint。服务器不读 E2EE 明文，真实 producer 签名不是媒体真实性或密码学同意证明。
 
 ## 6. P2P→SFU 升级（normative）
 

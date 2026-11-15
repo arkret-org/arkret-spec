@@ -2062,6 +2062,26 @@
                   "additionalProperties": false
                 },
                 {
+                  "type": "object",
+                  "required": [
+                    "key_ref",
+                    "retention",
+                    "recording_start_event_id"
+                  ],
+                  "properties": {
+                    "key_ref": {
+                      "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+                    },
+                    "retention": {
+                      "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention"
+                    },
+                    "recording_start_event_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/event_id"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
                   "allOf": [
                     {
                       "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata"
@@ -2150,28 +2170,18 @@
               "then": {
                 "properties": {
                   "details": {
+                    "type": "object",
                     "required": [
+                      "key_ref",
                       "retention",
                       "recording_start_event_id"
                     ],
-                    "not": {
-                      "anyOf": [
-                        {
-                          "required": [
-                            "recording_stop_event_id"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "failure_reason_code"
-                          ]
-                        }
-                      ]
-                    },
-                    "type": "object",
                     "properties": {
+                      "key_ref": {
+                        "$ref": "./blob.schema.json#/$defs/encrypted_attachment/properties/key_ref"
+                      },
                       "retention": {
-                        "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/recording_transition/properties/capture_metadata/properties/retention"
+                        "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload/properties/capture_metadata/properties/retention"
                       },
                       "recording_start_event_id": {
                         "$ref": "./common-ids.schema.json#/$defs/event_id"

@@ -62,19 +62,10 @@ class CommitArtifactChallengeContract(unittest.TestCase):
             self.assertFalse(schema.is_valid(changed))
 
     def test_ready_has_one_complete_artifact(self):
-        artifact = {
-            "schema": "ak.schema.call_recording_artifact.v1", "realm_id": "ak:realm:" + TOKEN,
-            "call_id": "ak:call:" + TOKEN, "recording_id": "recording-1",
-            "recording_start_event_id": "ak:event:" + TOKEN, "blob_ref": "ak:blob:sha256:" + "0" * 64,
-            "size_bytes": 1, "duration_ms": 1, "media_type": "audio/ogg",
-            "encryption": {"encryption_algorithm": "mls_exporter_aead_xchacha20poly1305", "exporter_label": "ak.rtc-recording-key/v1",
-                "context": {"realm_id": "ak:realm:" + TOKEN, "call_id": "ak:call:" + TOKEN, "focus_id": "focus-1", "recording_id": "recording-1", "media_service_id": ACCOUNT["station_id"], "recording_start_event_id": "ak:event:" + TOKEN}},
-            "retention": {"retention_expires_at": "2026-12-14T00:00:00.000Z", "consent_confirmed": True},
-            "produced_by": ACCOUNT["station_id"], "recording_initiator_capability_ref": "ak:grant:" + TOKEN,
-            "created_at": "2026-11-14T00:00:00.000Z",
-        }
+        fixture = json.loads((ROOT / "spec/v1/artifacts/fixtures/call-current-fixture.json").read_text(encoding="utf-8"))
+        ready = copy.deepcopy(fixture["capture_transcripts"]["original_rows"][3]["event"]["payload"]["recording_transition"])
+        artifact = ready["capture_metadata"]["artifact"]
         schema = schema_validator(SCHEMAS / "event-payload.schema.json", "#/$defs/call_state_payload/properties/recording_transition")
-        ready = {"recording_id": "recording-1", "from": "stopped", "to": "ready", "expected_commit_id": COMMIT, "capture_metadata": {"artifact": artifact}}
         self.assertTrue(schema.is_valid(ready), list(schema.iter_errors(ready)))
         for name, value in (("duration_ms", 1), ("retention", artifact["retention"]), ("recording_start_event_id", artifact["recording_start_event_id"])):
             bad = copy.deepcopy(ready)

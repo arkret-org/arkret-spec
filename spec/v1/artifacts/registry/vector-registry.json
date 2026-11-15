@@ -1093,7 +1093,7 @@
       "applies_to_fixtures": [
         "call-current-fixture.json"
       ],
-      "description": "Complete effective Call roster and moderation with original sources, axis-tip revision, full ActorId and original issuer key; deterministic Ed25519 transcripts and executable rejection cases retain the ordinary-client omission trust boundary. Not live admission or native authority verification.",
+      "description": "Complete effective Call roster/moderation with original sources, axis-tip revision, full ActorId and issuer key; signed capture transitions and exact single recording artifact; RFC 9420 MLS-Exporter and RTC XChaCha STREAM byte KATs for fixed original Start key source, online AAD, ciphertext-length inversion, empty/exact/multiple segments and executable rejection mutations. Qualified MLS source/epoch/authority are explicit reference inputs. Not live admission, native MLS authority or a media-adapter epoch-fence proof; ordinary-client omission trust boundaries remain.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-current-fixture.json",
         "spec/v1/zh/crypto-media/call-state.md"
@@ -1714,7 +1714,7 @@
       "applies_to_fixtures": [
         "detached-object-signature-kat-fixture.json"
       ],
-      "description": "Six byte-exact Ed25519 detached-object signature transcripts independently reconstruct each closed host projection, JCS SHA-256 digest, context-plus-LF prefix, five-member envelope, signer authority basis and 64-byte unpadded Base64URL signature; handoff old and new signatures share one unsigned projection while using distinct contexts and test keys.",
+      "description": "Six byte-exact Ed25519 detached-object signature transcripts independently reconstruct each closed host projection, JCS SHA-256 digest, context-plus-LF prefix, five-member envelope, signer authority basis and 64-byte unpadded Base64URL signature; handoff old and new signatures share one unsigned projection while using distinct contexts and test keys. Owner-transfer independently verifies the successor finite intent and the current controller final Event, with explicit reference-only current Human Account Device sources and executable scope, identity, key-purpose, root-CAS, unsupported-root and signature mutations; this is not native admission or a remote-source proof.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
       ]

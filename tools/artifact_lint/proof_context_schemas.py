@@ -1187,6 +1187,314 @@ def _decode_detached_b64u(value: Any) -> bytes | None:
     return raw
 
 
+OWNER_TRANSFER_CONTEXT = "ak.realm_owner_transfer_acceptance_signature.v1"
+
+
+def validate_owner_transfer_reference(sample: dict) -> dict:
+    """Real two-party signature bytes against explicitly qualified source inputs.
+
+    This is reference conformance, never a native PCR/current source verifier.
+    The durable acceptance/replay and cross-service source gates remain separate.
+    """
+    from .call_current import verify_producer
+    event, source, root = sample["event"], sample["successor_source"], sample["prestate_root"]
+    outer = sample["outer_signer_basis"]
+    for ref, value in (("schemas/event-envelope.schema.json", event),
+                       ("schemas/current-state.schema.json#/$defs/realm_authority_root_value", root)):
+        errors = jsonschema_errors(Lint(), DETACHED_OBJECT_SIGNATURE_FIXTURE, ref, value)
+        if errors:
+            raise ValueError("owner-transfer schema: " + str(errors))
+    if (event["kind"] != "ak.realm.owner.transfer" or event["scope_ref"] != {
+            "kind": "realm", "realm_id": event["payload"]["realm_id"]}
+            or event["realm_id"] != event["payload"]["realm_id"]):
+        raise ValueError("owner-transfer scope")
+    if root["controller_epoch"] >= 9007199254740991:
+        raise ValueError("owner-transfer counter overflow")
+    if (event["actor_id"] != root["controller_actor_id"] or event["actor_id"] != outer["actor_id"]
+            or event["producer_proof"]["verification_method"] != outer["verification_method"]):
+        raise ValueError("owner-transfer current controller")
+    if event["payload"]["expected_state_digest"] != "sha256:" + hashlib.sha256(_detached_jcs(root)).hexdigest():
+        raise ValueError("owner-transfer stale root")
+    verify_producer(event, outer["public_key_base64url"])
+    successor = event["payload"]["patch"]["controller_actor_id"]
+    if (successor.get("kind") != "account" or source["actor_id"] != successor
+            or source["principal_kind"] != "human"):
+        raise ValueError("owner-transfer unsupported or mismatched native root source")
+    if (source["device_status"] != "accepted" or source["account_status"] != "active"
+            or source["membership"] != "join"
+            or source["authorized_generation_ref"] != source["current_generation_ref"]):
+        raise ValueError("owner-transfer current successor source")
+    from datetime import datetime
+    instant = lambda value: datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if not instant(source["not_before"]) <= instant(sample["evaluation_at"]) < instant(source["expires_at"]):
+        raise ValueError("owner-transfer Device key window")
+    for field in ("authorization_event_ref",):
+        if jsonschema_errors(Lint(), DETACHED_OBJECT_SIGNATURE_FIXTURE,
+                             "schemas/common-ids.schema.json#/$defs/event_id", source[field]):
+            raise ValueError("owner-transfer original Device source coordinate")
+    for field in ("authorized_generation_ref", "current_generation_ref"):
+        if jsonschema_errors(Lint(), DETACHED_OBJECT_SIGNATURE_FIXTURE,
+                             "schemas/recovery-session.schema.json#/$defs/pcr_generation_ref", source[field]):
+            raise ValueError("owner-transfer Device generation coordinate")
+    if "scopes" in source and (not isinstance(source["scopes"], list)
+            or not source["scopes"] or "ak.realm.owner.transfer" not in source["scopes"]):
+        raise ValueError("owner-transfer Device key purpose ceiling")
+    acceptance = event["payload"]["successor_acceptance"]
+    if not instant(source["not_before"]) <= instant(acceptance["created_at"]) < instant(source["expires_at"]):
+        raise ValueError("owner-transfer signature outside original Device window")
+    if (acceptance["verification_method"] != source["verification_method"]
+            or acceptance["verification_method"].rsplit("#", 1)[-1] != source["device_id"]):
+        raise ValueError("owner-transfer exact successor Device method")
+    intent = {"scope_ref": copy.deepcopy(event["scope_ref"]), "actor_id": copy.deepcopy(event["actor_id"]),
+              "payload_without_successor_acceptance": {key: copy.deepcopy(event["payload"][key])
+                   for key in ("realm_id", "expected_state_digest", "patch")}}
+    if jsonschema_errors(Lint(), DETACHED_OBJECT_SIGNATURE_FIXTURE,
+                         "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript", intent):
+        raise ValueError("owner-transfer closed finite intent")
+    digest = "sha256:" + hashlib.sha256(_detached_jcs(intent)).hexdigest()
+    if (acceptance["context"] != OWNER_TRANSFER_CONTEXT or acceptance["signed_digest"] != digest
+            or acceptance["signature_algorithm"] != "Ed25519"):
+        raise ValueError("owner-transfer independent intent commitment")
+    envelope = {k: v for k, v in acceptance.items() if k != "signature"}
+    signature = _decode_detached_b64u(acceptance["signature"])
+    if signature is None:
+        raise ValueError("owner-transfer signature encoding")
+    raw_key = base64.urlsafe_b64decode(source["public_key_base64url"] + "==")
+    if len(raw_key) != 32 or base64.urlsafe_b64encode(raw_key).rstrip(b"=").decode() != source["public_key_base64url"]:
+        raise ValueError("owner-transfer accepted key encoding")
+    Ed25519PublicKey.from_public_bytes(raw_key).verify(signature, (OWNER_TRANSFER_CONTEXT + "\n").encode() + _detached_jcs(envelope))
+    return intent
+
+
+def run_owner_transfer_case(original: dict, name: str) -> str:
+    from tools.regenerate_detached_object_signature_kat import (
+        KEY_A_SEED, OWNER_TRANSFER_AUTHOR_VM, make_signature, owner_transfer_intent,
+        public_key, sign_owner_transfer_event,
+    )
+    sample = copy.deepcopy(original)
+    event, source = sample["event"], sample["successor_source"]
+    payload, root = event["payload"], sample["prestate_root"]
+    if name == "accepted_human": pass
+    elif name == "scope_omitted": del source["scopes"]
+    elif name == "legacy_string": payload["successor_acceptance"] = "storage-boundary-fixture"
+    elif name == "open_map": payload["successor_acceptance"] = {"statement": "yes"}
+    elif name == "explicit_null": payload["successor_acceptance"] = None
+    elif name == "wrong_context": payload["successor_acceptance"]["context"] = "ak.realm_actor_control_acceptance_signature.v1"
+    elif name == "wrong_algorithm": payload["successor_acceptance"]["signature_algorithm"] = "ES256"
+    elif name == "changed_actor_resigned_outer": event["actor_id"]["account_id"]["station_id"] = "ak:did_core:web:other-station.example"
+    elif name == "changed_scope_resigned_outer": event["scope_ref"]["realm_id"] = "ak:realm:" + "A" * 44
+    elif name == "changed_root_resigned_outer":
+        root["controller_epoch"] += 1
+        payload["expected_state_digest"] = "sha256:" + hashlib.sha256(_detached_jcs(root)).hexdigest()
+    elif name == "changed_patch_resigned_outer": payload["patch"]["controller_actor_id"]["account_id"]["principal_id"] = "ak:did_core:web:third.example"
+    elif name == "author_key_as_acceptance":
+        payload["successor_acceptance"], _ = make_signature(OWNER_TRANSFER_CONTEXT, owner_transfer_intent(event), OWNER_TRANSFER_AUTHOR_VM, KEY_A_SEED)
+    elif name == "wrong_key": source["public_key_base64url"] = public_key(KEY_A_SEED)
+    elif name == "wrong_station": source["actor_id"]["account_id"]["station_id"] = "ak:did_core:web:other-station.example"
+    elif name == "wrong_device": source["device_id"] = "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc"
+    elif name == "generation_changed": source["current_generation_ref"] += 1
+    elif name == "revoked_device": source["device_status"] = "revoked"
+    elif name == "deactivated_account": source["account_status"] = "deactivated"
+    elif name == "left_member": source["membership"] = "leave"
+    elif name == "future_device": source["not_before"] = "2026-09-20T00:00:01.000Z"
+    elif name == "expired_device": source["expires_at"] = event["created_at"]
+    elif name == "acceptance_before_device_window":
+        source["not_before"] = "2026-09-20T00:00:01.000Z"
+        sample["evaluation_at"] = "2026-09-20T00:00:02.000Z"
+    elif name == "scope_empty": source["scopes"] = []
+    elif name == "scope_unknown": source["scopes"] = ["unknown"]
+    elif name == "scope_wildcard": source["scopes"] = ["*"]
+    elif name == "scope_null": source["scopes"] = None
+    elif name == "owned_agent_root": source["principal_kind"] = "agent"
+    elif name == "service_root":
+        source["actor_id"] = payload["patch"]["controller_actor_id"] = {"kind": "service", "service_id": "ak:did_core:web:successor.example"}
+    elif name == "realm_actor_root":
+        source["actor_id"] = payload["patch"]["controller_actor_id"] = {"kind": "realm", "realm_actor_id": {"realm_id": event["realm_id"], "principal_id": "ak:did_core:webvh:z6mkfixturealice"}}
+    elif name == "stale_root": root["authority_generation"] = str(int(root["authority_generation"]) + 1)
+    elif name == "returned_controller_new_epoch": root["controller_epoch"] += 2
+    elif name == "counter_overflow": root["controller_epoch"] = 9007199254740991
+    elif name == "modified_outer_signature":
+        text = event["producer_proof"]["jws"]
+        event["producer_proof"]["jws"] = text[:-4] + ("A" if text[-4] != "A" else "B") + text[-3:]
+    else: raise ValueError("unregistered owner-transfer reference case")
+    # A malicious current controller can re-sign every changed payload; it still
+    # cannot fabricate the independently selected successor's acceptance.
+    if name != "modified_outer_signature": sample["event"] = sign_owner_transfer_event(event)
+    validate_owner_transfer_reference(sample)
+    return "accept"
+
+
+def validate_owner_transfer_transport_reference(sample: dict, evidence=None, evidence_ref=None, at=None, at_commit=None) -> None:
+    """Verify actual C bytes and reference binding; not native HTTPS/history proof."""
+    from datetime import datetime
+    from .fixtures import base58btc_decode
+    transport=sample["transport"]
+    query=transport["query"]
+    evidence=transport["evidence"] if evidence is None else evidence
+    evidence_ref=transport["evidence_ref"] if evidence_ref is None else evidence_ref
+    intent=validate_owner_transfer_reference(sample)
+    event,source=sample["event"],sample["successor_source"]
+    for ref,value in (("schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body",query),
+                      ("schemas/account-device-signer-evidence.schema.json",evidence)):
+        errors=jsonschema_errors(Lint(),DETACHED_OBJECT_SIGNATURE_FIXTURE,ref,value)
+        if errors: raise ValueError("owner-transfer source schema: "+str(errors))
+    if (query["purpose"]!="realm_owner_transfer_acceptance" or query["requester_account_id"]!=event["actor_id"]["account_id"]
+            or query["relationship_basis"]!={"kind":"realm_membership","realm_id":event["realm_id"]}
+            or query["device_keys"]!=[{"account_id":source["actor_id"]["account_id"],"device_ids":[source["device_id"]]}]
+            or query["owner_transfer_acceptance"]!={"intent":intent,"acceptance":event["payload"]["successor_acceptance"]}):
+        raise ValueError("owner-transfer exact finite peer query")
+    sha=lambda value:"sha256:"+hashlib.sha256(_detached_jcs(value)).hexdigest()
+    if evidence_ref!="ak:signer_evidence:"+sha(evidence):
+        raise ValueError("owner-transfer full wrapper reference")
+    wrapper,resolution=evidence["device_projection_attestation"],evidence["service_resolution"]
+    core,proof=wrapper["attestation"],wrapper["proof"]
+    if (core["account_id"]!=source["actor_id"]["account_id"] or core["device_id"]!=source["device_id"]
+            or core["device_authorize_event_id"]!=source["authorization_event_ref"]
+            or core["authorized_generation_ref"]!=source["current_generation_ref"]
+            or core["owner_transfer_acceptance_intent_digest"]!=sha(intent)
+            or core["authorization_window"]!={"not_before":source["not_before"],"expires_at":source["expires_at"]}):
+        raise ValueError("owner-transfer C exact source/intent binding")
+    raw_key=base58btc_decode(core["device_signing_key_did"].removeprefix("did:key:z"))
+    if raw_key[:2]!=b"\xed\x01" or base64.urlsafe_b64encode(raw_key[2:]).rstrip(b"=").decode()!=source["public_key_base64url"]:
+        raise ValueError("owner-transfer C exact successor public key")
+    instant=lambda value:datetime.fromisoformat(value.replace("Z","+00:00"))
+    observed,deadline=instant(core["attested_at"]),instant(core["expires_at"])
+    now=instant(at or sample["evaluation_at"])
+    committed=instant(at_commit or at or sample["evaluation_at"])
+    if (not 0<(deadline-observed).total_seconds()<=30 or not observed<=now<deadline
+            or not observed<=committed<deadline
+            or deadline>instant(source["expires_at"]) or proof["created_at"]!=core["attested_at"]
+            or not instant(source["not_before"])<=now<instant(source["expires_at"])
+            or not instant(source["not_before"])<=committed<instant(source["expires_at"])):
+        raise ValueError("owner-transfer final current observation deadline")
+    doc=resolution["normalized_did_document"]
+    history=resolution["method_history_evidence"]
+    if (resolution["service_id"]!=core["account_id"]["station_id"]
+            or "ak:did_core:"+doc["did"].removeprefix("did:")!=resolution["service_id"]
+            or resolution["service_kind"]!="station" or history["evidence_kind"]!="did_web_document"
+            or history["evidence"]!={"kind":"ak.did.binding_evidence.v1","method":"web","document_digest":sha(doc),"method_proofs":[]}):
+        raise ValueError("owner-transfer qualified C method document binding")
+    digest=sha(doc)
+    if history["boundary"]!={"from_method_history_head":digest,"to_method_history_head":digest,
+            "from_version_id":"synthetic-jcs-sha256:"+digest[7:],"to_version_id":"synthetic-jcs-sha256:"+digest[7:]}:
+        raise ValueError("owner-transfer C document-bound history coordinates")
+    methods=[m for m in doc["verification_methods"] if m["verification_method"]==proof["verification_method"]]
+    if (len(methods)!=1 or methods[0]["controller_did"]!=doc["did"]
+            or {"verification_method":proof["verification_method"]} not in doc["assertion_methods"]):
+        raise ValueError("owner-transfer C assertion method")
+    key=methods[0]["public_key_material"]["publicKeyJwk"]
+    if key.get("kty")!="OKP" or key.get("crv")!="Ed25519": raise ValueError("owner-transfer C Ed25519 key")
+    binding={"context":"ak.device_projection_attestation_proof.v1","payload_digest":sha({"attestation":core})}
+    for field in ("account_id","device_id","device_signing_key_did","hpke_key","device_authorize_event_id",
+                  "authorized_generation_ref","device_status","attested_at","expires_at","owner_transfer_acceptance_intent_digest"):
+        binding[field]=core[field]
+    binding.update(verification_method=proof["verification_method"],created_at=proof["created_at"])
+    protected,empty,signature=proof["jws"].split(".")
+    decode=lambda text:base64.urlsafe_b64decode(text+"="*(-len(text)%4))
+    if empty or json.loads(decode(protected))!={"alg":"Ed25519"}: raise ValueError("owner-transfer C JWS header")
+    signing_input=protected.encode()+b"."+base64.urlsafe_b64encode(_detached_jcs(binding)).rstrip(b"=")
+    Ed25519PublicKey.from_public_bytes(decode(key["x"])).verify(decode(signature),signing_input)
+
+
+def run_owner_transfer_transport_case(original: dict, name: str) -> str:
+    sample=copy.deepcopy(original)
+    transport=sample['transport']
+    evidence,ref,at=transport['evidence'],transport['evidence_ref'],None
+    at_commit=None
+    if name=='original_source': pass
+    elif name=='fresh_source_same_intent': evidence,ref,at=transport['fresh_evidence'],transport['fresh_evidence_ref'],'2026-09-20T00:00:30.000Z'
+    elif name=='candidate_before_source': evidence,ref,at,at_commit=transport['fresh_evidence'],transport['fresh_evidence_ref'],'2026-09-20T00:00:30.000Z','2026-09-20T00:00:00.000Z'
+    elif name=='candidate_after_source_expiry': evidence,ref,at,at_commit=transport['fresh_evidence'],transport['fresh_evidence_ref'],'2026-09-20T00:00:30.000Z','2026-09-20T00:00:31.000Z'
+    elif name=='future_source': evidence,ref,at=transport['fresh_evidence'],transport['fresh_evidence_ref'],'2026-09-20T00:00:00.000Z'
+    elif name=='old_source_expired': at='2026-09-20T00:00:30.000Z'
+    elif name=='fresh_source_expired': evidence,ref,at=transport['fresh_evidence'],transport['fresh_evidence_ref'],'2026-09-20T00:00:31.000Z'
+    elif name=='c_row_ref_on_a_wrapper': ref=transport['peer_row_signer_evidence_ref']
+    elif name=='c_signature_changed':
+        proof=evidence['device_projection_attestation']['proof']
+        text=proof['jws'];proof['jws']=text[:-4]+('A' if text[-4]!='A' else 'B')+text[-3:]
+    elif name=='c_intent_digest_changed': evidence['device_projection_attestation']['attestation']['owner_transfer_acceptance_intent_digest']='sha256:'+'0'*64
+    elif name=='ordinary_c_row_for_owner': del evidence['device_projection_attestation']['attestation']['owner_transfer_acceptance_intent_digest']
+    elif name=='contact_query': transport['query']['relationship_basis']={'kind':'contact'}
+    elif name=='batch_query': transport['query']['device_keys'].append(copy.deepcopy(transport['query']['device_keys'][0]))
+    else: raise ValueError('unregistered owner-transfer source mutation')
+    if name in ('c_signature_changed','c_intent_digest_changed','ordinary_c_row_for_owner'):
+        ref='ak:signer_evidence:sha256:'+hashlib.sha256(_detached_jcs(evidence)).hexdigest()
+    validate_owner_transfer_transport_reference(sample,evidence,ref,at,at_commit)
+    return 'accept'
+
+
+def check_owner_transfer_acceptance_reference(lint: Lint, fixture: dict, registry: dict) -> None:
+    from tools.regenerate_detached_object_signature_kat import OWNER_TRANSFER_CASES, owner_transfer_fixture
+    sample = fixture.get("owner_transfer")
+    if not isinstance(sample, dict):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "owner-transfer independent acceptance KAT is missing")
+        return
+    if sample != owner_transfer_fixture():
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "owner-transfer deterministic source/signature bytes drift")
+    try:
+        intent = validate_owner_transfer_reference(sample)
+        if (sample["acceptance"] != sample["event"]["payload"]["successor_acceptance"]
+                or sample["unsigned_projection"] != intent
+                or sample["unsigned_jcs_utf8_hex"] != _detached_jcs(intent).hex()
+                or sample["expected_signed_digest"] != sample["acceptance"]["signed_digest"]):
+            raise ValueError("owner-transfer recomputed finite projection bytes")
+    except (ValueError, KeyError, TypeError, InvalidSignature) as error:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, str(error))
+    expected_cases = [{"name": name, "expected_result": result} for name, result in OWNER_TRANSFER_CASES]
+    if sample.get("cases") != expected_cases:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "owner-transfer closed mutation matrix changed")
+    for name, expected in OWNER_TRANSFER_CASES:
+        try: actual = run_owner_transfer_case(sample, name)
+        except (ValueError, KeyError, TypeError, InvalidSignature): actual = "reject"
+        if actual != expected:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"owner-transfer {name}: expected {expected}, got {actual}")
+    try:
+        validate_owner_transfer_transport_reference(sample)
+        transport=sample["transport"]
+        validate_owner_transfer_transport_reference(sample,transport["fresh_evidence"],transport["fresh_evidence_ref"],"2026-09-20T00:00:30.000Z")
+        stable=lambda body:{k:v for k,v in body.items() if k not in ("producer_device_evidence","successor_device_evidence")}
+        if (stable(transport["forward_body"])!=stable(transport["fresh_forward_body"])
+                or transport["full_http_body_digest"]==transport["fresh_full_http_body_digest"]
+                or transport["evidence_ref"]==transport["peer_row_signer_evidence_ref"]):
+            raise ValueError("owner-transfer fresh source stable-intent/full-body/ref distinction")
+        archive=transport["archive_input_coordinates"]
+        if archive!={"event_id":sample["event"]["event_id"],"intent_digest":sample["acceptance"]["signed_digest"],
+                "successor_proof_digest":"sha256:"+hashlib.sha256(_detached_jcs(sample["acceptance"])).hexdigest(),
+                "successor_evidence_ref":transport["evidence_ref"]}:
+            raise ValueError("owner-transfer immutable accepted source archive binding")
+    except (ValueError,KeyError,TypeError,InvalidSignature) as error:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE,str(error))
+    from tools.regenerate_detached_object_signature_kat import OWNER_TRANSFER_TRANSPORT_CASES
+    if sample.get("transport",{}).get("cases") != [{"name":name,"expected_result":result} for name,result in OWNER_TRANSFER_TRANSPORT_CASES]:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE,"owner-transfer registered source replay matrix drift")
+    for name,expected in OWNER_TRANSFER_TRANSPORT_CASES:
+        try: actual=run_owner_transfer_transport_case(sample,name)
+        except (ValueError,KeyError,TypeError,InvalidSignature): actual="reject"
+        if actual!=expected: lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE,f"owner-transfer source {name}: expected {expected}, got {actual}")
+    rows = [r for r in registry.get("domain_separations", []) if r.get("domain") == OWNER_TRANSFER_CONTEXT]
+    if len(rows) != 1:
+        lint.fail(PROOF_CONTEXT_REGISTRY, "owner-transfer acceptance requires its single independent registered domain")
+        return
+    row = rows[0]
+    if set(row) != DETACHED_SIGNATURE_ROW_KEYS | {"unsigned_projection_schema_ref"}:
+        lint.fail(PROOF_CONTEXT_REGISTRY, "owner-transfer acceptance must use the closed registered detached row")
+    expected = {"domain": OWNER_TRANSFER_CONTEXT, "object_family": "realm_owner_transfer_acceptance_signature",
+        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript",
+        "transcript_schema_refs": ["schemas/detached-object-signature.schema.json#/$defs/realm_owner_transfer_acceptance_signature"],
+        "unsigned_projection_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_owner_transfer_acceptance_transcript",
+        "primitive": "detached_signature", "signature_member": "successor_acceptance", "excluded_signature_members": [],
+        "binding_fields": DETACHED_SIGNATURE_BINDING_FIELDS, "canonicalization": "RFC8785_JCS",
+        "digest_suite": "SHA-256", "digest_input": "RFC8785_JCS(unsigned_projection)",
+        "digest_encoding": "sha256:lowercase_hex", "prefix_form": "UTF8(domain + LF)",
+        "prefix_bytes_hex": (OWNER_TRANSFER_CONTEXT + "\n").encode().hex(),
+        "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+        "signature_algorithm": "Ed25519", "signature_encoding": "base64url_no_pad_64_bytes",
+        "domain_is_a_transcript_member": True, "defined_in": "zh/authz/capabilities.md",
+        "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/owner_transfer/acceptance"}
+    for key, value in expected.items():
+        if row.get(key) != value: lint.fail(PROOF_CONTEXT_REGISTRY, "owner-transfer acceptance registered " + key + " drift")
+
+
 def check_detached_object_signature_registration(lint: Lint) -> None:
     """Close and execute all six raw detached-object signature transcripts."""
 
@@ -1211,6 +1519,7 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
     expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
     realm_contexts = ["ak.realm_actor_" + name + "_signature.v1" for name in ("creation", "control_acceptance", "manager_acceptance", "material", "recovery_acceptance")]
     realm_contexts += ["ak.realm_actor_content_backup_" + name + "_signature.v1" for name in ("admission", "offer", "confirmation")]
+    realm_contexts += [OWNER_TRANSFER_CONTEXT]
     properties = signature_schema.get("properties")
     defs = signature_schema.get("$defs")
     enum = properties.get("context", {}).get("enum") if isinstance(properties, dict) else None
@@ -1392,6 +1701,8 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
         expected_basis = _detached_authority_basis(case)
         if case.get("authority_basis") != expected_basis:
             lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} authority_basis does not bind the host coordinate, exact method, key and authority class")
+
+    check_owner_transfer_acceptance_reference(lint, fixture, registry)
 
     old_case = case_by_context.get("ak.realm_authority_handoff_old_signature.v1")
     new_case = case_by_context.get("ak.realm_authority_handoff_new_acceptance_signature.v1")

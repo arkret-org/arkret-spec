@@ -354,6 +354,20 @@
       "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/3/commitment/did"
     },
     {
+      "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbc",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#ak:device:019ba000-0000-7000-8000-000000000001",
       "role": "deployment_like_example",
       "sources": [
@@ -1130,13 +1144,6 @@
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/zh/discovery/profiles-presence.md"
-      ]
-    },
-    {
-      "value": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/zh/crypto-media/call-state.md"
       ]
     },
     {

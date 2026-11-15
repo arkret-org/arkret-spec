@@ -346,6 +346,8 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 以上两条无条件写入加六条条件 row 构成 create 的完整 projection；第 5 至 8 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
+普通 Collaboration 的 create 作者与初始 root controller MUST 满足 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 的同一可操作 Human Account Device root 资格；其 joined membership 可由本原子 bootstrap unit 的真实 staged slot 建立。不得仅因 Actor union 能解析就把 owned Agent、RealmActor 或 Service 写为不可操作根，也不得为它们绕过原 AND／Device 用途／root_control_only。专用 PCR、Agent control 与 Direct genesis 的原生 bootstrap 身份／治理资格保持独立，本段不改变那些原合同。
+
 普通 Collaboration bootstrap 的唯一 self 提交载体是 `ak.self.events.command.submit.v1`
 的 `ordinary_realm_bootstrap` closed 分支（`POST /_arkret/self/events`，见
 [`../sync/service-http-binding.md` §2.6](../sync/service-http-binding.md)）。请求携
