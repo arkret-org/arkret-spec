@@ -1021,7 +1021,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
             "recovery_session_grant_operations": recovery_session_grant_operations,
         },
     )
-    session_grant_requirement = {"sessionGrantAuth": [], "dpopProof": []}
+    session_grant_requirement = {"SessionGrantAuth": [], "DpopProof": []}
 
     for operation_id, operation in operations.items():
         security = operation.get("security")
@@ -1060,16 +1060,16 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         if session_grant_requirement not in security:
             lint.fail(
                 openapi_path,
-                f"{operation_id} must require sessionGrantAuth and dpopProof in the same security alternative",
+                f"{operation_id} must require SessionGrantAuth and DpopProof in the same security alternative",
             )
         if any(
             isinstance(requirement, dict)
             and any(
                 scheme in requirement
                 for scheme in (
-                    "httpMessageSignature",
-                    "sourceServiceId",
-                    "destinationServiceId",
+                    "HttpMessageSignature",
+                    "SourceServiceId",
+                    "DestinationServiceId",
                 )
             )
             for requirement in security
@@ -1079,12 +1079,12 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
                 f"{operation_id} must not expose a recovery coordinator service-signature alternative",
             )
         if any(
-            isinstance(requirement, dict) and "bearerAuth" in requirement
+            isinstance(requirement, dict) and "BearerAuth" in requirement
             for requirement in security
         ):
             lint.fail(
                 openapi_path,
-                f"{operation_id} must not use bearerAuth for current-v1 SessionGrant access",
+                f"{operation_id} must not use BearerAuth for current-v1 SessionGrant access",
             )
 
     for operation_id, operation in operations.items():

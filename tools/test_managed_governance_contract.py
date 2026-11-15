@@ -372,7 +372,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertIn("managed_device_signature", submission["auth_requirements"])
         api = yaml.safe_load((ART / "openapi/arkret-service-api.openapi.yaml").read_text(encoding="utf-8"))
         schemes = api["components"]["securitySchemes"]
-        self.assertEqual(schemes["managedDeviceMetadata"]["name"], "Arkret-Managed-Device")
+        self.assertEqual(schemes["ManagedDeviceMetadata"]["name"], "Arkret-Managed-Device")
         for path in api["paths"].values():
             for method, operation in path.items():
                 if method not in {"get", "post", "put", "patch", "delete", "head", "query"}:
@@ -380,8 +380,8 @@ class ManagedGovernanceTests(unittest.TestCase):
                 for group in operation.get("security", []):
                     self.assertTrue(set(group).issubset(schemes), group)
         groups = api["paths"]["/_arkret/self/events"]["post"]["security"]
-        self.assertTrue(any("sourceServiceId" in group and "managedDeviceMetadata" not in group for group in groups))
-        self.assertTrue(any("managedDeviceMetadata" in group and "sourceServiceId" not in group for group in groups))
+        self.assertTrue(any("SourceServiceId" in group and "ManagedDeviceMetadata" not in group for group in groups))
+        self.assertTrue(any("ManagedDeviceMetadata" in group and "SourceServiceId" not in group for group in groups))
 
     def test_device_allowlist_content_supply_and_no_admin_recovery(self):
         contract = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))

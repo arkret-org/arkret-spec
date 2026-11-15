@@ -154,7 +154,7 @@
         },
         "recipient_key_ref": {
           "type": "string",
-          "description": "For recipient_method=recovery_public_key, this MUST resolve to the inline backup_hpke.key_agreement_ref of a non-revoked method signing entry in the envelope's referenced accepted recovery policy, and the selected hpke_suite MUST appear in that entry's hpke_suites. DID Document-only key agreements are not an authorization source. A method signing entry's verification_method is a signing-key ref and MUST be rejected here. For realm_actor_recovery it MUST equal the exact accepted native content_backup_recipient.key_agreement_ref selected by auth_binding.recipient_ref; a current DID-only entry or Account policy is not authority."
+          "description": "For recipient_method=recovery_public_key, this MUST resolve to the inline backup_hpke.key_agreement_ref of a non-revoked method signing entry in the envelope's referenced accepted recovery policy, and the selected hpke_suite MUST appear in that entry's hpke_suites. DID Document-only key agreements are not an authorization source. A method signing entry's verification_method is a signing-key ref and MUST be rejected here. For realm_actor_recovery it MUST equal the exact accepted native content_backup_recipient.key_agreement_ref selected by authorization_binding.recipient_ref; a current DID-only entry or Account policy is not authority."
         },
         "hpke_suite": {
           "type": "string",
@@ -859,8 +859,8 @@
         }
       ]
     },
-    "auth_binding": {
-      "$ref": "#/$defs/realm_actor_backup_auth_binding"
+    "authorization_binding": {
+      "$ref": "#/$defs/realm_actor_backup_authorization_binding"
     },
     "retention": {
       "type": "object",
@@ -1197,7 +1197,7 @@
       "then": {
         "required": [
           "device_id",
-          "auth_binding"
+          "authorization_binding"
         ],
         "properties": {
           "actor_id": {
@@ -1307,7 +1307,7 @@
           "anyOf": [
             {
               "required": [
-                "auth_binding"
+                "authorization_binding"
               ]
             }
           ]
@@ -1342,7 +1342,7 @@
       },
       "then": {
         "required": [
-          "auth_binding"
+          "authorization_binding"
         ],
         "properties": {
           "actor_id": {
@@ -1355,7 +1355,7 @@
           "anyOf": [
             {
               "required": [
-                "auth_binding"
+                "authorization_binding"
               ]
             }
           ]
@@ -1374,7 +1374,7 @@
     "digest": {
       "$ref": "./account-operations.schema.json#/$defs/digest"
     },
-    "realm_actor_backup_auth_binding": {
+    "realm_actor_backup_authorization_binding": {
       "type": "object",
       "required": [
         "kind",
@@ -1388,8 +1388,8 @@
           "const": "realm_device",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "key-backup.schema.json#/$defs/realm_actor_backup_auth_binding/properties/kind",
-            "owner": "key-backup.schema.json#/$defs/realm_actor_backup_auth_binding/properties/kind",
+            "authority": "key-backup.schema.json#/$defs/realm_actor_backup_authorization_binding/properties/kind",
+            "owner": "key-backup.schema.json#/$defs/realm_actor_backup_authorization_binding/properties/kind",
             "values": [
               "realm_device"
             ]
@@ -1422,5 +1422,5 @@
       "custodian_actor_id"
     ]
   },
-  "description": " Realm-native root packets contain exactly one current accepted-epoch root of an exact authorized Realm/Circle scope. Their native-only AAD appends auth_binding to the existing canonical base before the existing x_* merge; Account/Agent AAD is unchanged. Local seal/freeze is not PUT acknowledgement; physical first PUT starts last-root custody before any business Event."
+  "description": " Realm-native root packets contain exactly one current accepted-epoch root of an exact authorized Realm/Circle scope. Their native-only AAD appends authorization_binding to the existing canonical base before the existing x_* merge; Account/Agent AAD is unchanged. Local seal/freeze is not PUT acknowledgement; physical first PUT starts last-root custody before any business Event."
 }

@@ -456,11 +456,11 @@ def openapi_high_security_policy_block(catalog: dict[str, Any]) -> str:
         raise SystemExit("high-security policy new-operation rule must be a non-empty string")
     lines = [
         f"{OPENAPI_HIGH_SECURITY_POLICY_KEY}:",
-        f"  appliesToOperationIdPrefix: {prefix}",
-        f"  protectedOperationDefault: {protected_default}",
-        "  unauthenticatedPublicProjectionOperations:",
+        f"  applies_to_operation_id_prefix: {prefix}",
+        f"  protected_operation_default: {protected_default}",
+        "  unauthenticated_public_projection_operations:",
         *(f"  - {operation}" for operation in public_operations),
-        "  newOperationsFailClosed: true",
+        "  new_operations_fail_closed: true",
     ]
     return "\n".join(lines) + "\n"
 

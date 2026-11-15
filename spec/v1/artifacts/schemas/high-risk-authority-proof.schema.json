@@ -77,10 +77,10 @@
     },
     "device_quorum_proof": {
       "type": "object",
-      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=2, signatures.minItems=1). Verification is normative in the consuming operation's text: (a) every signature MUST verify over the same canonical transcript; (b) signatures MUST be deduplicated by device_id; (c) the count of valid deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the currently accepted recovery policy device-quorum k — a smaller issuer-supplied threshold MUST be rejected as failed_precondition. A deployment whose policy k is below 2 cannot use this branch and must use recovery_unlock or trusted_recovery_service instead; a single current device proof is not a high-risk quorum.",
+      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (min_device_count>=2, signatures.minItems=1). Verification is normative in the consuming operation's text: (a) every signature MUST verify over the same canonical transcript; (b) signatures MUST be deduplicated by device_id; (c) the count of valid deduplicated signatures MUST be >= min_device_count; (d) min_device_count MUST equal the currently accepted recovery policy device-quorum min_device_count — a smaller issuer-supplied min_device_count MUST be rejected as failed_precondition. A deployment whose policy min_device_count is below 2 cannot use this branch and must use recovery_unlock or trusted_recovery_service instead; a single current device proof is not a high-risk quorum.",
       "required": [
         "kind",
-        "threshold",
+        "min_device_count",
         "signatures"
       ],
       "properties": {
@@ -95,10 +95,11 @@
             ]
           }
         },
-        "threshold": {
+        "min_device_count": {
           "type": "integer",
           "minimum": 2,
-          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently accepted recovery_policy device-quorum k; receivers MUST cross-check per description rule (d)."
+          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently accepted recovery_policy device-quorum min_device_count; receivers MUST cross-check per description rule (d).",
+          "x-arkret-member-role": "count"
         },
         "signatures": {
           "type": "array",
@@ -106,7 +107,7 @@
           "items": {
             "$ref": "#/$defs/device_quorum_signature"
           },
-          "description": "minItems=1 is the schema floor only; receiver-side verification requires deduplicated valid signature count >= threshold per description rule (c)."
+          "description": "minItems=1 is the schema floor only; receiver-side verification requires deduplicated valid signature count >= min_device_count per description rule (c)."
         }
       },
       "additionalProperties": false

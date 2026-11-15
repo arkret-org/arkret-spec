@@ -61,6 +61,22 @@ class PrincipalResolutionCasTests(unittest.TestCase):
         forbidden = {entry['id'] for entry in entries if entry.get('context') == 'producer_event_envelope_root'}
         self.assertTrue({'expected_commit_id', 'preconditions'} <= forbidden)
 
+    def test_adapter_contract_uses_typed_selector_and_signed_commit_guard(self):
+        catalog = json.loads((ART / 'registry/contract-registry.json').read_text(encoding='utf-8'))
+        contract = catalog['did_method_adapter_registry']['principal_resolution_contract']
+        current = json.loads((ART / 'schemas/current-state.schema.json').read_text(encoding='utf-8'))
+        selector_schema = current['$defs']['current_identity_resolution']['properties']['selector']
+        Draft202012Validator(selector_schema).validate(contract['state_selector'])
+        precondition = contract['update_successor']['required_precondition']
+        Draft202012Validator(selector_schema).validate(precondition['state_selector'])
+        self.assertEqual(precondition['state_selector'], contract['state_selector'])
+        self.assertEqual(set(precondition), {'state_selector', 'payload_field', 'value_schema_ref', 'cardinality'})
+        payload = self.schema['$defs']['principal_resolution_update_payload']
+        guard = precondition['payload_field']
+        self.assertIn(guard, payload['required'])
+        self.assertEqual(payload['properties'][guard]['$ref'], './common-ids.schema.json#/$defs/realm_commit_id')
+        self.assertNotIn('ak:result:', json.dumps(contract))
+
     def test_signature_binds_the_single_commit_identity(self):
         key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
         canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':')).encode()

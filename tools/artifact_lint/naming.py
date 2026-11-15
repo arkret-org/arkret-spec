@@ -81,11 +81,10 @@ _NAME_MAP_KEYWORDS = frozenset({"properties", "$defs", "patternProperties", "def
 # NC-FIELDCASE-001. The only object whose property names escape the Arkret
 # snake_case lexicon is one that mirrors an external specification verbatim, and
 # it says so on its own schema node rather than in a lint-side name list. The
-# annotation is therefore exact by construction: it governs the properties the
-# node declares directly and nothing reached through `$ref`, a shared type name
-# or a same-named field elsewhere.
+# annotation declares the exact external property names. Other direct members
+# remain Arkret-owned, including extensions on the same external object.
 EXTERNAL_LITERAL_OBJECT_KEYWORD = "x-arkret-external-literal-object"
-EXTERNAL_LITERAL_OBJECT_FIELDS = ("specification", "anchor")
+EXTERNAL_LITERAL_OBJECT_FIELDS = ("specification", "anchor", "external_properties")
 EXTERNAL_ANCHOR_URL_RE = re.compile(r"https://[^\s#]+#\S+\Z")
 
 
@@ -108,6 +107,33 @@ def external_anchor_is_valid(value: Any) -> bool:
         return True
     except (ValueError, UnicodeError):
         return False
+
+
+def external_literal_property_names(node: Any) -> frozenset[str]:
+    """Return only explicitly declared, valid external direct properties.
+
+    Invalid or incomplete ownership metadata never grants a lexical exemption.
+    The owner validation gate separately reports its malformed declaration.
+    """
+    if not isinstance(node, dict) or not isinstance(node.get("properties"), dict):
+        return frozenset()
+    marker = node.get(EXTERNAL_LITERAL_OBJECT_KEYWORD)
+    if not isinstance(marker, dict):
+        return frozenset()
+    names = marker.get("external_properties")
+    if (
+        set(marker) - set(EXTERNAL_LITERAL_OBJECT_FIELDS) - {"reason"}
+        or not isinstance(marker.get("specification"), str)
+        or not marker["specification"].strip()
+        or not external_anchor_is_valid(marker.get("anchor"))
+        or not isinstance(names, list)
+        or not names
+        or not all(isinstance(name, str) and name for name in names)
+        or len(names) != len(set(names))
+        or not set(names).issubset(node["properties"])
+    ):
+        return frozenset()
+    return frozenset(names)
 
 # Reserved grammar directive keys carry a `$` sigil precisely so they cannot
 # collide with the snake_case data-field namespace; the remainder still has to be
@@ -508,6 +534,7 @@ DEFAULT_FORBIDDEN_LEXEMES = frozenset(
     {
         "org",
         "arkret_organization_membership_credential",
+        "auth_binding",
     }
 )
 def forbidden_lexeme_pattern(alias: str) -> re.Pattern[str]:
@@ -534,6 +561,60 @@ def nc_lexeme_001(candidate: str) -> bool:
     """
 
     return any(pattern.search(candidate) for pattern in FORBIDDEN_LEXEME_PATTERNS)
+
+
+def registry_metadata_key_errors(file_name: str, document: Any) -> list[str]:
+    """Check fixed keys of explicitly owned metadata, not arbitrary map keys.
+
+    Other registry namespaces, schema keywords, symbolic-keyed maps and prose
+    values are deliberately outside this bounded mechanical surface.
+    """
+    roots: list[tuple[str, Any]] = []
+    errors: list[str] = []
+
+    def required_root(parts: tuple[str, ...]) -> None:
+        node = document
+        pointer = ""
+        try:
+            for part in parts:
+                pointer += "/" + _escape(part)
+                node = node[part]
+            if not isinstance(node, dict):
+                raise TypeError("metadata owner is not an object")
+            roots.append((pointer, node))
+        except (KeyError, TypeError):
+            errors.append(f"{pointer}: registered metadata owner is missing or not an object")
+
+    if file_name == "contract-registry.json":
+        required_root(("realm_actor_contract", "content_backup_contract"))
+        required_root(("content_encryption_contract", "realm_actor_native_custody"))
+        operation_registry = document.get("operation_registry") if isinstance(document, dict) else None
+        operations = operation_registry.get("operations") if isinstance(operation_registry, dict) else None
+        if not isinstance(operations, list):
+            errors.append("/operation_registry/operations: registered operation array is missing")
+        else:
+            for index, row in enumerate(operations):
+                if isinstance(row, dict) and "auth_requirements" in row:
+                    roots.append((f"/operation_registry/operations/{index}/auth_requirements", row["auth_requirements"]))
+    elif file_name == "content-encryption-registry.json":
+        required_root(("realm_actor_native_custody",))
+    elif file_name == "morph-kind-decision-table.json":
+        required_root(())
+
+    def visit(pointer: str, node: Any) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                child = pointer + "/" + _escape(key)
+                if not isinstance(key, str) or not SNAKE_CASE_RE.fullmatch(key):
+                    errors.append(f"{child}: fixed registry metadata key must use strict snake_case")
+                visit(child, value)
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                visit(f"{pointer}/{index}", value)
+
+    for pointer, node in roots:
+        visit(pointer, node)
+    return errors
 
 
 def nc_code_001(candidate: str) -> bool:

@@ -3,7 +3,7 @@ title: Service HTTP Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-12
+updated: 2026-11-15
 see_also:
   - authority-commit-log.md
   - service-api-schema.mdx
@@ -116,7 +116,7 @@ actual HTTP method/path 和已登记签名场景选择，混合 SessionGrant／D
 
 | 既有 operation | 新原生角色与边界 |
 | --- | --- |
-| ak.self.keys.backups.resource.replace.v1 | 真实 current managed Device；只 PUT 自己 exact scope 的 root-only native envelope，重核 auth_binding、原 Device／device_generation、manager、双业务 gates、安装／scope/action、当前 MLS root、recipient 与 scoped series |
+| ak.self.keys.backups.resource.replace.v1 | 真实 current managed Device；只 PUT 自己 exact scope 的 root-only native envelope，重核 authorization_binding、原 Device／device_generation、manager、双业务 gates、安装／scope/action、当前 MLS root、recipient 与 scoped series |
 | ak.self.keys.backups.read.list.v1 | Device 的 purpose=series_predecessor 只读本 Actor/exact scope/current selected series 当前 head（空 series 为空，禁 cursor／series_id／旧包枚举）；manager 仅 purpose=archive_inventory 全量库存分支，后者 Device／Account／Agent 禁用 |
 | ak.self.keys.backups.command.issue_unlock_challenge.v1 | current Device 的 series_predecessor 或 current manager Service 的 archive_recovery，按独立 closed native 请求签发单次 exact-object challenge |
 | ak.self.keys.backups.command.unlock.v1 | 相同原生 role／purpose、完整 challenge 与真实签名；Device 仅完整当前 head＋最小 admission，Manager 已知单包 archive 为完整原包＋native_source，不返回私钥／R／活跃 MLS state |
@@ -147,7 +147,7 @@ install／grant、owner／governance paused 或 identity recovery disabled 阻�
 Service 写入；Device PUT 仍完整核 current installation／consent／业务状态／scope/action／MLS epoch。
 unlock proof 的 manager_ref／recovery_ref 与 requester Device／generation 属于本次当前资格，recipient_ref 则是
 目标原包的历史 accepted 声明，独立历史验并与完整 signed envelope_digest 绑定，不强逼等于当前 recipient；
-原 target auth_binding／admission 仍全冻结。
+原 target authorization_binding／admission 仍全冻结。
 
 普通原生 list 的 realm_actor_id 是 composite identifier，OAS 必须 style=deepObject、explode=true：
 realm_actor_id[realm_id] 与 realm_actor_id[principal_id] 必须同时出现，按标准 percent encoding 编码括号和值。
@@ -160,7 +160,7 @@ head，禁止 cursor／limit／series_id／backup_kind／previous-series 枚举�
 
 current material 仅在本次相同 Actor／Scope 的 recovery 和原生 scoped-series 两项完整、pending=null、原 Device／
 device_generation／current series 同 cut 均有效时提供 optional non-null closed
-next_prepare_input={auth_binding,content_backup_recipient,active_series_id}。public native series current value 仅含
+next_prepare_input={authorization_binding,content_backup_recipient,active_series_id}。public native series current value 仅含
 active_series_id、series_pointer_version、manager_ref、recovery_ref、recipient_ref；完整 record／previous_series_ids／
 inner proof 不给 Device，selector／source／revision 仍分别绑定完整 Actor／exact Scope／class 和原接受 ref。
 Device 逐字 echo 该正式输入，不能从

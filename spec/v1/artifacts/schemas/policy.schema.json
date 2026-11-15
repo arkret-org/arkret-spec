@@ -1193,7 +1193,7 @@
       "type": "object",
       "required": [
         "approver_actor_ids",
-        "threshold",
+        "min_approver_count",
         "max_age_seconds"
       ],
       "properties": {
@@ -1205,9 +1205,10 @@
             "$ref": "./common-ids.schema.json#/$defs/actor_id"
           }
         },
-        "threshold": {
+        "min_approver_count": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "x-arkret-member-role": "count"
         },
         "max_age_seconds": {
           "type": "integer",

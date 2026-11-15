@@ -3,7 +3,7 @@ title: Realm 用户、Agent 与 Applet 精细治理
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-19
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言与载体
@@ -101,7 +101,7 @@ ownership/provision、controller join、候选 Agent join意图、installation/e
 同一请求人、scope、operation、候选摘要只允许一个非 terminal 申请；不同候选是不同请求，批准不得换主体、公钥、external tuple 或 scope。
 
 审批者 **MUST** 持有实际 scope 当前 `ak.realm.admin`，并满足命中规则／治理审批的指定审批人及 threshold。
-申请人不得自批；review_requirement或default_review_requirement固定approver_actor_ids、threshold和max_age_seconds；threshold不得超过distinct授权批准人的数目。多人threshold按完整Actor资格核验，并对同principal的跨Station重复票去重；自批始终拒绝。
+申请人不得自批；review_requirement或default_review_requirement固定approver_actor_ids、min_approver_count和max_age_seconds；min_approver_count不得超过distinct授权批准人的数目。多人最低批准数按完整Actor资格核验，并对同principal的跨Station重复票去重；自批始终拒绝。
 每个批准沿唯一 ApprovalSignature 的 `context_kind=management` context，绑定 operation、action、effective scope、exact request_id、request digest、
 initiating actor、批准人、nonce和签名时刻；initiating actor 必须等于候选 Event 的实际 producer（executed_by 存在时为它，否则为 actor_id），创建时为 Service。
 申请人 controller／Service 单独绑定在 ledger，并不改写实际 producer；申请人、实际 producer及受益主体均不得自批；不得以 UI 管理员标签或私有布尔值代替。

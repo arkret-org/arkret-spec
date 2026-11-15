@@ -503,16 +503,17 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "station_id MUST equal the serving Station DID. A different value is an unknown account, not a referral."
         },
-        "history_depth": {
+        "max_predecessor_event_count": {
           "type": "integer",
           "minimum": 0,
           "maximum": 256,
           "default": 0,
-          "description": "Maximum number of post-genesis predecessor resolution Events to disclose, counted backwards from current_resolution_event. 0 discloses the current head only. A value outside the closed range is param_invalid; an implementation MUST NOT substitute a private cap."
+          "description": "Maximum number of post-genesis predecessor resolution Events to disclose, counted backwards from current_resolution_event. 0 discloses the current head only. A value outside the closed range is param_invalid; an implementation MUST NOT substitute a private cap.",
+          "x-arkret-member-role": "count"
         },
         "after_resolution_event_ref": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref",
-          "description": "Known ancestor already held by the caller. The disclosed segment stops exclusively at it, so only the unknown suffix is returned. It MUST be the genesis Event or an accepted ak.identity.resolution.update in this account's current lineage; a ref outside that lineage is param_invalid with reason resolution_history_ancestor_unknown. Supplying it with history_depth 0 is param_invalid, because depth 0 discloses no predecessor and the cursor could not apply."
+          "description": "Known ancestor already held by the caller. The disclosed segment stops exclusively at it, so only the unknown suffix is returned. It MUST be the genesis Event or an accepted ak.identity.resolution.update in this account's current lineage; a ref outside that lineage is param_invalid with reason resolution_history_ancestor_unknown. Supplying it with max_predecessor_event_count 0 is param_invalid, because a zero limit discloses no predecessor and the cursor could not apply."
         }
       },
       "additionalProperties": false,
@@ -573,7 +574,7 @@
         "predecessor_resolution_events": {
           "type": "array",
           "maxItems": 256,
-          "description": "Post-genesis resolution update Events preceding current_resolution_event, ordered from the current event's immediate predecessor toward older events and contiguous with no gaps. The genesis Event is carried separately and MUST NOT be repeated here. The segment ends at whichever comes first: request history_depth items, the exclusive request after_resolution_event_ref ancestor, or head 0. A server MAY return a shorter contiguous segment than requested when a response bound applies, MUST NOT return more items than history_depth, and MUST NOT skip an intermediate Event.",
+          "description": "Post-genesis resolution update Events preceding current_resolution_event, ordered from the current event's immediate predecessor toward older events and contiguous with no gaps. The genesis Event is carried separately and MUST NOT be repeated here. The segment ends at whichever comes first: request max_predecessor_event_count items, the exclusive request after_resolution_event_ref ancestor, or head 0. A server MAY return a shorter contiguous segment than requested when a response bound applies, MUST NOT return more items than max_predecessor_event_count, and MUST NOT skip an intermediate Event.",
           "items": {
             "$ref": "#/$defs/resolution_update_event"
           }

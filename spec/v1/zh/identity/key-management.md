@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -507,7 +507,7 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
 
 1. **controller 创建并发布 PCR-independent inception**。controller client 先生成 Agent `did:webvh` root、
    预轮换 binding update key 与其下一代 key，并在任何网络副作用前可恢复地持久化至少后两者。entry 0 只含
-   `type="ArkretService", serviceKind="station"` 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含
+   `type="ArkretService", service_kind="station"` 与唯一 `ArkretManagedPrincipalController` delegation，MUST NOT 含
    `ArkretPrincipalControlRealm`。controller 签名并提交 exact entry 0；Station 不生成、不持有、
    不代签 Agent DID 私钥。只有 entry 0 已 accepted 才进入下一步。
 2. **prepare 钉死 accepted inception 与 controller account pair**。controller 以该 `did` 和当前 `controller_station_id` 调用 `phase=prepare`；服务端将它与 session principal 组成的 pair 逐字匹配 authenticated session 的 `(principal_id, station_id)`，并只从该 pair 的本地唯一 PCR lineage 取得后续材料。随后服务端
@@ -883,7 +883,7 @@ envelope `contents` 是必填、非空、闭合的明文 item 索引；普通项
 
 1. 从 `contents[].item_kind` 取 UTF-8 字节串，按 unsigned UTF-8 bytewise lexicographic order 排序，并按逐字 byte equality 去重，得到唯一的 `item_kinds` 数组；content 原始顺序和重复 item 不得改变 AAD。
 2. 构造固定 base object：`{schema:"ak.schema.key_backup.v1",actor_id,device_id,backup_kind,backup_version,created_at,item_kinds,recipient_method}`。`device_id` 缺失时 base 中该 key 的值固定为 JSON `null`；`recipient_method` 从 `encryption.recipient_method` 派生。仅当 `encryption.recipient_key_ref` 实际存在时，向 base 加入 `recipient_key_ref`。
-3. 仅 `realm_actor_recovery` 原生分支将完整 `auth_binding` 以同名成员加入 base；其它分支禁止该成员，原 Account／Agent AAD 不改变。
+3. 仅 `realm_actor_recovery` 原生分支将完整 `authorization_binding` 以同名成员加入 base；其它分支禁止该成员，原 Account／Agent AAD 不改变。
 4. 将 `domain_separation.aead_aad_extensions` 的每个 `x_*` 成员逐字合并进 base；extension map 不得包含非 `x_*` 名称，也不得覆盖任何固定成员。
 5. `aead_aad_bytes = RFC8785_JCS(merged_base)`。该字节串同时用于对称 AEAD AAD 与 §7.5.2 HPKE `aad`；无扩展时对空 map 不增加任何成员。
 
@@ -1023,8 +1023,8 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 #### 7.5.6 `realm_actor_recovery`
 
 仅 `actor_id.kind=realm` 的原生 content_epoch_root 包可使用此 recipient method；两项必须同现。
-反向禁止 Account／Agent 使用本 method 或 auth_binding。完整 envelope／Device signature 仍按本章 JCS 签署，
-原生 AAD 依§7.2加入完整 auth_binding，其余原有 HPKE info／suite／AEAD 及完整 plaintext-index 检查继续生效。
+反向禁止 Account／Agent 使用本 method 或 authorization_binding。完整 envelope／Device signature 仍按本章 JCS 签署，
+原生 AAD 依§7.2加入完整 authorization_binding，其余原有 HPKE info／suite／AEAD 及完整 plaintext-index 检查继续生效。
 
 recipient 公钥只从当前受验 material 的 next_prepare_input.content_backup_recipient 取得，不能来自本地配置、
 Device Welcome key、今日 DID 方法或 envelope 自报公钥。该 descriptor 只携 key_agreement_ref、hpke_suite、
@@ -1035,7 +1035,7 @@ Device 的 event 读取只保留自身 exact DeviceAuthorize 原件；本次不�
 begin 原件读取。它只 echo 已认证 bound next_prepare_input，不能从 current metadata／嵌套值外推 Event 坐标，
 亦不能为声明 signer 另行发现 Actor DID／governance 网络。Station 的完整原始验真与 Manager 私密库存原件义务不变。
 
-原生 auth_binding 精确为 kind=realm_device、manager_ref、recovery_ref、recipient_ref、device_generation；
+原生 authorization_binding 精确为 kind=realm_device、manager_ref、recovery_ref、recipient_ref、device_generation；
 四项来源由同一 accepted current cut 提供，Device 逐字 echo。device_generation 是正整数 Realm-native 代次，
 不借用 Human PCR device_generation_ref。原生 body 必带自己的 DeviceId，signature_proof 必带实际
 DeviceId／device_authorize_event_id／verification_method／Ed25519 signature。只允许一个真实 root item，
@@ -1237,8 +1237,8 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    audience / service 不同一律 fail closed），再验证 proof 分支的授权（`recovery_unlock`
    必须携带 exact `recovery_session_id`，该 session 必须属于同一 Account、处于 verified 且未完成/撤销状态、
    未过期，其 proof summary 必须为 `recovery_unlock` 并绑定同一 verification method；签名 key 必须从该 session
-   冻结的 accepted recovery policy 解析，不能从当前 DID Document 或请求自报 key 取得；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `k` 且请求
-   `threshold` 等于该 `k`；`trusted_recovery_service` 的 session 必须未过期、未消费且由
+   冻结的 accepted recovery policy 解析，不能从当前 DID Document 或请求自报 key 取得；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `min_device_count` 且请求
+   `min_device_count` 等于该 policy 的同名字段；`trusted_recovery_service` 的 session 必须未过期、未消费且由
    recovery unlock / device quorum 建立），最后在成功删除的同一事务中
    原子消费 challenge。
 4. **幂等**。服务端以 `(account_id, backup_id, request_id)` 保存 canonical request digest 与
@@ -1247,7 +1247,7 @@ freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
    DELETE retry-safe 由此并存。
 5. **conformance**。`ak.vector.key_backup.delete_authority.v1` MUST 覆盖：三个 high-risk
    分支的正例、普通 device proof 删除 active tail 被拒、非尾部单独删除被拒、quorum 去重 /
-   低于 policy `k` 被拒、`recovery_unlock` 的 session/method/policy 错绑被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
+   低于 policy `min_device_count` 被拒、`recovery_unlock` 的 session/method/policy 错绑被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
    `backup_id` / `reason` / `audience` / `challenge` / `context` 任一 transcript 字段后验签必然失败。
 
 #### 7.8.2 普通设备 unlock challenge 与耐久重试
@@ -1278,7 +1278,7 @@ scope。manager 分支只用于 purpose=archive_recovery，由当前
 原包历史 Device 已过期／撤销不否定原签真实性，当前调用者仍须通过自己的资格及披露门，旧 manager 无权读取。
 proof 的 manager_ref／recovery_ref 与当前 requester Device／generation 按本次 current cut 验资格；recipient_ref
 必须等于目标原包的历史 accepted recipient 声明，独立历史验真并与完整 signed envelope_digest 绑定，不要求等于
-当前 recipient。目标原包 auth_binding／admission 的所有历史 refs 逐字冻结，不能改写为当前 refs，也不能以原作者
+当前 recipient。目标原包 authorization_binding／admission 的所有历史 refs 逐字冻结，不能改写为当前 refs，也不能以原作者
 历史权威代替当前 requester 权限。
 native Device unlock 的 closed response 为 `{backup,admission}`，Manager archive unlock 则为 `{backup,native_source}`；
 二者严格按已验角色／purpose 选定，不接受混用或 Device 的 fullSource 参数。原 Account／Agent 单独 KeyBackup
@@ -1340,7 +1340,7 @@ Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n")
 - **revoke key**：当某把 `recovery_unlock` key 被怀疑泄露时，policy holder 发布只更新该 entry `revoked_at` 的 rotate envelope。receiver MUST 拒绝任何 `revoked_at != null` 的 entry，即便签名本身有效；该拒绝 MUST NOT 影响同一 policy 中未被撤销的其它独立 OR 方法。
 - **revoke policy**：唯一显式形式是发布下一版本 `methods=[]`；它使未完成 session、尚有效 publication lease 和尚未 accepted reanchor 全部失效。后续只有发布新的 active policy 才能恢复。`expires_at` 表达自然过期：到期不得创建或推进恢复 session，也不得新接受恢复 publication；它不是另一种撤销编码。普通 rotate 允许未被显式撤销且未过期的 in-flight session 继续使用创建时 frozen policy；不得跨版本拼接材料。 session 授权消费 MUST 重查该完整 AccountId 的 accepted policy 历史；一次明确 revoke 不能被后续重新启用 policy 消除。session verified 转换、backup unlock/delete、恢复 transaction step 与首次 reanchor 接纳必须把该检查和相应写入置于同一共享耐久事务边界，使用与 policy 发布一致的账户锁序；仅 HTTP 预检查不足以阻止并发撤销。`recovery_unlock` key 的显式 `revoked_at` 必须对尚未 accepted 的恢复及时生效，不能借 frozen snapshot 绕过泄露撤销。已接受的 reanchor 不因事后 policy revoke 回滚。
 
-**唯一方法来源**：signed policy 只有 `methods[]`，tag 每种最多一条，v1 的封闭四项是 `did_root {}`、`recovery_unlock {keys[]}`、`device_quorum {k,member_ids[]}`、`trusted_recovery_service {services[]}`。每个 entry 是独立 OR 恢复方法。device_quorum 必须按不同有效设备去重并满足 2 ≤ k ≤ n。trusted_recovery_service 的 `services[]` 之间也是 OR：恰好一条 entry 的 `service_id`、`authorization_verification_method` 与 `audience` MUST 与提交的授权逐字相等，没有跨 entry 门限，也不存在部署级恢复签发方；不能用 DID Document membership 或任意字段“提及”替代。did_root 只声明 opt-in，由 DID history/pre-rotation 验证当前 root，不钉一把跨代静态 root，也不接受设备 key 代替。一个方法的证明不得拼给另一个方法凑门限。
+**唯一方法来源**：signed policy 只有 `methods[]`，tag 每种最多一条，v1 的封闭四项是 `did_root {}`、`recovery_unlock {keys[]}`、`device_quorum {min_device_count,member_ids[]}`、`trusted_recovery_service {services[]}`。每个 entry 是独立 OR 恢复方法。device_quorum 必须按不同有效设备去重并满足 2 ≤ min_device_count ≤ n。trusted_recovery_service 的 `services[]` 之间也是 OR：恰好一条 entry 的 `service_id`、`authorization_verification_method` 与 `audience` MUST 与提交的授权逐字相等，没有跨 entry 门限，也不存在部署级恢复签发方；不能用 DID Document membership 或任意字段“提及”替代。did_root 只声明 opt-in，由 DID history/pre-rotation 验证当前 root，不钉一把跨代静态 root，也不接受设备 key 代替。一个方法的证明不得拼给另一个方法凑门限。
 
 `recovery_unlock` proof 的唯一 key selector 是其已签名 `verification_method`。接收方 MUST 在 session 冻结的
 accepted policy/version 中按该 DID URL 逐字选择**恰好一条** `recovery_unlock.keys[]` entry，并在 session
@@ -1351,12 +1351,12 @@ fallback 选 key。proof 与其 signature-independent body 均不携 `recovery_s
 freshness、authorization 或 replay protection。`signature` 是唯一持钥证明，并覆盖完整
 `generic_recovery_transcript`；其 proof body 只删除 `signature`，不得以 null 或兼容别名替代。
 
-publication authority、UI 与 session verifier MUST 从该 entry 同源派生：rule id = kind，role 固定 identity_recovery，action 固定 ak.device.reanchor；recovery_unlock 的 issuer = active keys、门限 1；device_quorum issuer 来自该 accepted basis 上 member_ids 对应 active device methods、门限 k；trusted service issuer 为 `services[]` 的 exact `authorization_verification_method` 集合、门限 1；did_root 从 accepted DID history 取 root authority。排序去重与有效期检查在计算 authority_set_digest 前完成。衍生 rule 不是 policy 中第二份可编辑配置。
+publication authority、UI 与 session verifier MUST 从该 entry 同源派生：rule id = kind，role 固定 identity_recovery，action 固定 ak.device.reanchor；recovery_unlock 的 issuer = active keys、门限 1；device_quorum issuer 来自该 accepted basis 上 member_ids 对应 active device methods、门限 min_device_count；trusted service issuer 为 `services[]` 的 exact `authorization_verification_method` 集合、门限 1；did_root 从 accepted DID history 取 root authority。排序去重与有效期检查在计算 authority_set_digest 前完成。衍生 rule 不是 policy 中第二份可编辑配置。
 
 **可执行性与失败合同**：v1 没有通用 approval AND 层、announcement 等待或部署级支持矩阵；`min_approvals`、`announcement_required`、`attestation_required` 与服务 k-of-n 都不是 v1 wire 字段，实现 MUST NOT 复活它们。
 policy 的唯一附加约束是顶层 `cooldown_seconds`：出现即 MUST 执行，接收方 MUST 拒绝在恢复会话 `created_at` 起未满该秒数时提交的 proof。
 
-发布（publish / rotate）时接收方 MUST 拒绝自身不可执行的 policy，而不是接受后在真正恢复时才暴露：`device_quorum.k` 大于去重后的有效成员数、`recovery_unlock` entry 的有效期或 `backup_hpke` ref 自相矛盾、`trusted_recovery_service` entry 的 `authorization_verification_method` 的 controller 投影不等于同 entry 的 `service_id`，都 MUST reject，且这一类**发布期**拒绝 MUST 使用 `failed_precondition`——它判定的是这份 policy 自身不可执行，不是某次恢复证明与 policy 不匹配，MUST NOT 复用下文的 `recovery_policy_mismatch`。**恢复执行期**的四类失败必须稳定可分且只使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的 code：不支持用 `recovery_proof_kind_unimplemented`（501），policy 不允许该 kind 用 `recovery_proof_kind_not_allowed`（409），授权条件未满足（冷却未到、门限不足、逐字匹配失败、设备未授权）用 `recovery_policy_mismatch` / `recovery_policy_device_unauthorized`（409），签名不验证用 `signature_invalid`（401），失效或撤销用 `recovery_policy_revoked`（409）与 `auth_expired`（401）。已签的约束 MUST NOT 被静默忽略：无法执行时 fail closed，不得把多因素授权降级成单因素。部署能力仍复用既有 ServiceDescribe 能力声明与协商，MUST NOT 另建第二套恢复策略来源或方法支持矩阵。
+发布（publish / rotate）时接收方 MUST 拒绝自身不可执行的 policy，而不是接受后在真正恢复时才暴露：`device_quorum.min_device_count` 大于去重后的有效成员数、`recovery_unlock` entry 的有效期或 `backup_hpke` ref 自相矛盾、`trusted_recovery_service` entry 的 `authorization_verification_method` 的 controller 投影不等于同 entry 的 `service_id`，都 MUST reject，且这一类**发布期**拒绝 MUST 使用 `failed_precondition`——它判定的是这份 policy 自身不可执行，不是某次恢复证明与 policy 不匹配，MUST NOT 复用下文的 `recovery_policy_mismatch`。**恢复执行期**的四类失败必须稳定可分且只使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的 code：不支持用 `recovery_proof_kind_unimplemented`（501），policy 不允许该 kind 用 `recovery_proof_kind_not_allowed`（409），授权条件未满足（冷却未到、门限不足、逐字匹配失败、设备未授权）用 `recovery_policy_mismatch` / `recovery_policy_device_unauthorized`（409），签名不验证用 `signature_invalid`（401），失效或撤销用 `recovery_policy_revoked`（409）与 `auth_expired`（401）。已签的约束 MUST NOT 被静默忽略：无法执行时 fail closed，不得把多因素授权降级成单因素。部署能力仍复用既有 ServiceDescribe 能力声明与协商，MUST NOT 另建第二套恢复策略来源或方法支持矩阵。
 
 恢复权限只授权受限 reanchor/unlock，MUST NOT 自动授予历史内容解密、active backup 删除或任意内容发布；高风险删除仍执行 §7.8.1 的独立 intent 与权限条件，历史内容解密仍以 MLS 与 backup envelope 自身的授权与密钥要求为准。恢复通过不等于备份或历史消息已恢复。
 
@@ -1376,7 +1376,7 @@ policy 的唯一附加约束是顶层 `cooldown_seconds`：出现即 MUST 执行
 
 **请求方设备绑定**：`recovery_session_id` MUST 来自接收方为本次会话签发的 challenge，MUST NOT 接受调用方自造的 session id。
 
-- `device_quorum`：每个签名设备 MUST 是该 accepted basis 上未撤销的 accepted device，并按不同设备去重后满足 `k`。
+- `device_quorum`：每个签名设备 MUST 是该 accepted basis 上未撤销的 accepted device，并按不同设备去重后满足 `min_device_count`。
 - `recovery_unlock` / `trusted_recovery_service` / `did_root`：请求方设备 MAY 是尚未授权的新设备。接收方 MUST 验证 `recovery_session_id`、当前 policy/version、identity model 与 model generation、请求方设备 key 的 proof-of-possession、session challenge、`requesting_device_id` 与冻结的 `requesting_device_public_key_did` 全部一致，MUST NOT 要求该新设备预先存在于 control stream。
 - 没有 accepted device 时，恢复完成出口 MUST 按 [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) 提交由同一 replacement device identity key 签署两条 Event 的原子 unit；不得追加 DID-root Event 签名条件。
 

@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-17
+updated: 2026-11-15
 see_also:
   - authority-commit-log.md
   - current-state.md
@@ -133,7 +133,7 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 
 ## 4. Realm Buckets
 
-每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `window_limit` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `committed_events[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
+每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `max_window_event_count` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `committed_events[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
 
 看不到某 private stream 时，客户端不能从 position gap推断其存在或活动。**这条同时是 account 聚合 cursor 保持不透明的理由**：明文位置向量会把 caller 可见流集合的形状暴露出去，而单条 stream 的扫描因为位置本身不跨越可见性边界，才可以位置化（[`api-conventions.md` §7.2](./api-conventions.md)）。
 

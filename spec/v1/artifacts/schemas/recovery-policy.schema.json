@@ -117,7 +117,7 @@
       "items": {
         "$ref": "#/$defs/recovery_method"
       },
-      "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.k counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
+      "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.min_device_count counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
     }
   },
   "patternProperties": {
@@ -422,7 +422,7 @@
           "items": {
             "$ref": "#/$defs/recovery_method"
           },
-          "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.k counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
+          "description": "Single signed source of recovery acceptance and derived publication authority. Each kind occurs at most once (semantic MUST). Entries are independent OR alternatives; device_quorum.min_device_count counts distinct eligible member devices within that entry and MUST NOT exceed its member count. Empty methods is explicit policy revocation. did_root is an opt-in to validated DID history/pre-rotation authority, never an accepted device key. Every published entry MUST be executable by the receiving deployment; no constraint may be silently discarded."
         }
       },
       "additionalProperties": false
@@ -571,7 +571,7 @@
           "type": "object",
           "required": [
             "kind",
-            "k",
+            "min_device_count",
             "member_ids"
           ],
           "properties": {
@@ -586,9 +586,10 @@
                 ]
               }
             },
-            "k": {
+            "min_device_count": {
               "type": "integer",
-              "minimum": 2
+              "minimum": 2,
+              "x-arkret-member-role": "count"
             },
             "member_ids": {
               "type": "array",

@@ -47,6 +47,7 @@ from .core import (
 )
 from .naming import (
     external_anchor_is_valid,
+    external_literal_property_names,
     enumerate_schema_nodes,
     local_schema_reference,
     SchemaReferenceContext,
@@ -430,7 +431,7 @@ def _wire_property_owner_case_errors(pointer: str, node: dict[str, Any]) -> list
     for name in names:
         if not isinstance(name, str):
             errors.append(f"{pointer}/properties/{name} violates NC-FIELDCASE-001: property names must be strings in snake_case")
-    if marker is None:
+    if EXTERNAL_LITERAL_OBJECT_KEYWORD not in node:
         for name in names:
             if not isinstance(name, str):
                 continue
@@ -458,6 +459,22 @@ def _wire_property_owner_case_errors(pointer: str, node: dict[str, Any]) -> list
     anchor = marker.get("anchor")
     if not external_anchor_is_valid(anchor):
         errors.append(f"{annotation}.anchor must be an https:// URL carrying the section fragment that defines these names")
+    external = marker.get("external_properties")
+    if not isinstance(external, list) or not external or not all(isinstance(name, str) and name for name in external):
+        errors.append(f"{annotation}.external_properties must be a non-empty array of exact property names")
+    elif len(external) != len(set(external)):
+        errors.append(f"{annotation}.external_properties must not repeat a property name")
+    elif set(external) - set(names):
+        errors.append(f"{annotation}.external_properties is stale: names absent from this owner's properties: {sorted(set(external) - set(names))}")
+    external_names = external_literal_property_names(node)
+    for name in names:
+        if isinstance(name, str) and name not in external_names and nc_fieldcase_001(name):
+            escaped = name.replace("~", "~0").replace("/", "~1")
+            errors.append(
+                f"{pointer}/properties/{escaped} violates NC-FIELDCASE-001 "
+                f"(`{name}` is Arkret-owned and not snake_case); only the exact "
+                "external_properties named by this owner receive an external exemption"
+            )
     return errors
 
 
@@ -466,9 +483,8 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
 
     The one admissible exemption is an object that mirrors an external
     specification verbatim, and the object declares that itself through
-    ``x-arkret-external-literal-object``. Keeping the fact in the schema rather
-    than in a lint-side table is what makes the exemption exact: it covers the
-    properties that node declares and cannot be inherited by a `$ref`, by another
+    ``x-arkret-external-literal-object.external_properties``. Other direct members
+    stay Arkret-owned. The exact names cannot be inherited by a `$ref`, by another
     object of the same type name, or by a same-named property elsewhere.
 
     The annotation also establishes exact lexical ownership for external
@@ -485,6 +501,10 @@ def check_wire_property_name_case(lint: Lint, documents: dict[str, Any]) -> None
             reached |= {(owner.file_name, owner.pointer, name) for name in owner.names}
             for error in _wire_property_owner_case_errors(owner.pointer, owner.node):
                 lint.fail(schema_path, error)
+        for pointer, node in enumerate_schema_nodes(file_name, document, reference_document=document):
+            if isinstance(node, dict) and EXTERNAL_LITERAL_OBJECT_KEYWORD in node and not isinstance(node.get("properties"), dict):
+                for error in _wire_property_owner_case_errors(pointer, node):
+                    lint.fail(schema_path, error)
     # Walker duality. The owner walk and the occurrence walk are two views of one
     # population, so a regression in either one shrinks the judged surface without
     # failing anything unless they are compared.
@@ -1371,14 +1391,13 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     _check_duplicate_representation_suffixes(lint, documents)
     observed_representation_profiles: dict[str, set[str]] = {}
     for file_name, document in documents.items():
-        external_owners = {
-            owner.pointer
+        external_properties = {
+            owner.pointer: external_literal_property_names(owner.node)
             for owner in enumerate_property_owners(file_name, document)
-            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
         }
         for occurrence in enumerate_schema_properties(file_name, document):
             owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
-            if owner_pointer in external_owners:
+            if occurrence.name in external_properties.get(owner_pointer, ()):
                 continue
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
             cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
@@ -1416,15 +1435,14 @@ def check_identifier_role_suffix_contracts(lint: Lint) -> None:
     reached_origins: set[tuple[str, str]] = set()
     reached_responsibility_contracts: set[str] = set()
     for file_name, document in documents.items():
-        external_owners = {
-            owner.pointer
+        external_properties = {
+            owner.pointer: external_literal_property_names(owner.node)
             for owner in enumerate_property_owners(file_name, document)
-            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
         }
         for occurrence in enumerate_schema_properties(file_name, document):
             owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
             lexical_owner = (
-                "external_literal" if owner_pointer in external_owners else "arkret_owned"
+                "external_literal" if occurrence.name in external_properties.get(owner_pointer, ()) else "arkret_owned"
             )
             if lexical_owner == "external_literal":
                 continue
@@ -1890,14 +1908,13 @@ def check_collection_field_contracts(lint: Lint) -> None:
     documents = _schema_documents(lint)
     reached: set[tuple[str, str]] = set()
     for file_name, document in documents.items():
-        external_owners = {
-            owner.pointer
+        external_properties = {
+            owner.pointer: external_literal_property_names(owner.node)
             for owner in enumerate_property_owners(file_name, document)
-            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node
         }
         for occurrence in enumerate_schema_properties(file_name, document):
             owner_pointer = occurrence.pointer.rsplit("/properties/", 1)[0]
-            if owner_pointer in external_owners:
+            if occurrence.name in external_properties.get(owner_pointer, ()):
                 continue
             terminals = resolve_terminal_constraints(documents, file_name, occurrence.shape)
             cardinalities = _shape_cardinalities(documents, file_name, occurrence.shape)
@@ -1929,12 +1946,12 @@ def check_collection_field_contracts(lint: Lint) -> None:
     observed_pages: dict[tuple[str, str], tuple[list[str], list[str]]] = {}
     for file_name, document in documents.items():
         for owner in enumerate_property_owners(file_name, document):
-            if EXTERNAL_LITERAL_OBJECT_KEYWORD in owner.node:
-                continue
+            external_names = external_literal_property_names(owner.node)
+            owned_names = tuple(name for name in owner.names if name not in external_names)
             properties = owner.node.get("properties", {})
             companions = sorted(
                 name
-                for name in owner.names
+                for name in owned_names
                 if name != "rate_limited"
                 and (
                     name in {"limited", "next_cursor", "has_more"}
@@ -1943,7 +1960,7 @@ def check_collection_field_contracts(lint: Lint) -> None:
             )
             collections = sorted(
                 name
-                for name in owner.names
+                for name in owned_names
                 if isinstance(properties.get(name), dict)
                 and _shape_cardinalities(documents, file_name, properties[name]) == {"array"}
             )

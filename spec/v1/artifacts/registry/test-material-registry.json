@@ -403,7 +403,7 @@
       ]
     },
     {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot",
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot",
       "role": "derived_positive",
       "sources": [
         "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
@@ -411,7 +411,7 @@
       "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/did"
     },
     {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#arkret",
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#arkret",
       "role": "derived_positive",
       "sources": [
         "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
@@ -419,7 +419,7 @@
       "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/service/0/id"
     },
     {
-      "value": "did:webvh:QmZwSLVkUEqvEJJ6tYB8M3C6ZXkSNpK496Qy54fHaKsEqx:applet.example:actors:bot#control-0",
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#control-0",
       "role": "derived_positive",
       "sources": [
         "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"

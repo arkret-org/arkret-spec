@@ -19,7 +19,7 @@
       "http_response",
       "executable_artifact",
       "duration_value",
-      "authority-ordered projection_kind_value",
+      "authority_ordered_projection_kind_value",
       "event_kind_value",
       "capability_action_value",
       "schema_id_value",
@@ -248,10 +248,10 @@
         }
       ]
     },
-    "crdt_authority-ordered projection_enum": {
+    "crdt_authority_ordered_projection_enum": {
       "selectors": [
         {
-          "document_kind": "authority-ordered projection_kind_value",
+          "document_kind": "authority_ordered_projection_kind_value",
           "schema_ref": "*",
           "instance_pointer": "",
           "match_scope": "descendants"
@@ -3391,7 +3391,7 @@
     },
     {
       "id": "or-set",
-      "context": "crdt_authority-ordered projection_enum",
+      "context": "crdt_authority_ordered_projection_enum",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "keyed-set projection",
@@ -3409,7 +3409,7 @@
     },
     {
       "id": "ordered-log",
-      "context": "crdt_authority-ordered projection_enum",
+      "context": "crdt_authority_ordered_projection_enum",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "append-only projection",
@@ -4444,7 +4444,7 @@
       "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "serviceKind",
+      "replacement": "service_kind",
       "allowed_contexts": [
         "changelog",
         "negative_test"

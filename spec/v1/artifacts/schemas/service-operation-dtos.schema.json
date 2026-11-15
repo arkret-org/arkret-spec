@@ -870,7 +870,7 @@
         "device_id": {
           "type": "string",
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Stations can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
+          "description": "Exact accepted caller Device endpoint for this media-token exchange. Together with actor_id and join_context it binds the backend token to the admitted Call participant; it is not an Agent runtime key or a SessionGrant issuer record."
         },
         "focus_id": {
           "$ref": "./string-profiles.schema.json#/$defs/media_focus_handle",
@@ -1720,7 +1720,7 @@
     },
     "MlsGroupStateMaterialResponseBody": {
       "type": "object",
-      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode each content-addressed Blob ref's embedded suite, hash the raw bytes under that suite, compare the digest, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree. Blob suites are independent of the fixed SHA-256 Event/RealmCommit identity suite.",
+      "description": "Exact RFC 9420 public group-state material. group_info_base64url and ratchet_tree_base64url use unpadded Base64URL. Consumers MUST decode each content-addressed Blob ref's embedded suite, hash the raw bytes under that suite, compare the digest, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree. Blob suites are independent of the fixed SHA-256 Event/RealmCommit identity suite.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -1872,10 +1872,11 @@
             ]
           }
         },
-        "quorum_threshold": {
+        "min_signature_count": {
           "type": "integer",
           "minimum": 2,
-          "description": "Required when proof_kind=governance_quorum and forbidden otherwise. The number of distinct valid governance signatures the organization's own policy demands. proofs[] MUST contain at least this many entries signed by distinct verification methods; JSON Schema cannot compare the two, so the receiver MUST enforce it and fail closed when short."
+          "description": "Required when proof_kind=governance_quorum and forbidden otherwise. The number of distinct valid governance signatures the organization's own policy demands. proofs[] MUST contain at least this many entries signed by distinct verification methods; JSON Schema cannot compare the two, so the receiver MUST enforce it and fail closed when short.",
+          "x-arkret-member-role": "count"
         },
         "proofs": {
           "type": "array",
@@ -1908,13 +1909,13 @@
           },
           "then": {
             "required": [
-              "quorum_threshold"
+              "min_signature_count"
             ]
           },
           "else": {
             "not": {
               "required": [
-                "quorum_threshold"
+                "min_signature_count"
               ]
             }
           }
@@ -2921,7 +2922,16 @@
       "x-arkret-external-literal-object": {
         "specification": "W3C DID Core 1.0, DID document core properties",
         "anchor": "https://www.w3.org/TR/did-core/#core-properties",
-        "reason": "A raw DID document is emitted and resolved verbatim, so its property names belong to the DID Core lexicon; identity-did.md forbids re-spelling them as snake_case."
+        "reason": "A raw DID document is emitted and resolved verbatim, so its property names belong to the DID Core lexicon; identity-did.md forbids re-spelling them as snake_case.",
+        "external_properties": [
+          "@context",
+          "id",
+          "alsoKnownAs",
+          "verificationMethod",
+          "authentication",
+          "assertionMethod",
+          "service"
+        ]
       },
       "additionalProperties": false,
       "required": [
@@ -3000,13 +3010,18 @@
       "x-arkret-external-literal-object": {
         "specification": "W3C DID Core 1.0, service properties",
         "anchor": "https://www.w3.org/TR/did-core/#services",
-        "reason": "A DID document service entry keeps the DID Core lexicon for every member it declares, including the Arkret-defined serviceKind extension property that sits beside serviceEndpoint."
+        "reason": "Only id, type and serviceEndpoint retain the W3C DID Core member lexicon. The Arkret-defined service_kind extension is an explicitly owned property and follows Arkret naming rules.",
+        "external_properties": [
+          "id",
+          "type",
+          "serviceEndpoint"
+        ]
       },
       "additionalProperties": false,
       "required": [
         "id",
         "type",
-        "serviceKind",
+        "service_kind",
         "serviceEndpoint"
       ],
       "properties": {
@@ -3025,7 +3040,7 @@
             ]
           }
         },
-        "serviceKind": {
+        "service_kind": {
           "type": "string",
           "enum": [
             "station",
@@ -3033,8 +3048,8 @@
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/serviceKind",
-            "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/serviceKind",
+            "authority": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/service_kind",
+            "owner": "service-operation-dtos.schema.json#/$defs/ServiceDidEndpoint/properties/service_kind",
             "values": [
               "station",
               "identity_registry"
@@ -3053,7 +3068,13 @@
       "x-arkret-external-literal-object": {
         "specification": "W3C DID Core 1.0, verification methods",
         "anchor": "https://www.w3.org/TR/did-core/#verification-methods",
-        "reason": "A verification method is resolved and verified verbatim from the DID document, so publicKeyMultibase keeps the DID Core spelling."
+        "reason": "A verification method is resolved and verified verbatim from the DID document, so publicKeyMultibase keeps the DID Core spelling.",
+        "external_properties": [
+          "id",
+          "type",
+          "controller",
+          "publicKeyMultibase"
+        ]
       },
       "additionalProperties": false,
       "required": [
@@ -3241,7 +3262,14 @@
       "x-arkret-external-literal-object": {
         "specification": "W3C Verifiable Credential Data Integrity 1.0, proofs",
         "anchor": "https://www.w3.org/TR/vc-data-integrity/#proofs",
-        "reason": "The proof is verified byte-for-byte against the external DID log, so every member keeps the Data Integrity spelling."
+        "reason": "The proof is verified byte-for-byte against the external DID log, so every member keeps the Data Integrity spelling.",
+        "external_properties": [
+          "type",
+          "cryptosuite",
+          "verificationMethod",
+          "proofPurpose",
+          "proofValue"
+        ]
       },
       "additionalProperties": false,
       "required": [
@@ -3300,7 +3328,14 @@
       "x-arkret-external-literal-object": {
         "specification": "did:webvh v1.0, the DID log file",
         "anchor": "https://identity.foundation/didwebvh/v1.0/#the-did-log-file",
-        "reason": "A DID log entry must round-trip byte-for-byte with the external log, so versionId and versionTime keep the did:webvh spelling."
+        "reason": "A DID log entry must round-trip byte-for-byte with the external log, so versionId and versionTime keep the did:webvh spelling.",
+        "external_properties": [
+          "versionId",
+          "versionTime",
+          "parameters",
+          "state",
+          "proof"
+        ]
       },
       "additionalProperties": false,
       "required": [
@@ -3339,7 +3374,14 @@
       "x-arkret-external-literal-object": {
         "specification": "did:webvh v1.0, did:webvh DID method parameters",
         "anchor": "https://identity.foundation/didwebvh/v1.0/#didwebvh-did-method-parameters",
-        "reason": "The parameters object is hashed and verified as part of the external DID log entry, so scid, method, updateKeys and nextKeyHashes are mirrored verbatim."
+        "reason": "The parameters object is hashed and verified as part of the external DID log entry, so scid, method, updateKeys and nextKeyHashes are mirrored verbatim.",
+        "external_properties": [
+          "scid",
+          "method",
+          "portable",
+          "updateKeys",
+          "nextKeyHashes"
+        ]
       },
       "additionalProperties": false,
       "required": [

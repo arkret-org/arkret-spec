@@ -7,6 +7,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from .artifact_lint.naming import external_literal_property_names
+except ImportError:
+    from artifact_lint.naming import external_literal_property_names
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = ROOT / "spec" / "v1" / "artifacts" / "schemas"
@@ -82,13 +87,13 @@ def build_report() -> dict[str, Any]:
     for path in sorted(SCHEMAS.glob("*.schema.json")):
         document = json.loads(path.read_text(encoding="utf-8"))
 
-        def visit(value: Any, pointer: str, external_literal: bool) -> None:
+        def visit(value: Any, pointer: str) -> None:
             if isinstance(value, dict):
-                external_annotation = value.get("x-arkret-external-literal-object")
-                external = external_literal or external_annotation is True or isinstance(external_annotation, dict)
+                external_names = external_literal_property_names(value)
                 properties = value.get("properties")
                 if isinstance(properties, dict):
                     for name, schema in properties.items():
+                        external = name in external_names
                         property_pointer = f"{pointer}/properties/{_escape(name)}"
                         profiles, terminals = _profiles(schema)
                         if profiles:
@@ -125,15 +130,15 @@ def build_report() -> dict[str, Any]:
                                     "required_evidence": contract["required_evidence"],
                                 }
                             )
-                        visit(schema, property_pointer, external)
+                        visit(schema, property_pointer)
                 for key, child in value.items():
                     if key != "properties":
-                        visit(child, f"{pointer}/{_escape(key)}", external)
+                        visit(child, f"{pointer}/{_escape(key)}")
             elif isinstance(value, list):
                 for index, child in enumerate(value):
-                    visit(child, f"{pointer}/{index}", external_literal)
+                    visit(child, f"{pointer}/{index}")
 
-        visit(document, "", False)
+        visit(document, "")
 
     event_registry = json.loads(EVENT_KIND_REGISTRY.read_text(encoding="utf-8"))
 

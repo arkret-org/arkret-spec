@@ -68,7 +68,7 @@ class PrivateTransferAndViewSchemaTest(unittest.TestCase):
             validator = self.validator("view", definition)
             validator.validate(value)
             validator.validate({**value, "x_custom": {"enabled": True}})
-            for field in ("page_size", "selection_policy", "wip_limit_enforcement"):
+            for field in ("page_size", "selection_policy", "active_strand_count_enforcement"):
                 for rejected in (None, False, 20, "hard"):
                     with self.subTest(definition=definition, field=field, value=rejected):
                         self.assertFalse(validator.is_valid({**value, field: rejected}))

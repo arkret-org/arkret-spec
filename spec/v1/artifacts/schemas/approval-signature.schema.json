@@ -240,7 +240,7 @@
             }
           },
           "additionalProperties": false,
-          "$comment": "An independent one-vote requirement of the exact target List's wip_limit_enforcement=require_review. The revision is that List's metadata current revision at the authority cut, not a client CAS operand or a new Event payload field."
+          "$comment": "An independent one-vote requirement of the exact target List's active_strand_count_enforcement=require_review. The revision is that List's metadata current revision at the authority cut, not a client CAS operand or a new Event payload field."
         },
         {
           "type": "object",

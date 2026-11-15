@@ -31,7 +31,7 @@ class CurrentPrincipalSchemaTests(unittest.TestCase):
             changed = copy.deepcopy(request)
             del changed[key]
             self.assertFalse(validator.is_valid(changed))
-        request["history_depth"] = 0
+        request["max_predecessor_event_count"] = 0
         self.assertFalse(validator.is_valid(request))
 
     def test_success_requires_pcr_and_complete_projection(self):

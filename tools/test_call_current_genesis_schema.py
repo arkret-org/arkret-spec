@@ -90,8 +90,8 @@ class CallActorIdentitySchemaTest(unittest.TestCase):
         cls.device = "ak:device:01964137-0000-7000-8000-000000000001"
 
     def test_join_and_leave_use_complete_actor_and_real_device(self):
-        join = {"op": "join", "participant": {"actor_id": self.actor, "device_id": self.device}}
-        leave = {"op": "leave", "actor_id": self.actor, "device_id": self.device,
+        join = {"operation": "join", "participant": {"actor_id": self.actor, "device_id": self.device}}
+        leave = {"operation": "leave", "actor_id": self.actor, "device_id": self.device,
                  "expected_commit_id": "ak:realm_commit:" + "A" * 44}
         self.roster.validate(join)
         self.roster.validate(leave)

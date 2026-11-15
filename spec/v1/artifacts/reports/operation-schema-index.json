@@ -6586,7 +6586,7 @@
         ],
         "properties": [
           "account_id",
-          "history_depth",
+          "max_predecessor_event_count",
           "after_resolution_event_ref"
         ],
         "closed": true
@@ -7306,7 +7306,7 @@
           "ciphertext_digest",
           "plaintext_commitment",
           "signature_proof",
-          "auth_binding",
+          "authorization_binding",
           "retention",
           "custodian_actor_id",
           "custody_authorization_ref"

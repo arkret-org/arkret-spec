@@ -1,5 +1,5 @@
 {
-  "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
+  "description": "Closed inventory of schema field names intentionally mentioned by operation notes outside their request/response body schema closure, including registered HTTP parameters and separately retained objects. Each exact operation/name pair must remain exercised; no entry changes a wire name or its canonical schema.",
   "operations": {
     "ak.edge.applet.third_party_users.read.list.v1": [
       "applet_id"
@@ -103,6 +103,9 @@
     "ak.self.authz.grants.read.effective.v1": [
       "subject_account_id",
       "subject_actor_id"
+    ],
+    "ak.self.authz.invites.read.list.v1": [
+      "subject_account_id"
     ],
     "ak.self.circle.member.command.add.v1": [
       "join_rule"

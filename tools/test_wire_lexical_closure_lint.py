@@ -130,7 +130,7 @@ class FieldCaseGateTest(MutationHarness):
         self.assertAnyContains(errors, "NC-FIELDCASE-001")
         self.assertAnyContains(errors, "pushRouteToken")
 
-    def test_camel_case_property_inside_a_marked_object_is_exempt(self) -> None:
+    def test_new_camel_case_property_inside_a_marked_object_stays_owned(self) -> None:
         def mutate(document):
             document["$defs"][WEBVH_PARAMETERS]["properties"]["witnessThreshold"] = {
                 "type": "integer"
@@ -139,7 +139,7 @@ class FieldCaseGateTest(MutationHarness):
         errors = [
             error for error in self.errors_with(DTO_SCHEMA, mutate) if "NC-FIELDCASE-001" in error
         ]
-        self.assertEqual(errors, [])
+        self.assertAnyContains(errors, "witnessThreshold")
 
     def test_annotation_without_an_external_anchor_fails(self) -> None:
         def mutate(document):

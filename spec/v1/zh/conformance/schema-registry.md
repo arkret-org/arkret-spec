@@ -3,7 +3,7 @@ title: Standard Event and Object Schema Registry
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-11-15
 sidebar:
   label: Schema Registry
 ---
@@ -87,7 +87,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
 | hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.realm_invite_link.accept_proof.v1`、`ak.realm_invite_link.preview_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
 | feature id（`supported_features` / `supported_features` 值） | `ak.feature.identity.webvh_native_log.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值 |
-| DID Document / 外部生态 profile 值 | `ak.organization.governance.v1` | identity-did.md 示例上下文 |
 | Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
 | 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 

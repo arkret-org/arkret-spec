@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-11-15
 sidebar:
   label: 实现 Profile
 ---
@@ -415,7 +415,7 @@ SHOULD 支持：
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
 | `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `notify` 操作（注册/注销由 Account Station 提供，见 Push §3.3），`ak.schema.notification.v1`，service DID 校验，notify 响应对 `notification.devices[]` 逐项守恒的 `outcomes[]`（见 [`../discovery/push-notifications.md` §5.2](../discovery/push-notifications.md)），按 exact durable registration 回收失效 route。共享权威存储可直接满足；独立公共 Gateway 必须另声明 registration handoff bundle | `privacy-security-fixture.json` |
-| `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device verification-method DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5.6](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment_count` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device verification-method DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_id, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与声明 `routing_unlinkability_required=true` 的 Realm 共享同一 `(recipient_id, device)` 元组。 | `privacy-security-fixture.json` |
 

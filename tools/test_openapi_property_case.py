@@ -80,7 +80,8 @@ class OpenApiPropertyCaseTests(unittest.TestCase):
         self.assertEqual(self.errors(document), [])
 
     def test_precise_external_marker_does_not_propagate_to_nested_or_reference_nodes(self):
-        marker = {'specification': 'External Example', 'anchor': 'https://example.org/spec#object'}
+        marker = {'specification': 'External Example', 'anchor': 'https://example.org/spec#object',
+                  'external_properties': ['camelCase']}
         external = self.bad()
         external['x-arkret-external-literal-object'] = marker
         self.assertEqual(self.errors({'components': {'schemas': {'External': external}}}), [])

@@ -96,7 +96,7 @@
         "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "control_proof": {
           "proof_kind": "governance_quorum",
-          "quorum_threshold": 2,
+          "min_signature_count": 2,
           "proofs": [
             {
               "kind": "detached_jws",
@@ -153,7 +153,7 @@
       }
     },
     {
-      "name": "quorum_threshold_on_single_signature_branch_is_invalid",
+      "name": "min_signature_count_on_single_signature_branch_is_invalid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof",
       "expect_valid": false,
       "first_expected_error": "contains:should not be valid under",
@@ -162,7 +162,7 @@
       "notes": "The discriminator is closed in both directions. A threshold on the single-signature branch would leave a receiver unable to say whether one signature was sufficient or two were promised and one delivered.",
       "instance": {
         "proof_kind": "resolved_verification_method",
-        "quorum_threshold": 2,
+        "min_signature_count": 2,
         "proofs": [
           {
             "kind": "detached_jws",
@@ -178,7 +178,7 @@
       "name": "governance_quorum_without_threshold_is_invalid",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof",
       "expect_valid": false,
-      "first_expected_error": "contains:'quorum_threshold' is a required property",
+      "first_expected_error": "contains:'min_signature_count' is a required property",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "notes": "Without a declared threshold, any number of signatures could be claimed sufficient after the fact.",
@@ -319,7 +319,7 @@
       "notes": "Schema-valid: threshold 3, one proof. JSON Schema cannot compare an array length against a sibling integer, so the receiver enforces it and fails closed rather than accepting a partial quorum.",
       "instance": {
         "proof_kind": "governance_quorum",
-        "quorum_threshold": 3,
+        "min_signature_count": 3,
         "proofs": [
           {
             "kind": "detached_jws",

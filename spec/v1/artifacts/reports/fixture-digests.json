@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "111dad30cd9909f31137b85e8c984ee6d84cdd08f25dbd1eb953899bea313167"
+      "sha256": "40cabaf31111bfd4c9eab1593e61f72c501012dbbb8026fab7151d017e3a529a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "b46c3809adcfa41e7cdba35f71b195da471e399f16f59826d219dcd2a3ea0cb6"
+      "sha256": "af3a4f1d2931d3140f5570df4f1e96ec5805e36ad2cac43b46e4f2eae7ccf74f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
-      "sha256": "3f41e48325275f90adebb2067f1634ce9cbd770a3e922da561e069a4d8ebfb22"
+      "sha256": "0927eff5066928177974b9bb53c03090cc7cd63f2529350c1da041317cd9230b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
@@ -206,7 +206,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
-      "sha256": "c578e21b56b3d6e8b602d9e426992c035df4f72c2582504befd360e2bc6be8be"
+      "sha256": "ea930d7fb5cd31490a531cab8b36a2d8fa503929bb91d437a5adcebdb7ce957a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
-      "sha256": "6b771d8f7405befe8a1a2b2a8cacbad7cc4d207db734aa31c55d652bd8d97f20"
+      "sha256": "3dfc00dd3792972f8c5a91fccb2442c5db853994956df9a849223433efe99826"
     },
     {
       "path": "spec/v1/artifacts/fixtures/exact-current-state-read-fixture.json",
@@ -290,7 +290,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "50ddfe93f9c7f1bf8101af55933073780c3896bcc573a6d8fb5eeba0a1b4cec7"
+      "sha256": "9a066c133270646b95fdfd47bf2f85945fef1d1e0053c60a6f0d6034cf8a0b79"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -318,7 +318,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-      "sha256": "245b662ae6f044c79a7a2a4386e4f71394ff3f36aaa9c39156988e37487a88e9"
+      "sha256": "2137b8a14f64f0ed0d2a16daab5443f9f49a35e0ff56d75e70399e152a4c902a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
@@ -374,7 +374,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
-      "sha256": "586eaf0e4faa64534ce5dd669f5fe49bdde4de1cd37e1ca8694b1dd99163212b"
+      "sha256": "9a01131252f397451b242d29e19dc1ac8c41d987788a77d952b17300daeffc55"
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
@@ -386,7 +386,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "1d3474936eb6ebe387171dcc2d9e20ece9b7a7e3807bedba4cabda2d79880fab"
+      "sha256": "dfd5355a484ad6fbac6c318027b3becc7b1a86bb5d42df8a82680ae5eab9621f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -402,7 +402,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "ba0b4080bea82af84af06502bee48e02eb0ada7250c386c37062f6fea150ac80"
+      "sha256": "9de7dca9f5df5dacc70a32542fcd1a7b79b441db150619b571df8819822ee53c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-simplification-fixture.json",
@@ -438,7 +438,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
-      "sha256": "607b9f60fe80ef4c8522f8ad898cf19a0b989aae82c7a31f4ab91f3b5f29ff55"
+      "sha256": "e10ae0d0be2bdcce5c279a7f789e26fd8505ff54f36d7c253cf5f214b7e5956a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json",
@@ -458,7 +458,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "56067a5138b0be1d5d58db8143846b0596a18235c52d6caa3c929dca9f0d0930"
+      "sha256": "03035e3f03932564b0623f1b5c8e631e111869aa5cbe45fbf28fbbd2448f311c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",

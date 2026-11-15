@@ -3,7 +3,7 @@ title: View Model
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -245,7 +245,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
 
 **排序通道唯一（normative）**：View 只有两条排序通道，且互不重叠——`query.order_by` 决定**取哪些对象、按什么顺序取**，`collection.item_order_by` 决定 collection 内 item 的**展示稳定序**。v1 **没有**顶层 `sort`：它与 `query.order_by` 形态完全同构、作用面重叠，却没有定义优先级，两者同时出现时结果未定义。需要改排序的实现 MUST 改这两个字段之一。
 
-`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfiguration` 字段；客户端 MUST 存入独立的 actor-private account data 偏好或仅保存在本地。`CollectionConfiguration` 与 `CollectionGrouping` 保留开放配置扩展，但通过 `propertyNames` 明确禁止 `selection_policy`、`page_size` 与 `wip_limit_enforcement` 三个键；这些键在任一配置对象的直接成员位置出现时 MUST 返回 `schema_violation`，不得因值为 `null`、`false` 或名称位于开放扩展区而放行。create object、materialized View 与 update 后的完整 View MUST 应用同一校验；私有 View 使用同一 schema 时也不得把独立偏好混入这两个配置对象。合法自定义配置扩展保持可用，不把开放配置整体收紧为 closed object。
+`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfiguration` 字段；客户端 MUST 存入独立的 actor-private account data 偏好或仅保存在本地。`CollectionConfiguration` 与 `CollectionGrouping` 保留开放配置扩展，但通过 `propertyNames` 明确禁止 `selection_policy`、`page_size` 与 `active_strand_count_enforcement` 三个键；这些键在任一配置对象的直接成员位置出现时 MUST 返回 `schema_violation`，不得因值为 `null`、`false` 或名称位于开放扩展区而放行。create object、materialized View 与 update 后的完整 View MUST 应用同一校验；私有 View 使用同一 schema 时也不得把独立偏好混入这两个配置对象。合法自定义配置扩展保持可用，不把开放配置整体收紧为 closed object。
 
 ### 3.4 `CollectionGrouping`
 
@@ -262,7 +262,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
 | `rows_by` / `columns_by` | conditional | `string` | `mode="matrix"` 时必填。 | 矩阵双轴字段。 |
 | `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
 
-`CollectionGrouping` 只定义读取与呈现分组，不承载写入 policy。WIP 上限及其 `warn | reject | require_review` enforcement 的唯一真相源是目标 `Space(kind=list).fields`，见 [`space-hierarchy.md` §6](./space-hierarchy.md)。View 不得携带 `wip_limit_enforcement`；renderer 可以展示目标 List 的 effective policy，但不得从 View 配置生成、覆盖或放宽写入判定。
+`CollectionGrouping` 只定义读取与呈现分组，不承载写入 policy。WIP 上限及其 `warn | reject | require_review` enforcement 的唯一真相源是目标 `Space(kind=list).fields`，见 [`space-hierarchy.md` §6](./space-hierarchy.md)。View 不得携带 `active_strand_count_enforcement`；renderer 可以展示目标 List 的 effective policy，但不得从 View 配置生成、覆盖或放宽写入判定。
 
 ### 3.5 完整示例
 
@@ -281,7 +281,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
   "query": {
     "object_kinds": ["strand"],
     "filters": [
-      { "field": "fields.archived", "op": "neq", "value": true }
+      { "field": "fields.archived", "operator": "neq", "value": true }
     ],
     "relation": {
       "kind": "contains",
@@ -338,7 +338,7 @@ View 应通过结构化 query 表达对象范围。
   "object_kinds": ["strand", "morph"],
   "facets": ["reviewable"],
   "filters": [
-    { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] }
+    { "field": "metadata.fields.status", "operator": "in", "value": ["todo", "in_progress"] }
   ],
   "relation": {
     "kind": "depends_on",
@@ -357,8 +357,8 @@ View 应通过结构化 query 表达对象范围。
 {
     "object_kinds": ["strand"],
     "filters": [
-    { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] },
-    { "field": "state", "op": "eq", "value": "active" }
+    { "field": "metadata.fields.status", "operator": "in", "value": ["todo", "in_progress"] },
+    { "field": "state", "operator": "eq", "value": "active" }
   ],
   "relation": {
     "kind": "contains",
@@ -374,9 +374,9 @@ View 应通过结构化 query 表达对象范围。
 {
   "object_kinds": ["message"],
   "filters": [
-    { "field": "state", "op": "eq", "value": "active" },
-    { "field": "strand_id", "op": "eq", "value": "ak:strand:AbhmeQ4M4-eW5loBbZkKXaGD-nYJmCb0CFGR5f42neL-" },
-    { "field": "track_name", "op": "eq", "value": "discussion" }
+    { "field": "state", "operator": "eq", "value": "active" },
+    { "field": "strand_id", "operator": "eq", "value": "ak:strand:AbhmeQ4M4-eW5loBbZkKXaGD-nYJmCb0CFGR5f42neL-" },
+    { "field": "track_name", "operator": "eq", "value": "discussion" }
   ],
   "order_by": [
     { "field": "created_at", "direction": "asc" }

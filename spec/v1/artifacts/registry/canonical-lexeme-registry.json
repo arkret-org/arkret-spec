@@ -25,7 +25,7 @@
     },
     {
       "class": "registered_structural_word",
-      "rule": "The compact word is part of a closed structural naming table; v1 registers id and ref through common-fields.md identifier rules and the NC-TYPE-001 wrapper table."
+      "rule": "Only the compact tokens and exact grammar roles in registered_structural_vocabulary are authorized; numeric bounds, units, identifier carrier words and literal DSL operators do not authorize shortening an ordinary domain word or an unrelated property."
     },
     {
       "class": "external_literal",
@@ -57,7 +57,7 @@
         "org"
       ],
       "reason": "Organization is an Arkret core domain noun, not a standard initialism. Shortening it creates competing wire, type and profile vocabularies.",
-      "identifier_rule": "When the value is an Organization DID, the field MUST use organization_id or a more specific <role>_organization_id form; bare organization is reserved for an embedded Organization value rather than its identifier.",
+      "identifier_rule": "When the value is a stable Organization DidCoreId, the field MUST use organization_id or a more specific <role>_organization_id. An exact W3C DID uses organization_did. Bare organization is reserved for an embedded Organization value rather than either identifier representation.",
       "allowed_non_contract_contexts": [
         "internet DNS names including the .org top-level domain",
         "opaque or externally owned identifier payloads",
@@ -83,6 +83,115 @@
       "allowed_non_contract_contexts": [
         "historical changelog text and negative conformance cases that name the rejected spelling"
       ]
+    },
+    {
+      "canonical": "authorization_binding",
+      "pascal_case": "AuthorizationBinding",
+      "forbidden_aliases": [
+        "auth_binding"
+      ],
+      "reason": "Native backup manager, Recovery, recipient and Device generation references bind the original accepted authorization sources. Authentication and authorization must not be collapsed into an ambiguous auth stem.",
+      "allowed_non_contract_contexts": [
+        "historical changelog text and negative conformance cases that name the rejected spelling"
+      ]
+    }
+  ],
+  "registered_structural_vocabulary": [
+    {
+      "token": "id",
+      "meaning": "identifier",
+      "grammar_role": "identifier_carrier_word",
+      "anchor": "spec/v1/zh/models/common-fields.md#21-identifier-字段命名约定normative"
+    },
+    {
+      "token": "ref",
+      "meaning": "reference",
+      "grammar_role": "reference_carrier_word",
+      "anchor": "spec/v1/zh/models/common-fields.md#212-_ref--_refs"
+    },
+    {
+      "token": "min",
+      "meaning": "minimum",
+      "grammar_role": "numeric_lower_bound_word",
+      "anchor": "spec/v1/zh/models/common-fields.md#202-类型命名的分类与选名顺序normative"
+    },
+    {
+      "token": "max",
+      "meaning": "maximum",
+      "grammar_role": "numeric_upper_bound_word",
+      "anchor": "spec/v1/zh/models/common-fields.md#202-类型命名的分类与选名顺序normative"
+    },
+    {
+      "token": "chars",
+      "meaning": "characters",
+      "grammar_role": "character_count_suffix",
+      "anchor": "spec/v1/zh/models/common-fields.md#201-全域命名判据normative"
+    },
+    {
+      "token": "ms",
+      "meaning": "milliseconds",
+      "grammar_role": "integer_duration_unit_suffix",
+      "anchor": "spec/v1/zh/models/common-fields.md#302-duration-字段命名"
+    },
+    {
+      "token": "kib",
+      "meaning": "kibibytes",
+      "grammar_role": "integer_memory_unit_suffix",
+      "anchor": "spec/v1/artifacts/schemas/key-backup.schema.json#/properties/encryption/properties/kdf/properties/parameters/properties/memory_kib"
+    },
+    {
+      "token": "$op",
+      "meaning": "patch operator directive",
+      "grammar_role": "exact_property",
+      "anchor": "spec/v1/artifacts/schemas/patch.schema.json#/additionalProperties/oneOf/1/properties/$op"
+    },
+    {
+      "token": "eq",
+      "meaning": "equal",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/0"
+    },
+    {
+      "token": "neq",
+      "meaning": "not equal",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/1"
+    },
+    {
+      "token": "in",
+      "meaning": "member of",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/2"
+    },
+    {
+      "token": "not_in",
+      "meaning": "not a member of",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/3"
+    },
+    {
+      "token": "lt",
+      "meaning": "less than",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/4"
+    },
+    {
+      "token": "lte",
+      "meaning": "less than or equal",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/5"
+    },
+    {
+      "token": "gt",
+      "meaning": "greater than",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/6"
+    },
+    {
+      "token": "gte",
+      "meaning": "greater than or equal",
+      "grammar_role": "exact_scalar",
+      "anchor": "spec/v1/artifacts/schemas/query.schema.json#/$defs/field_filter/properties/operator/enum/7"
     }
   ]
 }

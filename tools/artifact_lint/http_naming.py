@@ -28,6 +28,23 @@ RULE = "NC-HTTP-001"
 TRANSPORT_RULE = "NC-TRANSPORT-001"
 PASCAL = re.compile(r"[A-Z][A-Za-z0-9]*\Z")
 LIBP2P_PROTOCOL = re.compile(r"/arkret/[a-z][a-z0-9]*(?:-[a-z0-9]+)*/1\.0\.0\Z")
+COMPOUND_ID_CARRIERS = ("realm_actor_id", "account_id", "actor_id")
+COMPONENT_NAMESPACES = frozenset({"schemas", "requestBodies", "parameters", "responses", "headers", "examples",
+                                  "securitySchemes", "links", "callbacks", "pathItems", "mediaTypes"})
+SCALAR_PARAMETER_REFS = {
+    **{name: f"common-ids.schema.json#/$defs/{name}" for name in
+       ("applet_id", "circle_id", "realm_id", "event_id", "sidecar_id")},
+    **{name: "common-ids.schema.json#/$defs/did_core_id" for name in
+       ("agent_id", "principal_id", "organization_id", "station_id", "service_id")},
+    "snapshot_id": "common-ids.schema.json#/$defs/realm_snapshot_id",
+    "transaction_id": "recovery-authority.schema.json#/$defs/transaction_id",
+    "receipt_id": "erasure-receipt-operations.schema.json#/$defs/receipt_id",
+    "morph_id": "morph.schema.json#/properties/id",
+    "strand_id": "strand.schema.json#/properties/id",
+    "backup_id": "agent-operations.schema.json#/$defs/backup_id",
+    "series_id": "agent-operations.schema.json#/$defs/backup_series_id",
+    "recovery_session_id": "recovery-session.schema.json#/$defs/recovery_session_id",
+}
 
 
 def operation_id_errors(value: Any) -> list[str]:
@@ -118,13 +135,192 @@ def _header_errors(name: Any, where: str, errors: list[str]) -> None:
         errors.append(f"{where}: HTTP header name must use the ASCII HTTP token grammar")
 
 
+def _schema_reference(document: dict[str, Any], schema: Any) -> str | None:
+    """Resolve local schema aliases while retaining the canonical external owner."""
+    seen = set()
+    while isinstance(schema, dict) and isinstance(schema.get("$ref"), str):
+        reference = schema["$ref"]
+        if not reference.startswith("#/"):
+            return reference
+        if reference in seen:
+            return None
+        seen.add(reference)
+        target: Any = document
+        try:
+            for part in reference[2:].split("/"):
+                target = target[part.replace("~1", "/").replace("~0", "~")]
+        except (KeyError, TypeError, IndexError):
+            return None
+        schema = target
+    return None
+
+
+def _scalar_parameter_identifier_errors(document: dict[str, Any], parameter: dict[str, Any], where: str, errors: list[str]) -> None:
+    name = parameter.get("name")
+    if parameter.get("in") not in {"path", "query"} or not isinstance(name, str) or name not in SCALAR_PARAMETER_REFS:
+        return
+    expected = SCALAR_PARAMETER_REFS[name]
+    if _schema_reference(document, parameter.get("schema")) not in {
+        "../schemas/" + expected, "https://arkret.org/v1/schemas/" + expected,
+    }:
+        errors.append(f"{where}: {name} must reuse its canonical scalar identifier schema {expected}")
+
+
+def _openapi_local_names_and_metadata_errors(document: dict[str, Any]) -> list[str]:
+    """Walk real OAS objects; instance examples and schema values are not metadata."""
+    from .naming_contracts import openapi_schema_positions
+
+    errors: list[str] = []
+    components = document.get("components", {})
+    if isinstance(components, dict):
+        for group in COMPONENT_NAMESPACES:
+            values = components.get(group, {})
+            if isinstance(values, dict):
+                for name in values:
+                    if not _pascal_name(name):
+                        errors.append(f"#/components/{group}/{name}: local component names must use folded-acronym PascalCase")
+
+    def metadata(node: Any, where: str) -> None:
+        if not isinstance(node, dict):
+            return
+        def fixed_members(value: Any, pointer: str, *, recursive: bool) -> None:
+            if isinstance(value, dict):
+                for member, child in value.items():
+                    child_pointer = pointer + "/" + _pointer(str(member))
+                    if not isinstance(member, str) or not SNAKE.fullmatch(member):
+                        errors.append(f"{child_pointer}: fixed extension metadata keys must be strict snake_case")
+                    if recursive:
+                        fixed_members(child, child_pointer, recursive=True)
+            elif recursive and isinstance(value, list):
+                for index, child in enumerate(value):
+                    fixed_members(child, pointer + "/" + str(index), recursive=True)
+        for key, value in node.items():
+            if isinstance(key, str) and key.startswith("x-arkret-"):
+                if not KEBAB.fullmatch(key):
+                    errors.append(f"{where}/{key}: Arkret OAS extension names must use lowercase kebab-case")
+                if isinstance(value, dict):
+                    # These declared extensions contain only fixed metadata.
+                    # Ownership.values and external literals contain instances,
+                    # so their nested value grammars are checked by their owner.
+                    recursive = key in {"x-arkret-auth", "x-arkret-high-security-session-authentication-policy"}
+                    fixed_members(value, where + "/" + key, recursive=recursive)
+
+    singles = {"operation": {"requestBody": "request_body"}, "document": {"info": "metadata", "components": "components"},
+               "media": {"itemEncoding": "encoding"}, "security_scheme": {"flows": "flows"}}
+    maps = {"document": {"paths": "path_item", "webhooks": "path_item"},
+            "operation": {"responses": "response", "callbacks": "callback"},
+            "parameter": {"content": "media"}, "header": {"content": "media"},
+            "request_body": {"content": "media"}, "response": {"content": "media", "headers": "header", "links": "metadata"},
+            "media": {"encoding": "encoding"}, "encoding": {"headers": "header"},
+            "path_item": {"additionalOperations": "operation"}}
+    component_kinds = {"schemas": "metadata", "parameters": "parameter", "headers": "header", "requestBodies": "request_body",
+                       "responses": "response", "callbacks": "callback", "pathItems": "path_item", "mediaTypes": "media",
+                       "securitySchemes": "security_scheme", "examples": "metadata", "links": "metadata"}
+
+    def walk(node: Any, where: str, kind: str) -> None:
+        if not isinstance(node, dict):
+            return
+        metadata(node, where)
+        if kind == "components":
+            for group, destination in component_kinds.items():
+                values = node.get(group, {})
+                if isinstance(values, dict):
+                    for name, value in values.items():
+                        walk(value, where + "/" + group + "/" + _pointer(str(name)), destination)
+            return
+        if "$ref" in node and kind != "path_item":
+            return
+        for key, destination in singles.get(kind, {}).items():
+            walk(node.get(key), where + "/" + key, destination)
+        for key, destination in maps.get(kind, {}).items():
+            values = node.get(key, {})
+            if isinstance(values, dict):
+                for name, value in values.items():
+                    if not str(name).startswith("x-"):
+                        walk(value, where + "/" + key + "/" + _pointer(str(name)), destination)
+        if kind in {"document", "operation", "path_item"}:
+            for index, value in enumerate(node.get("servers", [])):
+                walk(value, f"{where}/servers/{index}", "metadata")
+        if kind in {"operation", "path_item"}:
+            for index, value in enumerate(node.get("parameters", [])):
+                walk(value, f"{where}/parameters/{index}", "parameter")
+        if kind == "path_item":
+            for method in HTTP_METHODS:
+                walk(node.get(method), where + "/" + method, "operation")
+        if kind == "callback":
+            for expression, value in node.items():
+                if expression != "$ref" and not str(expression).startswith("x-"):
+                    walk(value, where + "/" + _pointer(str(expression)), "path_item")
+        if kind == "flows":
+            for name in ("implicit", "password", "clientCredentials", "authorizationCode"):
+                walk(node.get(name), where + "/" + name, "metadata")
+        if kind == "media":
+            for index, value in enumerate(node.get("prefixEncoding", [])):
+                walk(value, f"{where}/prefixEncoding/{index}", "encoding")
+    walk(document, "#", "document")
+    try:
+        for where, node in openapi_schema_positions(document):
+            metadata(node, "#" + where)
+    except (KeyError, TypeError, ValueError) as exc:
+        errors.append(f"#: cannot traverse metadata at canonical OAS schema positions: {exc}")
+    return errors
+
+
+def _compound_parameter_identifier_errors(document: dict[str, Any], parameter: dict[str, Any], where: str, errors: list[str]) -> None:
+    """A compound identity name must retain its complete decoded carrier schema."""
+    name = parameter.get("name")
+    if parameter.get("in") not in {"query", "path"} or not isinstance(name, str):
+        return
+    carrier = next((value for value in COMPOUND_ID_CARRIERS if name == value or name.endswith("_" + value)), None)
+    if carrier is None:
+        return
+    if parameter.get("style") == "deepObject":
+        if parameter.get("in") != "query" or parameter.get("explode") is not True or "content" in parameter or carrier == "actor_id":
+            errors.append(f"{where}: deepObject identity requires an exploded flat closed carrier")
+        schema = parameter.get("schema")
+    else:
+        content = parameter.get("content")
+        if not isinstance(content, dict) or set(content) != {"application/json"} or "schema" in parameter:
+            errors.append(f"{where}: compound identity parameter must declare application/json content with its decoded canonical schema")
+            return
+        media = content["application/json"]
+        schema = media.get("schema") if isinstance(media, dict) else None
+    seen = set()
+    while isinstance(schema, dict) and isinstance(schema.get("$ref"), str) and schema["$ref"].startswith("#/"):
+        reference = schema["$ref"]
+        if reference in seen:
+            errors.append(f"{where}: compound identity parameter schema reference must be acyclic")
+            return
+        seen.add(reference)
+        target: Any = document
+        try:
+            for part in reference[2:].split("/"):
+                target = target[part.replace("~1", "/").replace("~0", "~")]
+        except (KeyError, TypeError, IndexError):
+            errors.append(f"{where}: compound identity parameter schema reference must resolve")
+            return
+        schema = target
+    canonical_refs = {
+        f"../schemas/common-ids.schema.json#/$defs/{carrier}",
+        f"https://arkret.org/v1/schemas/common-ids.schema.json#/$defs/{carrier}",
+    }
+    if not isinstance(schema, dict) or schema.get("$ref") not in canonical_refs:
+        errors.append(f"{where}: {name} must reuse the complete canonical {carrier} schema")
+
+
 def http_naming_errors(document: Any, operation_rows: Any) -> list[str]:
     """Check every registry operation and all name-bearing HTTP binding objects."""
     if not isinstance(document, dict) or not isinstance(document.get("paths"), dict):
         return [f"{RULE}: OpenAPI paths must be an object"]
     if not isinstance(operation_rows, list):
         return [f"{RULE}: operation registry operations must be an array"]
-    errors: list[str] = []
+    errors: list[str] = _openapi_local_names_and_metadata_errors(document)
+    for name, schema in document.get("components", {}).get("schemas", {}).items():
+        reference = schema.get("$ref") if isinstance(schema, dict) else None
+        if isinstance(reference, str) and "/service-operation-dtos.schema.json#/$defs/" in reference:
+            canonical_name = reference.rsplit("/", 1)[-1]
+            if name != canonical_name:
+                errors.append(f"#/components/schemas/{name}: a canonical public DTO mirror must retain its name {canonical_name!r}")
     registered: dict[str, dict[str, Any]] = {}
     for index, row in enumerate(operation_rows):
         where = f"operation_registry/operations/{index}"
@@ -223,6 +419,8 @@ def http_naming_errors(document: Any, operation_rows: Any) -> list[str]:
                         errors.append(f"{parameter_where}: query allow/deny collections must use allowed_/denied_ prefixes, including comma-separated wire collections")
                     if location == "header":
                         _header_errors(name, parameter_where, errors)
+                    _compound_parameter_identifier_errors(document, parameter, parameter_where, errors)
+                    _scalar_parameter_identifier_errors(document, parameter, parameter_where, errors)
                     key = (str(location), str(name).lower() if location == "header" else str(name))
                     if key in local_names:
                         errors.append(f"{parameter_where}: duplicate parameter identity {key!r}")

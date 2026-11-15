@@ -68,9 +68,9 @@
     "scope": "exact_full_RealmActor_and_Realm_or_Circle",
     "first_use": "native_Device_real_root_PUT_before_salt_and_Event",
     "native_origin": "owning_Realm_current_governance_Station_with_exact_accepted_tenure_and_handoff_archive_import",
-    "Account_origin_unchanged": true,
-    "manager_private_keys_in_Station": false,
+    "account_origin_unchanged": true,
+    "manager_private_keys_in_station": false,
     "restore_lane": "history_only_current_membership_scope_and_retention_gates",
-    "new_public_R_API": false
+    "new_public_api": false
   }
 }

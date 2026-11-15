@@ -5258,7 +5258,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "window_limit=0 as a boundary-and-context-only window, empty and floor-trimmed streams, and the invariance of window_limit, limited and complete under byte-budget segmentation.",
+      "description": "max_window_event_count=0 as a boundary-and-context-only window, empty and floor-trimmed streams, and the invariance of max_window_event_count, limited and complete under byte-budget segmentation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"

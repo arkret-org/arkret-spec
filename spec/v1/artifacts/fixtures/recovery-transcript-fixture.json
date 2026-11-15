@@ -183,19 +183,19 @@
       "source_proof": {
         "kind": "device_quorum",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "threshold": 2,
+        "min_device_count": 2,
         "signatures": [
           {
             "device_id": "ak:device:019b6a40-0000-7000-8000-000000000004",
             "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
             "signature_algorithm": "Ed25519",
-            "signature": "t2gKqrVfleq4FJLp5SA8j4Y4vckG_mAEMKCx9L9iVhXq0yqXKwb_OMAL_4Gx_jZbNcOFQfsBLh0ld9h1ywNpAw"
+            "signature": "X59YrQjra-xqMB8bl8ziNHJ2Pcd1WmtVpI8BxQ5PsmecXwoLAJPIQvl3bFU6NhNOCXq4-VeYpZzz9_I9rNzZAA"
           },
           {
             "device_id": "ak:device:019b6a40-0000-7000-8000-000000000005",
             "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
             "signature_algorithm": "Ed25519",
-            "signature": "t2gKqrVfleq4FJLp5SA8j4Y4vckG_mAEMKCx9L9iVhXq0yqXKwb_OMAL_4Gx_jZbNcOFQfsBLh0ld9h1ywNpAw"
+            "signature": "X59YrQjra-xqMB8bl8ziNHJ2Pcd1WmtVpI8BxQ5PsmecXwoLAJPIQvl3bFU6NhNOCXq4-VeYpZzz9_I9rNzZAA"
           }
         ]
       },
@@ -230,7 +230,7 @@
         "proof_body": {
           "kind": "device_quorum",
           "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "threshold": 2,
+          "min_device_count": 2,
           "signatures": [
             {
               "device_id": "ak:device:019b6a40-0000-7000-8000-000000000004",
@@ -245,9 +245,9 @@
           ]
         }
       },
-      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"device_quorum\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"device_quorum\",\"signatures\":[{\"device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000004\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},{\"device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000005\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"}],\"threshold\":2},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"requesting_device_public_key_did\":\"did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_ref\":{\"id\":\"ak:session_grant:019b6a40-0000-7000-8000-000000000009\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
-      "transcript_digest": "sha256:52b7d5219ce98ade883c2e35adfdd68254f0e0b5ea551240b6ad95bcf20f567e",
-      "signature_b64u": "t2gKqrVfleq4FJLp5SA8j4Y4vckG_mAEMKCx9L9iVhXq0yqXKwb_OMAL_4Gx_jZbNcOFQfsBLh0ld9h1ywNpAw",
+      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"device_quorum\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"device_quorum\",\"min_device_count\":2,\"signatures\":[{\"device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000004\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},{\"device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000005\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"}]},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"requesting_device_public_key_did\":\"did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_ref\":{\"id\":\"ak:session_grant:019b6a40-0000-7000-8000-000000000009\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
+      "transcript_digest": "sha256:7f73113cb2e9020b581599fff095f5371489b948a0a75cbc1758360a05868820",
+      "signature_b64u": "X59YrQjra-xqMB8bl8ziNHJ2Pcd1WmtVpI8BxQ5PsmecXwoLAJPIQvl3bFU6NhNOCXq4-VeYpZzz9_I9rNzZAA",
       "expected_result": "accept",
       "cross_factor_replay": {
         "replayed_kind": "trusted_recovery_service",
@@ -279,7 +279,7 @@
           "proof_body": {
             "kind": "device_quorum",
             "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "threshold": 2,
+            "min_device_count": 2,
             "signatures": [
               {
                 "device_id": "ak:device:019b6a40-0000-7000-8000-000000000004",

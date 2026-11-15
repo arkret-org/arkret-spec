@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / 'spec/v1/artifacts/fixtures'
 NAMES = ['applet-registration-epoch-fixture.json', 'handle-claim-kat.json',
          'encoding-fixture.json', 'blob-content-key-fixture.json', 'mls-roster-client-roles-fixture.json',
-         'websocket-binding-fixture.json', 'expected-state-digest-kat-fixture.json']
+         'websocket-binding-fixture.json', 'expected-state-digest-kat-fixture.json',
+         'did-binding-digest-fixture.json']
 
 
 def canonical(value):
@@ -59,6 +60,23 @@ def build(name, source):
         unsigned = {key: value for key, value in status['preimage'].items() if key != 'status_proof'}
         status['expected_digest'] = sha(status['domain'] + '\n' + canonical(unsigned))
         status['preimage']['status_proof']['payload_digest'] = status['expected_digest']
+    elif name == 'did-binding-digest-fixture.json':
+        result['generated_by'] = 'tools/regenerate_named_primitive_fixtures.py'
+        digest_fields = {
+            'normalized_document': 'document_digest',
+            'evidence_receipt': 'evidence_digest',
+            'policy_snapshot': 'policy_digest',
+        }
+        for case in result['cases']:
+            source_fields = set(case['input'])
+            if len(source_fields) != 1 or not source_fields <= digest_fields.keys():
+                raise ValueError('DID binding KAT requires one registered canonical input object')
+            source_field = next(iter(source_fields))
+            encoded = canonical(case['input'][source_field])
+            expected = case['expected']
+            expected[digest_fields[source_field]] = sha(encoded)
+            if 'jcs_utf8' in expected:
+                expected['jcs_utf8'] = encoded
     elif name == 'encoding-fixture.json':
         for node in nodes(result):
             if 'expected_canonical_bytes_utf8' in node and 'expected_digest' in node:

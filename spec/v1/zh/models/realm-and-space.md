@@ -3,7 +3,7 @@ title: Realm & Space
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -627,7 +627,7 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 Space 的用户 metadata 明文形状为 `space.schema.json#/$defs/space_metadata`：必填 `title`，可选 `summary`、`labels`、`fields`、`avatar_blob_ref`，字段集封闭，依次沿用上表约束。未激活 scope MLS 时以这些顶层字段表示；一旦该 scope 的 `ak.mls.genesis` accepted，create 与 update MUST 使用唯一完整 `encrypted_metadata: EncryptedEnvelope`，解密 plaintext MUST 符合该形状，purpose 为既有 `metadata`，按冻结外层 Event 的 kind／scope／event identity 构造 AAD，复用同一 Realm／Circle 的 RFC 9420 application message。MUST NOT 往 title 塞 ciphertext、加密整条结构 Event、保留旧用户明文镜像或回退 plaintext。
 
-`id/schema/realm_id/scope_circle_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `wip_limit/wip_limit_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
+`id/schema/realm_id/scope_circle_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `max_active_strand_count/active_strand_count_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
 
 create 原子写 space／space_parent／space_child_scope_policy；密文作为 space 的唯一用户 metadata 被 current/read/snapshot/replica 原样保留。update 沿用 `ak.space.update.patch`，加密 metadata 只能整体 set `encrypted_metadata`，不得 patch envelope 子路径或产生明密文双份；普通 `rank` 与独立 child policy 合同不变。客户端在获授权且验证 accepted cut 后解密到个人显示缓存；服务 API、搜索索引、通知预览与服务缓存 MUST NOT 生成用户明文副本。非 participant 的查询／枚举裁剪不因结构可见字段放宽。
 

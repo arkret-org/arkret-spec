@@ -3,7 +3,7 @@ title: Call State and Recording
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-18
+updated: 2026-11-15
 sidebar:
   label: Call State
 ---
@@ -97,7 +97,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
       "session_focus": "fra-1"
     },
     "roster_delta": {
-      "op": "join",
+      "operation": "join",
       "participant": {
         "actor_id": {
           "kind": "account",
@@ -154,7 +154,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 **捕获 transition 与 result 分离（normative）**：开始后安全状态为 capturing；停止命令只把安全状态推进到 stopped。ready/failed 结果必须从 stopped 发布。治理 Station MUST 从同段 stopped current 的 revision 定位其唯一原生 RealmCommit 与 `event_ref`，独立验证原 stop Event 的 scope、call、段、capture kind、精确 from/to 和唯一确认结果；ready 录制不得另传 stop 镜像，failed 及转写已有 stop metadata MUST 与该原件相同。transition MUST 携带 scalar `expected_commit_id`，精确比较产物轴当前 revision；停止分支 MUST NOT 携带该字段。result 保存 `{status,details}`，status 为 pending/ready/failed，details 保留所属分支 metadata，写入 guard 不存入 value；唯一接受位置是外层 revision。治理 Station 按 stream 顺序执行并拒绝 stale revision，且结果不能重开捕获。start 的 pending result 与许可创建在同一原子提交内生效。 `call_capture_pending_details` 的唯一定义是复制已接受 Start 的 `capture_metadata`，再由接收方按 `capture_kind` 附加完整原 EventID 至 `recording_start_event_id` 或 `transcript_start_event_id`；该字段不得签回 Start。停止不改写 pending 结果。已 ready 的产物不得被 failed 覆盖而抹去其保留/删除审计义务；ready 再写必须保持同一 Blob、加密 Context、原 start 和生产/authority 绑定，retention/audit 更新仍须通过既有具名权限与 hold 门。failed 可在精确 CAS 下重试为 ready。
 
 - `focus`：是 `call_focus` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
-- `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`op=join` 创建或更新该 participant；`op=leave` 携带同一 `actor_id/device_id` 与 roster `expected_commit_id`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
+- `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`operation=join` 创建或更新该 participant；`operation=leave` 携带同一 `actor_id/device_id` 与 roster `expected_commit_id`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
 - `roster_delta.participant` 的 `actor_id` MUST 为完整 ActorId，`account` 分支同时保留 exact `principal_id` 与 `station_id`；`device_id` MUST 为真实认证 DeviceId。join、leave、token outcome 和媒体续期 MUST 使用同一身份，不使用匿名 DID 或设备别名。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
 - participant_binding 直接签署完整 ActorId、真实 DeviceId 与本次媒体范围。refresh 从 accepted 活跃 roster 核对认证主体，不使用私有主体映射、subject_binding 回执或其摘要；具体生命周期见 media-service-binding §3.2。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
@@ -173,7 +173,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   出现并按本节四项校验。模式分支由包含 roster delta 的同一 accepted call-state basis
   决定，producer 不得自行声明第三个判据。
 - `mute_override`：v1 暂不开放主持人强制静音。`ak.call.state` 只要携带此字段（即使同时携带其它合法 delta）就 MUST 以 `schema_violation` 拒绝，零 Event／Commit／current state 写入；旧 call-only `call_mute_override` selector 与单 leg value 不得被解释为多 leg 集合。该保留形状不授权生产端写入。普通通话、自主 `mute_state{by=self}`、kick／ban／end-for-all 仍按各自合同接纳。
-- `moderation_delta.op=remove_participant`：以 `(call_id, actor_id, device_id?)` 作为稳定领域目标；`kick` MUST 含 `device_id`，`ban` MUST 省略它。`moderation_delta.op=restore_participant` 必须携带 moderation `expected_commit_id`，且只能恢复 actor 一致的 active ban，不能恢复 kick。
+- `moderation_delta.operation=remove_participant`：以 `(call_id, actor_id, device_id?)` 作为稳定领域目标；`kick` MUST 含 `device_id`，`ban` MUST 省略它。`moderation_delta.operation=restore_participant` 必须携带 moderation `expected_commit_id`，且只能恢复 actor 一致的 active ban，不能恢复 kick。
 
 高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音在 v1 失败关闭，不能用仅作用于客户端的信令冒充服务端媒体权限。
 

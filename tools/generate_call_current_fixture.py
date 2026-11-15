@@ -57,9 +57,9 @@ def source(row, axis, index):
 
 def target(delta, axis):
     if axis == 'roster':
-        value = delta['participant'] if delta['op'] == 'join' else delta
+        value = delta['participant'] if delta['operation'] == 'join' else delta
         return jcs([value['actor_id'], value['device_id']])
-    value = delta['removal'] if delta['op'] == 'remove_participant' else delta
+    value = delta['removal'] if delta['operation'] == 'remove_participant' else delta
     action = value.get('action', 'ban')
     return jcs([action, value['actor_id'], value.get('device_id')])
 
@@ -70,13 +70,13 @@ def project(prior, row, axis, index, issuer_key):
     current = source(row, axis, index)
     delta = current['value']
     key = target(delta, axis)
-    if delta['op'] in ('leave', 'restore_participant'):
+    if delta['operation'] in ('leave', 'restore_participant'):
         if prior is None or delta['expected_commit_id'] != prior['last_source']['source_commit']['commit_id']:
             raise ValueError('stale axis revision')
         if not any(target(e['value'], axis) == key for e in entries):
             raise ValueError('unknown target')
     entries = [e for e in entries if target(e['value'], axis) != key]
-    if delta['op'] in ('join', 'remove_participant'):
+    if delta['operation'] in ('join', 'remove_participant'):
         entry = copy.deepcopy(current)
         if axis == 'roster' and 'participant_binding' in delta['participant']:
             entry['participant_signing_key'] = {'public_key_base64url': issuer_key}
@@ -272,24 +272,24 @@ def build_fixture():
                    'removed_by': ACTOR['account_id']['principal_id'], 'removed_at': T}
         if action == 'kick':
             removal['device_id'] = DEVICE
-        return {'op': 'remove_participant', 'removal': removal}
+        return {'operation': 'remove_participant', 'removal': removal}
     append({}, 'ak.call.create')
     append({'focus': {'mode': 'sfu', 'session_focus': 'fra-1'}})
-    append({'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 1)}})
-    append({'roster_delta': {'op': 'join', 'participant': participant(call_id, OTHER, 2)}})
+    append({'roster_delta': {'operation': 'join', 'participant': participant(call_id, ACTOR, 1)}})
+    append({'roster_delta': {'operation': 'join', 'participant': participant(call_id, OTHER, 2)}})
     append({'moderation_delta': remove(OTHER, 'ban')})
-    append({'moderation_delta': {'op': 'restore_participant', 'actor_id': OTHER,
+    append({'moderation_delta': {'operation': 'restore_participant', 'actor_id': OTHER,
             'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
             'expected_commit_id': revision(axes['moderation']['last_source']['source_commit'])['commit_id']}})
     append({'moderation_delta': remove(ACTOR, 'kick')})
-    append({'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 3)}})
+    append({'roster_delta': {'operation': 'join', 'participant': participant(call_id, ACTOR, 3)}})
     for actor in (OTHER, ACTOR):
-        append({'roster_delta': {'op': 'leave', 'actor_id': actor, 'device_id': DEVICE,
+        append({'roster_delta': {'operation': 'leave', 'actor_id': actor, 'device_id': DEVICE,
                                 'expected_commit_id': revision(axes['roster']['last_source']['source_commit'])['commit_id']}})
     append({'moderation_delta': remove(OTHER, 'ban'),
-            'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 4)}})
+            'roster_delta': {'operation': 'join', 'participant': participant(call_id, ACTOR, 4)}})
     restore_event = event({'call_id': call_id, 'moderation_delta': {
-        'op': 'restore_participant', 'actor_id': OTHER,
+        'operation': 'restore_participant', 'actor_id': OTHER,
         'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
         'expected_commit_id': revision(axes['moderation']['last_source']['source_commit'])['commit_id'],
     }}, 12)

@@ -423,9 +423,11 @@
           "type": "integer",
           "minimum": 1
         },
-        "rate_limit_per_minute": {
+        "max_transaction_count_per_minute": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "x-arkret-member-role": "count",
+          "description": "Advertised inbound ak.edge.applet.command.transaction.v1 call ceiling per minute for this Applet Service. One transaction call is one counted unit regardless of its Event/Signal batch size; max_transaction_event_count and max_payload_bytes remain independent. This is a resource hint, not a quota grant or a second HTTP rate-limit authority; effective HTTP windows, enforcement and retry guidance remain in ServiceDescribe.rate_limit_policy."
         }
       },
       "patternProperties": {

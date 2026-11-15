@@ -1,10 +1,10 @@
 openapi: 3.2.0
 x-arkret-high-security-session-authentication-policy:
-  appliesToOperationIdPrefix: ak.self.
-  protectedOperationDefault: rfc9421_session_public_key_required
-  unauthenticatedPublicProjectionOperations:
+  applies_to_operation_id_prefix: ak.self.
+  protected_operation_default: rfc9421_session_public_key_required
+  unauthenticated_public_projection_operations:
   - ak.self.account.read.describe.v1
-  newOperationsFailClosed: true
+  new_operations_fail_closed: true
 info:
   title: Arkret Service API
   version: 1.0.0-candidate
@@ -30,31 +30,10 @@ info:
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get,
-
-    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.scan}`, `ak.self.account.{read.viewer,
-    stream.subscribe, command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
-
-    `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`,
-    `ak.self.authz.{read.check,
-
-    grants.query.effective}`, and the ServiceDescribe envelope. The corresponding
-
-    Event-submit schemas are the endpoint-specific `self_submit_request_body` / `self_submit_response_body`
-
-    and `peer_submit_request_body` / `peer_submit_response_body` definitions in authority-commit-operations.schema.json;
-    Event reads use `EventView`,
-
-    `stream_scan_request_body` / `stream_scan_response_body` (authority-commit-operations.schema.json),
-
-    `RealmCommit`, `SignalSubmitResponseBody`,
-
-    `IdentityResolveResponseBody` / `IdentityDocumentView`, `DidOperationSubmitRequestBody` / `DidOperationSubmitResponseBody`,
-
-    `AuthorizationCheckRequestBody` / `AuthorizationCheckResponseBody`, `EffectiveGrantSnapshot`,
-
-    `ServiceDescribe`.
-
+    prose. The exact versioned operation catalog and each canonical request/response schema reference are maintained
+    in the operation registry. Each OpenAPI operationId is the corresponding operation_id without its final .v1
+    segment; the operationId is not an alternative version selector. OpenAPI components reference the canonical
+    schemas instead of creating another wire contract.
 
     Security-sensitive extension operations such as MLS KeyPackage lifecycle,
 
@@ -71,14 +50,9 @@ info:
     must not claim generated-SDK completeness until a typed DTO lands.
 
 
-    Default authentication: bearer token plus HTTP Message Signature for
-
-    service-to-service calls (see `zh/sync/service-http-binding.md` §2.2). Public
-
-    metadata endpoints explicitly noted as `public_metadata` may be unauthenticated;
-
-    every other path requires at least one of the declared securitySchemes.
-
+    Authentication follows the registered security contract of each operation. SessionGrant requests use Authorization:
+    DPoP and a matching DPoP proof. Service-to-service requests use their registered HTTP Message Signature or mTLS
+    binding. Public metadata operations may be unauthenticated only within their explicit public projection contract.
 
     Path namespace convention: every path is absolute under the negative-space
 
@@ -108,17 +82,12 @@ info:
     advertisement lives at the root meta position `/_arkret/describe`.
 
 
-    Versioning is NOT expressed in the path. The protocol version is negotiated via
-
-    `*.describe` / exact `supported_operation_bundles` (and optionally a `Arkret-Protocol-Version`
-
-    request/response header); schema ids carry their own `.v1` suffix. The
-
-    corresponding `operation-registry.json` `http` field records the full absolute
-
-    path verbatim.'
+    Versioning is not expressed in the path. Every canonical request carries exactly one Arkret-Operation header
+    naming the exact advertised versioned operation_id; successful responses echo the selected value. ServiceDescribe
+    advertises exact supported_operation_bundles. The operation registry http field records the full absolute method/path
+    binding verbatim.'
 security:
-- bearerAuth: []
+- BearerAuth: []
 servers:
 - url: https://{host}
   variables:
@@ -126,7 +95,7 @@ servers:
       default: localhost
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       description: 'Non-SessionGrant bearer used only by operations whose own contract
@@ -137,22 +106,22 @@ components:
 
         header is also present. S2S federation / inter-service calls MUST
 
-        also satisfy the httpMessageSignature + sourceServiceId +
+        also satisfy the HttpMessageSignature + SourceServiceId +
 
-        destinationServiceId AND group (see service-http-binding.md §2.2).
+        DestinationServiceId AND group (see service-http-binding.md §2.2).
 
         '
-    sessionGrantAuth:
+    SessionGrantAuth:
       type: http
       scheme: DPoP
       description: 'The only current-v1 Authorization scheme for ak.session.grant. It MUST
 
-        co-occur with dpopProof; Bearer plus DPoP is invalid under RFC 9449
+        co-occur with DpopProof; Bearer plus DPoP is invalid under RFC 9449
 
         section 7.1 and MUST fail closed.
 
         '
-    accountHandoffAuth:
+    AccountHandoffAuth:
       type: http
       scheme: DPoP
       description: 'Opaque, short-lived account-authentication handoff returned by
@@ -161,14 +130,14 @@ components:
 
         the wire is `DPoP`, not `Bearer`, and the credential MUST co-occur with
 
-        dpopProof whose key thumbprint matches the handoff''s cnf.jkt. It is not
+        DpopProof whose key thumbprint matches the handoff''s cnf.jkt. It is not
 
         ak.session.grant and is accepted only by the three operations listed in
 
         AccountHandoffResponseBody.allowed_operations.
 
         '
-    httpMessageSignature:
+    HttpMessageSignature:
       type: apiKey
       in: header
       name: Signature
@@ -176,7 +145,7 @@ components:
 
         Service requests use the authenticated source Service method; managed Device requests use the
 
-        original accepted Device key and managedDeviceMetadata. Service requests MUST also include
+        original accepted Device key and ManagedDeviceMetadata. Service requests MUST also include
 
         Source-Service-ID / Destination-Service-ID / Content-Digest (the
 
@@ -186,14 +155,14 @@ components:
 
         securitySchemes and MUST appear in the same security AND group as
 
-        httpMessageSignature when required by the operation.
+        HttpMessageSignature when required by the operation.
 
         '
-    sourceServiceId:
+    SourceServiceId:
       type: apiKey
       in: header
       name: Source-Service-ID
-      description: 'Required companion to httpMessageSignature. Identifies the originating
+      description: 'Required companion to HttpMessageSignature. Identifies the originating
 
         service DID and MUST be covered by the signature transcript. SDK
 
@@ -202,11 +171,11 @@ components:
         an authentication failure, not a 400.
 
         '
-    destinationServiceId:
+    DestinationServiceId:
       type: apiKey
       in: header
       name: Destination-Service-ID
-      description: 'Required companion to httpMessageSignature. Identifies the intended
+      description: 'Required companion to HttpMessageSignature. Identifies the intended
 
         recipient service DID (anti-misdirection / cross-tenant guard). MUST
 
@@ -215,33 +184,33 @@ components:
         MUST be rejected before reaching reducer / business logic.
 
         '
-    sourceTrustDomain:
+    SourceTrustDomain:
       type: apiKey
       in: header
       name: Source-Trust-Domain
-      description: 'Federation companion to httpMessageSignature. Identifies the source
+      description: 'Federation companion to HttpMessageSignature. Identifies the source
 
         deployment trust domain (`ak:trust_domain:<scope>`) and MUST be covered
 
         by the signature transcript.
 
         '
-    destinationTrustDomain:
+    DestinationTrustDomain:
       type: apiKey
       in: header
       name: Destination-Trust-Domain
-      description: 'Federation companion to httpMessageSignature. Identifies the receiver
+      description: 'Federation companion to HttpMessageSignature. Identifies the receiver
 
         deployment trust domain (`ak:trust_domain:<scope>`) and MUST match the
 
         destination service / Realm receive context before reducer logic runs.
 
         '
-    contentDigest:
+    ContentDigest:
       type: apiKey
       in: header
       name: Content-Digest
-      description: 'Required companion to httpMessageSignature on requests that carry a
+      description: 'Required companion to HttpMessageSignature on requests that carry a
 
         body (POST / PUT / DELETE-with-body). RFC 9530 digest header bound
 
@@ -252,7 +221,7 @@ components:
         requests (GET / HEAD / DELETE-without-body).
 
         '
-    presignParam:
+    PresignParam:
       type: apiKey
       in: query
       name: presign
@@ -266,14 +235,14 @@ components:
 
         Permitted ONLY on ak.self.blob.resource.get.v1 and ak.self.blob.resource.head.v1, and MUST NOT
 
-        co-occur with bearerAuth — implementations enforce mutual exclusion.
+        co-occur with BearerAuth — implementations enforce mutual exclusion.
 
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
 
         carve-out''s normative constraints.
 
         '
-    dpopProof:
+    DpopProof:
       type: apiKey
       in: header
       name: DPoP
@@ -296,7 +265,7 @@ components:
         device-lifecycle §3.3.
 
         '
-    mutualTls:
+    MutualTls:
       type: mutualTLS
       description: 'Reserved for deployment-controlled internal channels (sovereign /
 
@@ -307,21 +276,21 @@ components:
         management APIs outside the Arkret protocol namespace.
 
         '
-    realmActorControlMetadata:
+    RealmActorControlMetadata:
       type: apiKey
       in: header
       name: Arkret-Realm-Actor-Control
       x-arkret-metadata-schema-ref: ../schemas/realm-actor.schema.json#/$defs/control_http_metadata
       description: base64url_no_pad(JCS) metadata defined by realm-actor.schema.json control_http_metadata; current
         subject method signature required.
-    managedDeviceMetadata:
+    ManagedDeviceMetadata:
       type: apiKey
       in: header
       name: Arkret-Managed-Device
       description: Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope metadata;
         only registered operations, never a SessionGrant.
   headers:
-    XArkretRequestId:
+    ArkretRequestId:
       description: Stable request identifier.
       schema:
         type: string
@@ -335,7 +304,7 @@ components:
         minLength: 1
         maxLength: 128
         pattern: ^[A-Za-z0-9._~-]+$
-    XArkretWaitFor:
+    ArkretWaitFor:
       description: Causal checkpoint token the caller is waiting on.
       schema:
         type: string
@@ -511,6 +480,8 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
+    CommittedEventView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView
     ConsentList:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_list
     ConsentReplaceRequestBody:
@@ -617,13 +588,10 @@ components:
     EventDeliveryStatusResponseBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusResponseBody
     EventId:
-      type: string
-      pattern: ^ak:event:[A-Za-z0-9_-]{44}$
+      $ref: ../schemas/common-ids.schema.json#/$defs/event_id
     EventsSubscribeFrame:
       x-arkret-schema-ref: ../schemas/committed-event-subscribe-frame.schema.json
       $ref: ../schemas/committed-event-subscribe-frame.schema.json
-    EventView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView
     ExactCurrentStateReadRequestBody:
       $ref: ../schemas/exact-current-state-read.schema.json#/$defs/exact_current_state_read_request_body
     ExactCurrentStateReadResponseBody:
@@ -837,8 +805,7 @@ components:
     RealmExport:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
     RealmId:
-      type: string
-      pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+      $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
     RealmInviteLinkAcceptPayload:
       $ref: ../schemas/realm-invite-link.schema.json#/$defs/accept_payload
     RealmInviteLinkCreatePayload:
@@ -1003,9 +970,9 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       security:
-      - sessionGrantAuth: []
+      - SessionGrantAuth: []
       responses:
         '200':
           description: Exact registered outcome
@@ -1040,12 +1007,12 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -1077,10 +1044,10 @@ paths:
             values:
             - ak.edge.applet.configuration.command.execute.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -1103,8 +1070,8 @@ paths:
         delivery guards. No standalone audit ticket, watcher enumeration, forwarded session credential, or caller-authored
         head.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1141,9 +1108,9 @@ paths:
         delivery guards. No standalone audit ticket, watcher enumeration, forwarded session credential, or caller-authored
         head.
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1237,13 +1204,13 @@ paths:
             values:
             - ak.root.identity.read.resolve.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1263,10 +1230,10 @@ paths:
     get:
       operationId: ak.root.identity.document.resource.get
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1312,10 +1279,10 @@ paths:
             values:
             - ak.root.identity.log.read.list.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       responses:
         '200':
           description: DID key log
@@ -1341,10 +1308,10 @@ paths:
             values:
             - ak.root.identity.command.submit_did_operation.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: DID operation accepted
@@ -1376,11 +1343,11 @@ paths:
             values:
             - ak.root.identity.service_registration.command.ensure.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1412,10 +1379,10 @@ paths:
     get:
       operationId: ak.root.identity.service_registration.resource.get
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1479,11 +1446,11 @@ paths:
             values:
             - ak.root.identity.organization_registration.command.prepare.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1525,11 +1492,11 @@ paths:
             values:
             - ak.root.identity.organization_registration.command.ensure.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1569,10 +1536,10 @@ paths:
     get:
       operationId: ak.root.identity.organization_registration.resource.get
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1591,9 +1558,7 @@ paths:
         in: query
         required: true
         schema:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-          maxLength: 512
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Local organization binding the caller is authorised to see, with created=false
@@ -1623,11 +1588,11 @@ paths:
             values:
             - ak.root.identity.organization_registration.command.refresh.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1675,11 +1640,11 @@ paths:
             values:
             - ak.root.identity.organization_registration.command.revoke.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -1715,10 +1680,10 @@ paths:
             values:
             - ak.root.identity.receipts.read.list.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       responses:
         '200':
           description: Identity receipts
@@ -1744,8 +1709,8 @@ paths:
             values:
             - ak.root.identity.recovery_policy.command.publish.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       requestBody:
         required: true
         content:
@@ -1762,8 +1727,8 @@ paths:
     get:
       operationId: ak.root.identity.recovery_policy.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1782,9 +1747,7 @@ paths:
         in: query
         required: false
         schema:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
-          maxLength: 512
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
         description: Optional target principal. If omitted, the server resolves the principal from the authenticated
           SessionGrant. If present, it must equal that principal.
       responses:
@@ -1812,8 +1775,8 @@ paths:
             values:
             - ak.root.identity.recovery_session.command.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       requestBody:
         required: true
         content:
@@ -1831,8 +1794,8 @@ paths:
     get:
       operationId: ak.root.identity.recovery_session.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1863,8 +1826,8 @@ paths:
     post:
       operationId: ak.root.identity.recovery_session.command.submit_proof
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1915,11 +1878,11 @@ paths:
             values:
             - ak.self.security_transaction.command.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       requestBody:
         required: true
         content:
@@ -1943,11 +1906,11 @@ paths:
         requiring the expired historical recovery grant. It must reject Rotation, incomplete resources and another
         issuer; this result grants no current authority. Never synthesize progress from an HTTP idempotency cache.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1966,8 +1929,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/recovery-authority.schema.json#/$defs/transaction_id
       responses:
         '200':
           description: Authoritative durable security transaction state.
@@ -1979,11 +1941,11 @@ paths:
     post:
       operationId: ak.self.security_transaction.command.continue
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -2002,8 +1964,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/recovery-authority.schema.json#/$defs/transaction_id
       requestBody:
         required: true
         content:
@@ -2055,19 +2016,19 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/self_submit_response_body
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        realmActorControlMetadata: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        RealmActorControlMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
   /_arkret/self/events/delivery-status:
     query:
       operationId: ak.self.events.read.delivery_status
@@ -2086,8 +2047,8 @@ paths:
             values:
             - ak.self.events.read.delivery_status.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read the durable frozen fanout target set for one visible Event.
       description: 'Canonical RFC 10008 QUERY binding for
 
@@ -2124,16 +2085,16 @@ paths:
       - - realm_ids
       - - actor_ids
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Streaming event subscription with optional catch-up replay.
       description: 'Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
 
@@ -2218,14 +2179,14 @@ paths:
     get:
       operationId: ak.self.committed_event.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -2256,7 +2217,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventView'
+                $ref: '#/components/schemas/CommittedEventView'
         '404':
           $ref: '#/components/responses/NotFound'
   /_arkret/peer/account-status/resolve:
@@ -2277,12 +2238,12 @@ paths:
             values:
             - ak.peer.account_status.read.resolve.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Resolve a bounded contiguous Account Authority status-ledger range.
       description: 'Service-authenticated read for replica gap recovery and freshness.
 
@@ -2314,12 +2275,12 @@ paths:
     post:
       operationId: ak.peer.account_status.command.submit
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Replicate an authoritative AccountStatusRecord to a Station.
       description: 'Accepts exactly one Account Authority-signed immutable record. The
 
@@ -2403,12 +2364,12 @@ paths:
             values:
             - ak.peer.mls.command.attest_add.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Install a recipient Station's signed historical MLS Add authority.
       requestBody:
         required: true
@@ -2447,12 +2408,12 @@ paths:
             values:
             - ak.peer.mls.read.roster_authority.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Read a signed page of complete MLS roster authority for an authorized member.
       description: The governance-signed manifest repeats on every page and binds both immutable public Blob refs
         from the exact accepted Genesis. A later-joined member verifies this manifest before constructing the separate
@@ -2500,12 +2461,12 @@ paths:
             values:
             - ak.peer.mls.read.group_state_material.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Resolve verified MLS epoch-0 public group-state bytes.
       description: 'Resolves one accepted `ak.mls.genesis` Event and returns its exact RFC
 
@@ -2567,12 +2528,12 @@ paths:
     post:
       operationId: ak.peer.erasure_receipt.command.submit
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Submit a signed hard-erasure receipt package.
       description: 'Source-Service-ID must equal the receipt issuer. The receiver verifies
 
@@ -2631,11 +2592,11 @@ paths:
     get:
       operationId: ak.peer.erasure_receipt.resource.get
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
       summary: Retrieve an exact accepted erasure receipt package.
       parameters:
       - name: Arkret-Operation
@@ -2655,8 +2616,7 @@ paths:
         name: receipt_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/receipt_id
       responses:
         '200':
           description: Exact receipt and retained-stub package.
@@ -2713,10 +2673,10 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
   /_arkret/peer/invites:
     post:
       operationId: ak.peer.invites.command.submit
@@ -2735,12 +2695,12 @@ paths:
             values:
             - ak.peer.invites.command.submit.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Private Station invite delivery.
       description: 'Delivers a ak.invite.create event from the inviter-side Station
 
@@ -2784,12 +2744,12 @@ paths:
             values:
             - ak.peer.contacts.command.submit.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Private Station Contact fact delivery.
       description: 'Delivers a signed ak.contact.* fact from the issuer-side Station
 
@@ -2827,12 +2787,12 @@ paths:
     post:
       operationId: ak.peer.keys.keypackages.command.claim
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Atomically claim destination-owned KeyPackages for a federated participant.
       description: 'The destination KeyPackage authority is the sole compare-and-swap
 
@@ -2910,12 +2870,12 @@ paths:
             values:
             - ak.peer.keys.keypackages.read.claim.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Recover a peer KeyPackage claim outcome after an uncertain response.
       description: 'Read-only lookup in the destination authority''s durable claim ledger.
 
@@ -2957,12 +2917,12 @@ paths:
             values:
             - ak.peer.keys.read.lookup.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Read a peer account's attested device directory and published prekey bundles.
       description: 'Single-hop read used by a requester''s own Station; clients never
 
@@ -3009,9 +2969,9 @@ paths:
         checks follow strand-and-message section 8.3.1. This operation does not enumerate watchers or authorize
         another account's private watch read.
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -3057,12 +3017,12 @@ paths:
             values:
             - ak.peer.realm_join.read.preview.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Disclose the policy-permitted pre-join preview from the current governance Station.
       requestBody:
         required: true
@@ -3096,12 +3056,12 @@ paths:
             values:
             - ak.peer.realm_join.read.bootstrap.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Serve bounded first-contact join bootstrap material to an applicant Station.
       requestBody:
         required: true
@@ -3134,12 +3094,12 @@ paths:
             values:
             - ak.peer.signal.command.relay.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Relay encrypted Signal Extension envelopes to one peer.
       description: 'Optional `ak.profile.signal_peer_relay.v1` single-hop, best-effort
 
@@ -3231,12 +3191,12 @@ paths:
             values:
             - ak.self.signal.command.send.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       summary: Send an encrypted Signal Extension envelope.
       description: 'Sends a `ak.schema.signal_envelope.v1` encrypted envelope. Exact
 
@@ -3300,11 +3260,11 @@ paths:
             values:
             - ak.self.signal.stream.subscribe.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       summary: Subscribe to encrypted Signal Extension envelopes.
       description: 'Opens the optional authenticated live receive rail. Each data line is
 
@@ -3352,8 +3312,8 @@ paths:
             values:
             - ak.self.call.media.exchange.issue_token.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Exchange Arkret capability proof for a backend media token.
       description: 'Media service token exchange operation defined by
 
@@ -3463,8 +3423,8 @@ paths:
             values:
             - ak.self.account.read.viewer.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Holder-bound one-shot read of the current account projection.
       description: 'Returns the authenticated principal''s account projection: principal_id,
 
@@ -3506,8 +3466,8 @@ paths:
     get:
       operationId: ak.self.account.stream.subscribe
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
       description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented
         account baseline. Realm details require an explicit bounded filter. The notifications channel carries one
@@ -3618,8 +3578,8 @@ paths:
             values:
             - ak.self.account.command.update_profile.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Update the authenticated principal's Actor Profile projection.
       description: 'Carries exactly one holder-signed profile_event EventAdmissionSubmission.
 
@@ -3633,20 +3593,20 @@ paths:
 
         omits id. With an accepted Profile there the Event is ak.profile.update,
 
-        payload.target_ref equals that create-derived ID, and patch paths are limited
+        payload.actor_profile_id equals that create-derived ID, and patch paths are limited
 
         to display_name, avatar_blob_ref, and profile_fields.<key>.
 
 
-        Both branches use the authenticated session''s account authority pair and local
+        Both branches use the authenticated session''s exact Account ActorId and local
 
-        PCR as event.realm_id and realm scope, bind event.actor_id to the session
+        PCR as event.realm_id and realm scope. event.actor_id must equal that complete
 
-        principal, and use direct holder proof. On create payload.object.principal_id
+        Account ActorId, and direct holder proof is required. On create payload.object.principal_id
 
-        equals that principal; on update the accepted target Profile''s materialized
+        equals event.actor_id.account_id.principal_id; on update the accepted target Profile''s
 
-        principal_id equals it. Event preconditions are empty; update concurrency
+        materialized principal_id equals that same principal core. Event preconditions are empty; update concurrency
 
         uses only optional signed payload.expected_state_digest. The service submits the exact Event
 
@@ -3692,8 +3652,8 @@ paths:
             values:
             - ak.self.account.command.revoke_cursor.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Revoke a previously issued cursor authority.
       description: 'High-assurance optional endpoint. The issuing service records the cursor
 
@@ -3739,8 +3699,8 @@ paths:
             values:
             - ak.self.contact.command.request.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Submit a contact request to another principal.
       description: 'Runs the holder-local prepare/commit chain for one holder-signed Contact
 
@@ -3778,8 +3738,8 @@ paths:
             values:
             - ak.self.contact.command.respond.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Accept an incoming contact request.
       description: 'Only the request target may normally accept. The operation uses a
 
@@ -3821,8 +3781,8 @@ paths:
             values:
             - ak.self.contact.command.reject.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Reject an incoming contact request.
       description: 'Only the request target may submit the proposal-terminal rejection.
 
@@ -3848,8 +3808,8 @@ paths:
     get:
       operationId: ak.self.contact.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List the holder's contact projection.
       description: 'An accepted row also carries the closed next_prepare_input cursor. Its
 
@@ -3950,8 +3910,8 @@ paths:
             values:
             - ak.self.contact.command.tombstone.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Tombstone the holder's side of a contact relation.
       description: 'Writes the holder-signed terminal successor for one issuer-local
 
@@ -3989,8 +3949,8 @@ paths:
             values:
             - ak.self.contact.command.scope_update.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Replace the holder-granted directional Contact scope.
       description: 'Two-phase prepare/commit operation for the unique ak.contact.scope.update
 
@@ -4018,8 +3978,8 @@ paths:
     get:
       operationId: ak.self.circle.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List Circles visible to the caller within one parent Realm.
       description: 'Directory visibility is enforced per Circle; non-members of a
 
@@ -4044,8 +4004,7 @@ paths:
         in: query
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       responses:
         '200':
           description: Circles visible to the caller in the named Realm.
@@ -4070,8 +4029,8 @@ paths:
             values:
             - ak.self.circle.command.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Create a Circle (ak.circle.create).
       description: 'Builds a ak.circle.create Operation in the named parent Realm and routes
 
@@ -4097,8 +4056,8 @@ paths:
     get:
       operationId: ak.self.circle.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read one Circle by id.
       description: 'Returns not_found when the Circle is invisible to the caller rather than
 
@@ -4123,7 +4082,7 @@ paths:
         name: circle_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
       responses:
         '200':
           description: Full Circle view or directory-only preview.
@@ -4135,8 +4094,8 @@ paths:
     post:
       operationId: ak.self.circle.member.command.add
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Add or change a Circle member (ak.circle.member.state).
       description: 'Activating another actor requires ak.circle.member.manage narrowed to
 
@@ -4163,7 +4122,7 @@ paths:
         name: circle_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
       requestBody:
         required: true
         content:
@@ -4181,8 +4140,8 @@ paths:
     delete:
       operationId: ak.self.circle.member.resource.delete
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Remove a Circle member (ak.circle.member.state -> removed).
       parameters:
       - name: Arkret-Operation
@@ -4202,12 +4161,16 @@ paths:
         name: circle_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
       - in: path
         name: actor_id
         required: true
-        schema:
-          type: string
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
+        description: One percent-encoded RFC 8785 JCS ActorId segment. Decode and validate the complete identity
+          before comparing with member_event.event.payload.member_id; bare principal DID input is forbidden.
       requestBody:
         required: true
         content:
@@ -4225,8 +4188,8 @@ paths:
     post:
       operationId: ak.self.circle.command.rotate_scope
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Rotate the Circle's bound MLS group.
       description: 'MUST NOT acknowledge a rotation without actually changing the
 
@@ -4253,7 +4216,7 @@ paths:
         name: circle_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
       requestBody:
         required: false
         content:
@@ -4286,8 +4249,8 @@ paths:
             values:
             - ak.self.invite_receive_policy.resource.get.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Get the authenticated subject's invite-receive policy.
       description: 'Returns the subject''s private invite-receive policy override, falling
 
@@ -4320,8 +4283,8 @@ paths:
             values:
             - ak.self.invite_receive_policy.resource.replace.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Replace the authenticated subject's invite-receive policy.
       description: 'The request body MUST set subject_id equal to the session actor. The
 
@@ -4361,8 +4324,8 @@ paths:
             values:
             - ak.self.invites.command.dispatch.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Dispatch an already accepted invite through the inviter Station.
       description: 'Accepts an accepted invite Event id plus private delivery evidence from
 
@@ -4406,8 +4369,8 @@ paths:
             values:
             - ak.self.invite_locator.command.issue.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Issue an opaque online invite locator for the authenticated principal.
       requestBody:
         required: true
@@ -4451,8 +4414,8 @@ paths:
             values:
             - ak.self.invite_locator.command.rotate.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Atomically revoke an old locator and issue a fresh one.
       requestBody:
         required: true
@@ -4496,8 +4459,8 @@ paths:
             values:
             - ak.self.invite_locator.command.revoke.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Revoke an authenticated-principal-owned invite locator.
       requestBody:
         required: true
@@ -4530,8 +4493,8 @@ paths:
             values:
             - ak.self.direct_conversation.read.resolve.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Resolve the pair's single stable 1:1 DM coordinates.
       description: 'Query-only. This endpoint never creates: a Direct Conversation Realm is
 
@@ -4571,14 +4534,14 @@ paths:
     get:
       operationId: ak.self.realm_state_snapshot.read.by_ref
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Read an exact previously issued signed Realm snapshot by reference.
       description: The authenticated account must still be entitled to every disclosed row, head, and floor. A current
         head cannot substitute for this exact snapshot.
@@ -4617,14 +4580,14 @@ paths:
     get:
       operationId: ak.self.realm_state_snapshot.read.manifest_head
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4656,11 +4619,11 @@ paths:
     get:
       operationId: ak.self.space.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       summary: List Space lifecycle projection rows for a Realm.
       description: Paginated caller-visible Space lifecycle projection rows for client navigation and sync repair.
         This is a derived read model, not a canonical truth source or a tree query. Missing parents do not prove
@@ -4684,8 +4647,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: include_terminal
         in: query
         required: false
@@ -4717,11 +4679,11 @@ paths:
     get:
       operationId: ak.self.strand.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       summary: List Strand lifecycle projection rows for a Realm.
       description: 'Extension read surface over reducer-maintained Strand lifecycle
 
@@ -4748,8 +4710,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: include_terminal
         in: query
         required: false
@@ -4786,8 +4747,8 @@ paths:
         never-written result is explicit; a previously cleared null value carries a real revision. This operation
         does not enumerate watchers or authorize reads of another actor's private watch state.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4819,11 +4780,11 @@ paths:
     get:
       operationId: ak.self.morph.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       summary: List Morph lifecycle projection rows for a Realm.
       description: 'Extension read surface over reducer-maintained Morph lifecycle
 
@@ -4850,8 +4811,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: include_terminal
         in: query
         required: false
@@ -4883,11 +4843,11 @@ paths:
     get:
       operationId: ak.self.morph.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       summary: Read a single document Morph projection.
       description: 'Optional extension read surface for a single Morph with
 
@@ -4916,14 +4876,12 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: morph_id
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:morph:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/morph.schema.json#/properties/id
       responses:
         '200':
           description: Document Morph projection visible to the caller.
@@ -4949,17 +4907,17 @@ paths:
             values:
             - ak.self.blob.upload.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: Blob accepted
           headers:
             X-Arkret-Request-Id:
-              $ref: '#/components/headers/XArkretRequestId'
+              $ref: '#/components/headers/ArkretRequestId'
           content:
             application/json:
               schema:
@@ -5002,30 +4960,30 @@ paths:
           type: string
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - presignParam: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - PresignParam: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: Blob metadata
     get:
       operationId: ak.self.blob.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - presignParam: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - PresignParam: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5133,11 +5091,11 @@ paths:
             values:
             - ak.self.blob.command.presign.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       requestBody:
         required: true
         content:
@@ -5183,10 +5141,10 @@ paths:
     post:
       operationId: ak.edge.push.command.apply_registration
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5232,7 +5190,7 @@ paths:
             values:
             - ak.edge.push.command.register_device.v1
       security:
-      - bearerAuth: []
+      - BearerAuth: []
       responses:
         '200':
           description: Device registration result
@@ -5264,7 +5222,7 @@ paths:
             values:
             - ak.edge.push.command.unregister_device.v1
       security:
-      - bearerAuth: []
+      - BearerAuth: []
       responses:
         '204':
           description: Device registration removed; the response has no body.
@@ -5278,10 +5236,10 @@ paths:
     post:
       operationId: ak.edge.push.command.notify
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5309,7 +5267,7 @@ paths:
 
           Source-Service-ID / Destination-Service-ID headers
 
-          (httpMessageSignature companions), not in the request body.
+          (HttpMessageSignature companions), not in the request body.
 
           '
         schema:
@@ -5345,12 +5303,12 @@ paths:
             values:
             - ak.self.authz.read.check.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -5368,11 +5326,11 @@ paths:
     get:
       operationId: ak.self.authz.grants.read.effective
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5394,13 +5352,15 @@ paths:
           $ref: '#/components/schemas/RealmId'
       - name: subject_actor_id
         in: query
-        required: true
+        required: false
         description: Percent-encoded RFC 8785 JCS serialization of one closed ActorId. The server parses and validates
-          the decoded JSON before exact identity comparison; bare DID input is forbidden.
-        schema:
-          type: string
-          minLength: 1
-      - name: at
+          the decoded JSON before exact identity comparison. Omission selects the authenticated credential's exact
+          ActorId. Bare DID input, duplicate selectors and unknown members are forbidden.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
+      - name: evaluation_at
         in: query
         required: false
         description: Canonical timestamp at which effective grants are evaluated.
@@ -5417,12 +5377,12 @@ paths:
     post:
       operationId: ak.self.device_messages.command.send
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5458,11 +5418,11 @@ paths:
     get:
       operationId: ak.self.device_messages.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5516,11 +5476,11 @@ paths:
             values:
             - ak.self.device_messages.command.ack.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Explicit to-device delivery acknowledgement.
       description: 'Cumulative, monotonic, naturally idempotent acknowledgement bound to the
 
@@ -5566,8 +5526,8 @@ paths:
             values:
             - ak.self.keys.upload.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Key upload result
@@ -5599,12 +5559,12 @@ paths:
             values:
             - ak.self.keys.read.lookup.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Key query result
@@ -5636,12 +5596,12 @@ paths:
             values:
             - ak.self.keys.command.claim.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: One-time key claim result
@@ -5673,8 +5633,8 @@ paths:
             values:
             - ak.self.actor_profile.read.resolve.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Resolve shared-Realm actor profiles with their signed evidence.
       description: 'Only outward carrier for the Principal-Control-Realm-resident
 
@@ -5730,8 +5690,8 @@ paths:
             values:
             - ak.self.current_principal.read.resolve.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Resolve the authenticated account current principal projection and unique PCR.
       requestBody:
         required: true
@@ -5755,14 +5715,14 @@ paths:
         stream head. Unauthorized, invisible, foreign and unknown selectors are indistinguishable not_found outcomes
         and never produce never_written.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -5808,8 +5768,8 @@ paths:
             values:
             - ak.self.media_service_binding.read.resolve.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Resolve the own-Station verified route and signing keys of a joined Realm anchored media service.
       requestBody:
         required: true
@@ -5843,8 +5803,8 @@ paths:
             values:
             - ak.self.realm_join.command.prepare.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Prepare the exact signing inputs for one Realm join, knock or invite acceptance.
       requestBody:
         required: true
@@ -5878,8 +5838,8 @@ paths:
             values:
             - ak.self.realm_join.read.preview.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read an own-Station validated pre-join Realm preview.
       requestBody:
         required: true
@@ -5917,8 +5877,8 @@ paths:
         schema:
           $ref: '#/components/schemas/EventId'
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read private recovery preparation from its accepted replacement authorization.
       description: The native identity/pairing result fixes this episode. pending has no inventory ref; prepared
         exposes only the immutable private inventory locator and never attests client history-ready. Current subject
@@ -5960,11 +5920,11 @@ paths:
             values:
             - ak.self.mls.read.group_state_material.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Read exact accepted Genesis public MLS material through the member's Account Station.
       requestBody:
         required: true
@@ -6003,11 +5963,11 @@ paths:
             values:
             - ak.self.mls.read.roster_authority.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Read an authorized signed MLS roster authority page from the current governance Station.
       description: The authenticated own Station authorizes the exact accepted member target and derives immutable
         Genesis provenance at the same cut. The member independently verifies the original signed manifest, all
@@ -6056,11 +6016,11 @@ paths:
             values:
             - ak.self.signer_keys.read.resolve.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Obtain own-Station current or exact locally accepted historical signing keys.
       requestBody:
         required: true
@@ -6093,8 +6053,8 @@ paths:
             values:
             - ak.self.identity.read.resolution_audit.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read authorized account-internal resolution audit evidence.
       description: 'Returns the account''s Principal Control Realm id, genesis Event and
 
@@ -6112,13 +6072,13 @@ paths:
 
         history cursor share one anti-enumeration outcome and are externally
 
-        indistinguishable. history_depth is the closed range 0..256 with default 0
+        indistinguishable. max_predecessor_event_count is the closed range 0..256 with default 0
 
         and MUST NOT be silently capped; after_resolution_event_ref stops the
 
         disclosed segment exclusively at a known ancestor of this account''s lineage
 
-        and requires history_depth of at least 1. A truncated segment sets
+        and requires max_predecessor_event_count of at least 1. A truncated segment sets
 
         history_complete false and returns next_audit_cursor.
 
@@ -6142,9 +6102,9 @@ paths:
               schema:
                 $ref: ../schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence
         '400':
-          description: param_invalid when history_depth is outside 0..256, when after_resolution_event_ref accompanies
-            history_depth 0, or with reason resolution_history_ancestor_unknown when the supplied ancestor is not
-            in this account's current resolution lineage.
+          description: param_invalid when max_predecessor_event_count is outside 0..256, when after_resolution_event_ref
+            accompanies max_predecessor_event_count 0, or with reason resolution_history_ancestor_unknown when the
+            supplied ancestor is not in this account's current resolution lineage.
           content:
             application/problem+json:
               schema:
@@ -6177,11 +6137,11 @@ paths:
             values:
             - ak.self.keys.keypackages.upload.create.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage upload result
@@ -6213,15 +6173,15 @@ paths:
             values:
             - ak.self.keys.keypackages.command.claim.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage claim result
@@ -6253,15 +6213,15 @@ paths:
             values:
             - ak.self.keys.keypackages.command.consume.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage consume result
@@ -6293,11 +6253,11 @@ paths:
             values:
             - ak.self.keys.keypackages.command.revoke.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage revoke result
@@ -6329,11 +6289,11 @@ paths:
             values:
             - ak.self.keys.keypackages.read.claim.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
       summary: Read one claim of the caller's own KeyPackage before decrypting its Welcome.
       description: 'Owner-only read of the claim ledger at the caller''s own Account Station.
 
@@ -6388,12 +6348,12 @@ paths:
         at the same backup ID is a zero-effect conflict. A local frozen packet is not an acknowledgement; exact
         retries retain the original packet identity.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6412,8 +6372,7 @@ paths:
         name: backup_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_id
       - in: header
         name: Idempotency-Key
         required: true
@@ -6443,8 +6402,8 @@ paths:
     delete:
       operationId: ak.self.keys.backups.resource.delete
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -6471,8 +6430,7 @@ paths:
         name: backup_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_id
       requestBody:
         required: true
         content:
@@ -6486,8 +6444,8 @@ paths:
     post:
       operationId: ak.self.keys.backups.command.issue_delete_challenge
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6506,8 +6464,7 @@ paths:
         name: backup_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_id
       requestBody:
         required: true
         content:
@@ -6528,19 +6485,19 @@ paths:
         and current manager Service archive_recovery are disjoint closed branches, bound to full RealmActor, one
         exact Realm/Circle scope and current requester manager/recovery/Device authority. recipient_ref binds the
         target packet historical accepted declaration, independently verified against its complete signed envelope_digest,
-        never forced equal to the current recipient. The target auth_binding stays immutable. Backup/series/ciphertext,
+        never forced equal to the current recipient. The target authorization_binding stays immutable. Backup/series/ciphertext,
         audience and nonce also bind; mixed credentials reject.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6559,8 +6516,7 @@ paths:
         name: backup_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_id
       requestBody:
         required: true
         content:
@@ -6578,16 +6534,16 @@ paths:
     post:
       operationId: ak.self.keys.backups.command.unlock
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -6598,8 +6554,8 @@ paths:
           Service. Both bind exact Actor/scope, current requester manager/recovery authority and Device/generation
           where applicable; recipient_ref is the target packet original accepted recipient declaration, independently
           historically verified and bound to complete signed envelope_digest, not forced to current recipient. Target
-          auth_binding remains frozen. Backup/series/ciphertext, fresh single-use challenge, audience/service and
-          time also bind. No Account/PCR substitution, private recipient key, raw root or generic control history
+          authorization_binding remains frozen. Backup/series/ciphertext, fresh single-use challenge, audience/service
+          and time also bind. No Account/PCR substitution, private recipient key, raw root or generic control history
           is returned; current disclosure and atomic delivery gates apply.
       parameters:
       - name: Arkret-Operation
@@ -6619,8 +6575,7 @@ paths:
         name: backup_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_id
       requestBody:
         required: true
         content:
@@ -6658,14 +6613,14 @@ paths:
         digest or AAD verification. Manager inventory alone returns full original encrypted packets and source;
         its cursor binds full actor/current manager/frozen inventory cut rather than an ordinary Device scope page.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -6687,8 +6642,7 @@ paths:
           forbid this filter. When present, response metadata is ordered by series_sequence ascending so qualified
           clients can rebuild the chain.
         schema:
-          type: string
-          pattern: ^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          $ref: ../schemas/agent-operations.schema.json#/$defs/backup_series_id
       - in: query
         name: backup_kind
         required: false
@@ -6829,16 +6783,14 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       - name: station_id
         in: query
         required: true
         description: Station that owns the account authority for this principal. Together with principal_id this
           is the complete public selector.
         schema:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Current public principal resolution projection.
@@ -6910,8 +6862,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:did_core:[a-z0-9]+:[^\s/?#]+$
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Current authenticated service-resolution closure.
@@ -7381,10 +7332,10 @@ paths:
         schema:
           type: string
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: MIMI key material claim result
@@ -7402,10 +7353,10 @@ paths:
     post:
       operationId: ak.open.mimi.command.update_room
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7424,7 +7375,7 @@ paths:
         name: strand_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/strand.schema.json#/properties/id
       responses:
         '200':
           description: MIMI room update result
@@ -7442,10 +7393,10 @@ paths:
     post:
       operationId: ak.open.mimi.command.notify
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7464,7 +7415,7 @@ paths:
         name: strand_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/strand.schema.json#/properties/id
       responses:
         '200':
           description: MIMI notification result
@@ -7482,10 +7433,10 @@ paths:
     post:
       operationId: ak.open.mimi.command.submit_message
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7504,7 +7455,7 @@ paths:
         name: strand_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/strand.schema.json#/properties/id
       responses:
         '200':
           description: MIMI message submission result
@@ -7543,10 +7494,10 @@ paths:
             values:
             - ak.open.mimi.command.request_consent.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: MIMI consent request result
@@ -7578,10 +7529,10 @@ paths:
             values:
             - ak.open.mimi.command.update_consent.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: MIMI consent update result
@@ -7613,10 +7564,10 @@ paths:
             values:
             - ak.open.mimi.read.identifiers.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: MIMI identifier query result
@@ -7648,10 +7599,10 @@ paths:
             values:
             - ak.open.mimi.command.proxy_download.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: MIMI proxy download result
@@ -7758,11 +7709,11 @@ paths:
             values:
             - ak.find.directory.read.search_realms.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Authorized Realm search
@@ -7794,11 +7745,11 @@ paths:
             values:
             - ak.find.directory.read.resolve_realm.v1
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Authorized Realm resolution
@@ -7816,8 +7767,8 @@ paths:
     get:
       operationId: ak.self.authz.invites.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -7833,18 +7784,21 @@ paths:
             values:
             - ak.self.authz.invites.read.list.v1
       - in: query
-        name: subject
-        required: true
-        schema:
-          type: string
-          minLength: 1
-        description: Subject DID or approved opaque invite lookup subject. Secret invites remain non-enumerable.
+        name: subject_account_id
+        required: false
+        description: Percent-encoded RFC 8785 JCS serialization of one complete closed AccountId. The server validates
+          both principal_id and station_id before exact identity comparison. Omission selects only the authenticated
+          credential's exact AccountId. Bare subject, subject_station_id, handles, duplicate selectors, unknown
+          members and inferred Station fallbacks are forbidden. Secret invites remain non-enumerable.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common-ids.schema.json#/$defs/account_id
       - in: query
         name: realm_id
         required: false
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - in: query
         name: cursor
         required: false
@@ -7876,9 +7830,9 @@ paths:
             values:
             - ak.edge.applet.read.ping.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       responses:
         '200':
           description: Applet liveness and public metadata
@@ -7925,10 +7879,10 @@ paths:
         recovery disabled alone does not. This does not relax Device PUT current installation/consent/business-status/scope/MLS-epoch
         gates or any other Service Event.'
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       x-arkret-auth:
         service_signature:
           signature_standard: RFC 9421
@@ -8016,9 +7970,9 @@ paths:
     get:
       operationId: ak.edge.applet.actor.read.resolve
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8036,10 +7990,10 @@ paths:
       - in: path
         name: actor_id
         required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 8192
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
         description: Percent-encoded RFC 8785 JCS of one complete closed ActorId. Decode and validate before lookup;
           bare DID Core is invalid.
       responses:
@@ -8053,9 +8007,9 @@ paths:
     get:
       operationId: ak.edge.applet.realm.read.resolve
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8118,9 +8072,9 @@ paths:
     get:
       operationId: ak.edge.applet.third_party_users.read.list
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8174,9 +8128,9 @@ paths:
     get:
       operationId: ak.edge.applet.third_party_locations.read.list
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8271,8 +8225,8 @@ paths:
             values:
             - ak.self.applet.install.command.preview.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Station signed Applet install authoring request
@@ -8290,8 +8244,8 @@ paths:
     post:
       operationId: ak.self.applet.command.install
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8334,10 +8288,10 @@ paths:
         name. The Station derives all current installation and hosting coordinates and durably supersedes any prior
         uncommitted generation for the same subject before returning exact bytes.
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8356,7 +8310,7 @@ paths:
         name: applet_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       responses:
         '200':
           description: Exact persisted Station-signed authoring request
@@ -8374,8 +8328,8 @@ paths:
     post:
       operationId: ak.self.applet.command.revoke
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8394,7 +8348,7 @@ paths:
         name: applet_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       - in: header
         name: Idempotency-Key
         required: true
@@ -8427,8 +8381,8 @@ paths:
 
         '
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8447,7 +8401,7 @@ paths:
         name: applet_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       responses:
         '200':
           description: Canonical Applet revoke plan
@@ -8465,8 +8419,8 @@ paths:
     get:
       operationId: ak.self.realm_link.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List typed cross-Realm links projected from ak.realm.link.
       parameters:
       - name: Arkret-Operation
@@ -8486,7 +8440,7 @@ paths:
         name: realm_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: direction
         in: query
         required: false
@@ -8517,8 +8471,8 @@ paths:
     get:
       operationId: ak.self.realm_organization.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List projected ak.realm.organization relationships for a Realm.
       parameters:
       - name: Arkret-Operation
@@ -8538,7 +8492,7 @@ paths:
         name: realm_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       responses:
         '200':
           description: Realm organization-relationship projection.
@@ -8550,8 +8504,8 @@ paths:
     get:
       operationId: ak.self.realm.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read the Realm lifecycle projection.
       parameters:
       - name: Arkret-Operation
@@ -8571,7 +8525,7 @@ paths:
         name: realm_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       responses:
         '200':
           description: Realm lifecycle projection.
@@ -8583,8 +8537,8 @@ paths:
     get:
       operationId: ak.self.realm.read.streams
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Enumerate the authority streams of a Realm that the caller may see.
       description: 'ACL-filtered paginated stream discovery. Positional scan needs a
 
@@ -8615,8 +8569,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - name: cursor
         in: query
         required: false
@@ -8641,8 +8594,8 @@ paths:
     get:
       operationId: ak.self.realm.read.export
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Full event-log + operation dump for a Realm.
       parameters:
       - name: Arkret-Operation
@@ -8662,7 +8615,7 @@ paths:
         name: realm_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       responses:
         '200':
           description: Realm export dump.
@@ -8688,8 +8641,8 @@ paths:
             values:
             - ak.self.consent.read.list.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List consent typed results where the caller is holder or peer.
       responses:
         '200':
@@ -8702,8 +8655,8 @@ paths:
     get:
       operationId: ak.self.consent.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read one exact-peer current summary for display.
       description: Exact peer identifies the one holder-private current summary; complete signing input requires
         current read.
@@ -8737,8 +8690,8 @@ paths:
     post:
       operationId: ak.self.consent.command.replace
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Replace the complete exact-peer permission set.
       parameters:
       - name: Arkret-Operation
@@ -8785,8 +8738,8 @@ paths:
             values:
             - ak.self.consent.command.request.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Open a scoped consent request.
       requestBody:
         required: true
@@ -8819,8 +8772,8 @@ paths:
             values:
             - ak.self.account_data.read.list.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List the authenticated actor's account_data entries.
       responses:
         '200':
@@ -8833,8 +8786,8 @@ paths:
     get:
       operationId: ak.self.account_data.resource.get
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Read one account_data entry.
       parameters:
       - name: Arkret-Operation
@@ -8865,8 +8818,8 @@ paths:
     put:
       operationId: ak.self.account_data.resource.replace
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Set an account_data entry.
       parameters:
       - name: Arkret-Operation
@@ -8903,8 +8856,8 @@ paths:
     delete:
       operationId: ak.self.account_data.resource.delete
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Delete an account_data entry.
       parameters:
       - name: Arkret-Operation
@@ -8942,8 +8895,8 @@ paths:
     get:
       operationId: ak.self.read_cursor.read.list
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: List the authenticated actor's read markers.
       parameters:
       - name: Arkret-Operation
@@ -8963,7 +8916,7 @@ paths:
         in: query
         required: false
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       responses:
         '200':
           description: Read markers.
@@ -8988,8 +8941,8 @@ paths:
             values:
             - ak.self.read_cursor.command.advance.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Set the authenticated actor's read marker for a Realm.
       requestBody:
         required: true
@@ -9022,8 +8975,8 @@ paths:
             values:
             - ak.self.actor_private_events.command.submit.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Submit one caller-signed actor-private Event without a dedicated operation.
       requestBody:
         required: true
@@ -9062,8 +9015,8 @@ paths:
             values:
             - ak.self.media.read.ice_config.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Signed ICE server configuration
@@ -9100,7 +9053,7 @@ paths:
             values:
             - ak.gate.account.exchange.create_handoff.v1
       security:
-      - dpopProof: []
+      - DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -9168,8 +9121,8 @@ paths:
             values:
             - ak.gate.account.read.onboarding.v1
       security:
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
@@ -9217,8 +9170,8 @@ paths:
             values:
             - ak.gate.account.command.issue_identity_binding_challenge.v1
       security:
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
@@ -9287,8 +9240,8 @@ paths:
             values:
             - ak.gate.account.command.issue_did_binding_challenge.v1
       security:
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
@@ -9357,8 +9310,8 @@ paths:
             values:
             - ak.gate.account.command.abandon_identity_creation.v1
       security:
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         holder_bound_authorization: true
@@ -9436,8 +9389,8 @@ paths:
             - ak.gate.account.command.register.v1
       security:
       - {}
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -9516,8 +9469,8 @@ paths:
             - ak.gate.account.command.issue_session_grant.v1
       security:
       - {}
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -9563,8 +9516,14 @@ paths:
                   x-arkret-external-literal-object:
                     specification: RFC 9457 Problem Details for HTTP APIs
                     anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                    reason: The complete object uses the RFC literal member vocabulary; instance is the standard
-                      URI-reference member rather than an Arkret wrapper role.
+                    external_properties:
+                    - type
+                    - title
+                    - status
+                    - detail
+                    - instance
+                    reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                      retain local ownership.
                   type: object
                   required:
                   - type
@@ -9620,8 +9579,14 @@ paths:
                   x-arkret-external-literal-object:
                     specification: RFC 9457 Problem Details for HTTP APIs
                     anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                    reason: The complete object uses the RFC literal member vocabulary; instance is the standard
-                      URI-reference member rather than an Arkret wrapper role.
+                    external_properties:
+                    - type
+                    - title
+                    - status
+                    - detail
+                    - instance
+                    reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                      retain local ownership.
                   type: object
                   required:
                   - type
@@ -9693,8 +9658,14 @@ paths:
                 x-arkret-external-literal-object:
                   specification: RFC 9457 Problem Details for HTTP APIs
                   anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                  reason: The complete object uses the RFC literal member vocabulary; instance is the standard URI-reference
-                    member rather than an Arkret wrapper role.
+                  external_properties:
+                  - type
+                  - title
+                  - status
+                  - detail
+                  - instance
+                  reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                    retain local ownership.
                 type: object
                 required:
                 - type
@@ -9785,7 +9756,7 @@ paths:
             values:
             - ak.gate.account.command.revoke_session.v1
       security:
-      - bearerAuth: []
+      - BearerAuth: []
       summary: Revoke session grant or access-token authority.
       description: 'Revokes session grant authority, not device
 
@@ -9830,8 +9801,14 @@ paths:
                 x-arkret-external-literal-object:
                   specification: RFC 9457 Problem Details for HTTP APIs
                   anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                  reason: The complete object uses the RFC literal member vocabulary; instance is the standard URI-reference
-                    member rather than an Arkret wrapper role.
+                  external_properties:
+                  - type
+                  - title
+                  - status
+                  - detail
+                  - instance
+                  reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                    retain local ownership.
                 type: object
                 required:
                 - type
@@ -9906,8 +9883,8 @@ paths:
             values:
             - ak.gate.account.command.refresh_session_grant.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Rotate a DPoP-bound session grant.
       description: 'Rotate a near-expiry DPoP-bound SessionGrant using a closed human or
 
@@ -9953,8 +9930,14 @@ paths:
                   x-arkret-external-literal-object:
                     specification: RFC 9457 Problem Details for HTTP APIs
                     anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                    reason: The complete object uses the RFC literal member vocabulary; instance is the standard
-                      URI-reference member rather than an Arkret wrapper role.
+                    external_properties:
+                    - type
+                    - title
+                    - status
+                    - detail
+                    - instance
+                    reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                      retain local ownership.
                   type: object
                   required:
                   - type
@@ -10010,8 +9993,14 @@ paths:
                   x-arkret-external-literal-object:
                     specification: RFC 9457 Problem Details for HTTP APIs
                     anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                    reason: The complete object uses the RFC literal member vocabulary; instance is the standard
-                      URI-reference member rather than an Arkret wrapper role.
+                    external_properties:
+                    - type
+                    - title
+                    - status
+                    - detail
+                    - instance
+                    reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                      retain local ownership.
                   type: object
                   required:
                   - type
@@ -10083,8 +10072,14 @@ paths:
                 x-arkret-external-literal-object:
                   specification: RFC 9457 Problem Details for HTTP APIs
                   anchor: https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1
-                  reason: The complete object uses the RFC literal member vocabulary; instance is the standard URI-reference
-                    member rather than an Arkret wrapper role.
+                  external_properties:
+                  - type
+                  - title
+                  - status
+                  - detail
+                  - instance
+                  reason: Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members
+                    retain local ownership.
                 type: object
                 required:
                 - type
@@ -10175,7 +10170,7 @@ paths:
             values:
             - ak.gate.account.command.issue_recovery_completion_grant.v1
       security:
-      - dpopProof: []
+      - DpopProof: []
       summary: Issue a Standard grant after PCR-policy recovery completion.
       description: 'Uses the still-live Bound AccountHandoff and its HTTP DPoP key to issue
 
@@ -10224,8 +10219,8 @@ paths:
             values:
             - ak.gate.account.command.logout.v1
       security:
-      - bearerAuth: []
-        dpopProof: []
+      - BearerAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         holder_proof: true
@@ -10292,8 +10287,8 @@ paths:
             values:
             - ak.gate.account.command.request_erasure.v1
       security:
-      - bearerAuth: []
-        dpopProof: []
+      - BearerAuth: []
+        DpopProof: []
       summary: Record the authenticated holder's explicit account erasure request.
       description: 'The only client entry point for self-initiated account erasure
 
@@ -10385,8 +10380,8 @@ paths:
             values:
             - ak.gate.account.command.pair_device.v1
       security:
-      - bearerAuth: []
-        dpopProof: []
+      - BearerAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Device pairing accepted
@@ -10431,8 +10426,8 @@ paths:
             values:
             - ak.gate.account.command.finalize_device_pairing.v1
       security:
-      - accountHandoffAuth: []
-        dpopProof: []
+      - AccountHandoffAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
@@ -10533,8 +10528,8 @@ paths:
             values:
             - ak.gate.account.read.claim_device_pairing_code.v1
       security:
-      - bearerAuth: []
-        dpopProof: []
+      - BearerAuth: []
+        DpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: false
@@ -10606,8 +10601,8 @@ paths:
         nor readiness gates. The operation validates verification_method ↔ agent_id consistency and writes one ak.agent.key.authorize
         on approval. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
-      - bearerAuth: []
-      - httpMessageSignature: []
+      - BearerAuth: []
+      - HttpMessageSignature: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10670,8 +10665,8 @@ paths:
             - ak.self.agent.read.list.v1
       description: List Agents visible to the authenticated controller.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Agent list
@@ -10706,8 +10701,8 @@ paths:
         exact create-locked binding exposes Agent/pairing/list/get and returns complete. requested_scope is an immutable
         ceiling, not a grant; the service creates no Agent DID/PCR/MLS private state.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Prepare returns awaiting_controller_event; commit returns awaiting_pcr_genesis; PCR acceptance
@@ -10728,8 +10723,8 @@ paths:
       operationId: ak.self.agent.resource.get
       description: Read one Agent projection.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10748,7 +10743,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Agent projection
@@ -10768,8 +10763,8 @@ paths:
         or backup readiness; that diagnostic is pairing-poll-local. Neither branch creates, revokes, or re-issues
         Realm grants. Pair commit does not depend on history-only backup availability; deactivated rejects.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10788,7 +10783,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Pairing renewed; fresh pending runtime key pairing returned.
@@ -10807,8 +10802,8 @@ paths:
       operationId: ak.self.agent.command.pause
       description: Pause an Agent and reject new agent sessions.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10827,7 +10822,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Agent paused
@@ -10846,8 +10841,8 @@ paths:
       operationId: ak.self.agent.command.resume
       description: Resume a paused Agent after freshness and sidecar disclosure checks.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10866,7 +10861,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Agent resumed
@@ -10888,8 +10883,8 @@ paths:
         presence and future submission ineffective; client-authored revoke bundles are forbidden and asynchronous
         cleanup is not a success prerequisite.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10908,7 +10903,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Agent deactivated
@@ -10958,8 +10953,8 @@ paths:
 
         '
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       responses:
         '200':
           description: Agent Sidecar and context Strand ensured
@@ -10979,8 +10974,8 @@ paths:
       description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent
         access and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -10999,8 +10994,7 @@ paths:
         name: sidecar_id
         required: true
         schema:
-          type: string
-          pattern: ^ak:sidecar:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/sidecar_id
       responses:
         '200':
           description: Agent Sidecar view
@@ -11014,8 +11008,8 @@ paths:
       description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows
         the result without exposing other controllers' objects.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -11034,8 +11028,7 @@ paths:
         name: realm_id
         required: false
         schema:
-          type: string
-          pattern: ^ak:realm:[A-Za-z0-9_-]{44}$
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
       - in: query
         name: cursor
         required: false
@@ -11055,8 +11048,8 @@ paths:
         write uses expected_version=0; successful writes increment by one. Selection grants no capability and is
         intersected with current target policy at action time.
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -11075,7 +11068,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Participation selection stored
@@ -11094,8 +11087,8 @@ paths:
       description: Get the Account Authority's current versioned per-scope participation selections (controller-self
         only).
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -11114,7 +11107,7 @@ paths:
         name: agent_id
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/did_core_id
       responses:
         '200':
           description: Current participation selections
@@ -11194,10 +11187,10 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
   /_arkret/peer/realm-authority/handoff:
     post:
       operationId: ak.peer.realm_authority.command.handoff
@@ -11233,10 +11226,10 @@ paths:
               schema:
                 $ref: ../schemas/realm-authority-handoff.schema.json
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
   /_arkret/self/streams/scan:
     post:
       operationId: ak.self.committed_event.read.scan
@@ -11270,11 +11263,11 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
   /_arkret/self/applets/{applet_id}/bots/provision/preview:
     post:
       operationId: ak.self.applet.bot.command.preview
@@ -11296,12 +11289,12 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -11336,12 +11329,12 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: ../schemas/common-ids.schema.json#/$defs/applet_id
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -11373,12 +11366,12 @@ paths:
             values:
             - ak.self.management_review.command.request.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -11410,12 +11403,12 @@ paths:
             values:
             - ak.self.management_review.command.decide.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -11447,12 +11440,12 @@ paths:
             values:
             - ak.self.management_review.read.status.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       responses:
         '200':
           description: Exact registered outcome
@@ -11487,8 +11480,8 @@ paths:
             values:
             - ak.self.call.invitation.command.send.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       requestBody:
         required: true
         content:
@@ -11523,12 +11516,12 @@ paths:
             values:
             - ak.peer.call.invitation.command.relay.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11563,12 +11556,12 @@ paths:
             values:
             - ak.peer.call.invitation.read.admission.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11603,8 +11596,8 @@ paths:
             values:
             - ak.self.consent.read.current.v1
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       requestBody:
         required: true
         content:
@@ -11639,12 +11632,12 @@ paths:
             values:
             - ak.peer.consent.read.current.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11677,12 +11670,12 @@ paths:
             values:
             - ak.peer.consent.command.proxy.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11715,12 +11708,12 @@ paths:
             values:
             - ak.peer.consent.command.publish_effects.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11752,10 +11745,10 @@ paths:
             values:
             - ak.peer.realm_actor.read.material.v1
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
       requestBody:
         required: true
         content:
@@ -11773,12 +11766,12 @@ paths:
     post:
       operationId: ak.peer.mls.command.reconcile_recovery_scope
       security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
       summary: Reconcile one departed recovery scope without granting membership or keys.
       description: Full-body outer request idempotency and a separate stable native recovery intent. Current source
         destination and fresh delivery challenge are signed but excluded from the stable intent. Current origin
@@ -11837,8 +11830,8 @@ paths:
     post:
       operationId: ak.self.mls.command.reconcile_recovery_scope
       security:
-      - sessionGrantAuth: []
-        dpopProof: []
+      - SessionGrantAuth: []
+        DpopProof: []
       summary: Reconcile one departed recovery scope without granting membership or keys.
       description: The current native subject or explicit Agent custodian selects an exact prepared episode and
         inventory entry. Full-body outer idempotency is separate from the stable subject/episode/nonce intent. The
@@ -11902,7 +11895,7 @@ paths:
         and recipient_ref; its selector binds full actor/exact scope/class and original source/revision remain intact.
         Full record/previous_series_ids/inner proof are not disclosed to Device. Require pending=null and the same
         live Device authorization/generation. Only a complete same-cut result may return the optional non-null closed
-        next_prepare_input containing auth_binding, content_backup_recipient and active_series_id for byte-exact
+        next_prepare_input containing authorization_binding, content_backup_recipient and active_series_id for byte-exact
         echo. Device Event reads retain only its own exact DeviceAuthorize; this adds no recipient/series/create/reset/manager-change/begin
         control original reads. The Station independently verifies complete declaration/DID/series/current-reset-to-exact-begin
         closure at the same current cut; it does not disclose creation_scope/external_ref or other out-of-scope
@@ -11925,20 +11918,20 @@ paths:
             values:
             - ak.self.realm_actor.read.material.v1
       security:
-      - httpMessageSignature: []
-        managedDeviceMetadata: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        realmActorControlMetadata: []
-        destinationServiceId: []
-        contentDigest: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      - sessionGrantAuth: []
-        dpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        RealmActorControlMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        ContentDigest: []
+      - SessionGrantAuth: []
+        DpopProof: []
       requestBody:
         required: true
         content:

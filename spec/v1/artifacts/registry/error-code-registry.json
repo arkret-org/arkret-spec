@@ -1421,7 +1421,7 @@
       "code": "organization_registration_quorum_not_met",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "proof_kind=governance_quorum but fewer than quorum_threshold distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum.",
+      "description": "proof_kind=governance_quorum but fewer than min_signature_count distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum.",
       "type_uri": "https://arkret.org/problems/organization_registration_quorum_not_met",
       "title": "Organization registration quorum not met",
       "status": "active"

@@ -58,7 +58,7 @@
         "graph.node_facets_filter",
         "ui.fallback_render"
       ],
-      "MUST_NOT_consume_by": [
+      "must_not_consume_by": [
         "authz.decide",
         "reducer.state_machine",
         "reducer.field_validation",
@@ -124,7 +124,7 @@
     {
       "case": "morph_kind_unknown_in_realm_schema",
       "result": "order2_treated_as_empty_tightening",
-      "MUST_NOT": "auto_widen_to_all_fields_allowed"
+      "must_not": "auto_widen_to_all_fields_allowed"
     },
     {
       "case": "same_capability_implied_by_field_and_facet",

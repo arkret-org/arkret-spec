@@ -565,7 +565,7 @@
         "pattern": "^ak:(space|strand|morph):[A-Za-z0-9_-]{44}$"
       }
     },
-    "wip_limit_override_allowed": {
+    "active_strand_count_override_allowed": {
       "type": "boolean",
       "default": false,
       "x-arkret-member-role": "permission"
@@ -723,10 +723,11 @@
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
       "description": "ISO 8601 duration. For quota constraints, a stricter conditional schema permits only a non-zero fixed-length week/day/hour/minute/second duration; year/month durations are forbidden so every authority derives the same UTC epoch-aligned window id."
     },
-    "burst": {
+    "burst_operation_count": {
       "type": "integer",
       "minimum": 0,
-      "description": "Optional token-bucket capacity at the same logical quota authority, capped by max_operation_count and refilled at max_operation_count/period. It never increases the fixed-window total budget."
+      "description": "Optional token-bucket capacity at the same logical quota authority, capped by max_operation_count and refilled at max_operation_count/period. It never increases the fixed-window total budget.",
+      "x-arkret-member-role": "count"
     },
     "constraint_scope": {
       "type": "string",
@@ -1211,7 +1212,7 @@
       "$comment": "burst is a modifier of a complete rate quota and cannot stand alone.",
       "if": {
         "required": [
-          "burst"
+          "burst_operation_count"
         ]
       },
       "then": {

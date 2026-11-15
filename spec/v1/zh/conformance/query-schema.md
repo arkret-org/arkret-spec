@@ -3,14 +3,14 @@ title: Query JSON Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-12
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ak.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_specification` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpecification` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
+> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ak.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_specification` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpecification` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `operator` / `direction` 等）以 `query.schema.json` 为准。
 
 ## 1. 目标
 
@@ -54,13 +54,13 @@ updated: 2026-11-12
 ```json fragment
 {
   "field": "metadata.fields.review_status",
-  "op": "eq",
+  "operator": "eq",
   "value": "in_review"
 }
 ```
-`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `param_invalid`）。
+`filters[].operator` 的合法取值是下方**封闭枚举**（normative）。`operator` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `param_invalid`）。
 
-| `op`（normative enum） | 语义 |
+| `operator`（normative enum） | 语义 |
 | --- | --- |
 | `eq` | 等于 |
 | `neq` | 不等于 |
@@ -82,8 +82,8 @@ updated: 2026-11-12
 ```json fragment
 {
   "and": [
-    { "field": "fields.workflow_type", "op": "eq", "value": "review" },
-    { "field": "stage", "op": "neq", "value": "done" }
+    { "field": "fields.workflow_type", "operator": "eq", "value": "review" },
+    { "field": "stage", "operator": "neq", "value": "done" }
   ]
 }
 ```

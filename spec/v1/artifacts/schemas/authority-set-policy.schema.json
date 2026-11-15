@@ -61,7 +61,7 @@
           "issuer_role",
           "allowed_actions",
           "issuers",
-          "threshold"
+          "min_signature_count"
         ],
         "properties": {
           "rule_id": {
@@ -113,10 +113,11 @@
               "additionalProperties": false
             }
           },
-          "threshold": {
+          "min_signature_count": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 32
+            "maximum": 32,
+            "x-arkret-member-role": "count"
           }
         },
         "additionalProperties": false

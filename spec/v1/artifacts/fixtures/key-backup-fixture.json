@@ -68,7 +68,7 @@
         "methods": [
           {
             "kind": "device_quorum",
-            "k": 2,
+            "min_device_count": 2,
             "members": [
               "ak:device:01964137-0000-7000-8000-000000000000",
               "ak:device:01964138-0000-7000-8000-000000000000"

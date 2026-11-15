@@ -78,7 +78,7 @@ class SemanticNamingTests(unittest.TestCase):
             self.assertTrue(enum_errors(node('namespaced_symbol', [value]), owner), value)
         with tempfile.TemporaryDirectory() as directory:
             from .artifact_lint import semantic_naming
-            artifacts = Path(directory)
+            artifacts = Path(directory).resolve()
             schema_path = artifacts / 'schemas/one.schema.json'
             authority = '../registry/terms.json#/terms/0/value'
             documents = {artifacts / 'registry/registry-manifest.json': {'registries': [

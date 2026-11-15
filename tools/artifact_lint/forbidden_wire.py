@@ -55,10 +55,17 @@ def vocabulary_errors(registry: dict, schemas: Path) -> list[str]:
     errors = []
     definitions = registry.get('context_definitions', {})
     kinds = registry.get('context_matching', {}).get('document_kinds', [])
+    if not isinstance(kinds, list) or not kinds or any(not isinstance(kind, str) or not re.fullmatch(r'[a-z][a-z0-9]*(?:_[a-z0-9]+)*', kind) for kind in kinds):
+        errors.append('document kinds must be a nonempty array of strict snake_case names')
+        kinds = []
+    elif len(kinds) != len(set(kinds)):
+        errors.append('document kind names must not be duplicated')
     used = {entry.get('context') for entry in registry.get('entries', [])}
     if set(definitions) != used:
         errors.append(f'context vocabulary mismatch: {set(definitions) ^ used}')
     for name, definition in definitions.items():
+        if not re.fullmatch(r'[a-z][a-z0-9]*(?:_[a-z0-9]+)*(?:\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*)*', name):
+            errors.append(f'{name}: context names must use dotted snake_case segments')
         selectors = definition.get('selectors')
         if definition.get('status') == 'retired':
             if selectors != [] or not definition.get('retirement_reason'):

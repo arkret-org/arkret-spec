@@ -2053,7 +2053,14 @@
       "x-arkret-external-literal-object": {
         "specification": "RFC 9457 Problem Details for HTTP APIs",
         "anchor": "https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1",
-        "reason": "The closed endpoint problem retains the RFC literal type/title/status/detail/instance member vocabulary and adds one registered details member."
+        "reason": "Only RFC 9457 type/title/status/detail/instance are external; Arkret extension members retain local ownership.",
+        "external_properties": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance"
+        ]
       },
       "required": [
         "type",

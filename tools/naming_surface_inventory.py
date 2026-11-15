@@ -16,10 +16,10 @@ from typing import Any
 import yaml
 
 try:
-    from .artifact_lint.naming import enumerate_schema_nodes
+    from .artifact_lint.naming import enumerate_schema_nodes, external_literal_property_names
     from .artifact_lint.naming_contracts import openapi_schema_positions
 except ImportError:
-    from artifact_lint.naming import enumerate_schema_nodes
+    from artifact_lint.naming import enumerate_schema_nodes, external_literal_property_names
     from artifact_lint.naming_contracts import openapi_schema_positions
 
 SCHEMA_MAPS = {"$defs", "definitions", "properties", "patternProperties", "dependentSchemas"}
@@ -91,6 +91,7 @@ class Inventory:
         if not isinstance(node, dict):
             return
         external = node.get("x-arkret-external-literal-object")
+        external_names = external_literal_property_names(node)
         for key, value in node.items():
             here = pointer(path, key)
             self.add(file, here, key, "schema.keyword", context, role)
@@ -107,8 +108,8 @@ class Inventory:
                         category = "schema.dependent_property_name"
                     metadata = {}
                     if key == "properties":
-                        metadata["ownership"] = "external_literal_object" if external else "arkret_or_undeclared"
-                        if external:
+                        metadata["ownership"] = "external_literal_object" if name in external_names else "arkret_or_undeclared"
+                        if name in external_names:
                             metadata["external_owner"] = external
                     self.add(file, child_path, name, category, context, role, **metadata)
                     # Child schema nodes are emitted by the position walk.

@@ -159,8 +159,8 @@
       "external_field_mentions": [
         "event_id",
         "view_id",
-        "wip_limit",
-        "wip_limit_enforcement"
+        "max_active_strand_count",
+        "active_strand_count_enforcement"
       ]
     },
     {

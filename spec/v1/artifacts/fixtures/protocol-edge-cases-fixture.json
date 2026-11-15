@@ -1104,7 +1104,7 @@
         "a zero-row window MUST NOT be read as an empty or exhausted stream",
         "complete proves delivery of the frozen window only, never that the stream was read down to position 0",
         "limited marks history the caller may read, so unreadable history below the floor MUST NOT set it and MUST NOT clear it",
-        "byte budgets decide segmentation only and MUST NOT lower window_limit or flip limited inside one window"
+        "byte budgets decide segmentation only and MUST NOT lower max_window_event_count or flip limited inside one window"
       ]
     },
     {

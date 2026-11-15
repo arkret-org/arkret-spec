@@ -88,6 +88,7 @@ from .naming import (
     nc_hash_001,
     nc_lexeme_001,
     nc_set_001,
+    registry_metadata_key_errors,
     request_wrapper_violation,
     schema_shape_has_type,
     stacked_wrapper_words,
@@ -169,6 +170,57 @@ def check_naming_predicates(lint: Lint) -> None:
     lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
     matched_lexeme_non_contract_exceptions: set[tuple[str, str, str]] = set()
     if isinstance(lexeme_registry, dict):
+        structural = lexeme_registry.get("registered_structural_vocabulary")
+        if not isinstance(structural, list) or not structural:
+            lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "registered_structural_vocabulary must be a non-empty array")
+        else:
+            structural_tokens: set[str] = set()
+            structural_roles = {
+                "identifier_carrier_word", "reference_carrier_word",
+                "numeric_lower_bound_word", "numeric_upper_bound_word",
+                "character_count_suffix", "integer_duration_unit_suffix",
+                "integer_memory_unit_suffix", "exact_property", "exact_scalar",
+            }
+            for index, row in enumerate(structural):
+                where = f"registered_structural_vocabulary[{index}]"
+                if not isinstance(row, dict) or set(row) != {"token", "meaning", "grammar_role", "anchor"}:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} must declare only token, meaning, grammar_role and anchor")
+                    continue
+                token, role, anchor = row["token"], row["grammar_role"], row["anchor"]
+                if not all(isinstance(row[key], str) and row[key] for key in row):
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} members must be non-empty strings")
+                    continue
+                if token in structural_tokens or role not in structural_roles:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} duplicates a token or uses an unknown grammar role")
+                structural_tokens.add(token)
+                target_file, separator, fragment = anchor.partition("#")
+                target_path = ROOT / target_file
+                if not separator or not fragment or not target_file.startswith("spec/v1/") or not target_path.is_file():
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} needs an exact, existing v1 contract anchor")
+                    continue
+                if target_path.suffix == ".json":
+                    target = load_json(lint, target_path)
+                    try:
+                        resolved = resolve_json_pointer(target, "#" + fragment)
+                        if role == "exact_scalar" and resolved != token:
+                            raise ValueError("literal differs from registered token")
+                        if role == "exact_property" and (
+                            fragment.rsplit("/", 1)[-1].replace("~1", "/").replace("~0", "~") != token
+                            or not isinstance(resolved, dict)
+                        ):
+                            raise ValueError("property differs from registered token")
+                    except (KeyError, IndexError, TypeError, ValueError) as error:
+                        lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} has a stale or mismatched authority: {error}")
+                elif target_path.suffix == ".md":
+                    headings = {
+                        markdown_heading_slug(match.group(2))
+                        for line in target_path.read_text(encoding="utf-8").splitlines()
+                        if (match := HEADING_RE.match(line))
+                    }
+                    if fragment not in headings or role in {"exact_scalar", "exact_property"}:
+                        lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} has a stale heading or requires an exact JSON authority")
+                else:
+                    lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, f"{where} authority must be a normative Markdown section or canonical JSON node")
         terms = lexeme_registry.get("canonical_terms")
         if not isinstance(terms, list) or not terms:
             lint.fail(CANONICAL_LEXEME_REGISTRY_PATH, "canonical_terms must be a non-empty array")
@@ -831,6 +883,9 @@ def check_naming_predicates(lint: Lint) -> None:
     for path in json_paths:
         data = load_json(lint, path)
         if data is not None:
+            if path.parent == ARTIFACTS / "registry":
+                for error in registry_metadata_key_errors(path.name, data):
+                    lint.fail(path, f"NC-METADATA-001 {error}")
             check_json_value(path, data)
 
     # Prose may discuss historical spellings. Only machine objects and declared

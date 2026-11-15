@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-11-12
+updated: 2026-11-15
 ---
 
 ## 0. 规范语言
@@ -186,6 +186,9 @@ ledger、缓存或补偿实现。上述内部实现只有在其可观察的 retr
 - **路径模板**：除唯一根元数据路径 `/_arkret/describe` 外，canonical Arkret 路径 MUST 使用 `/_arkret/<surface>/<resource...>`，其中 `<surface>` 使用 §2.4 的七值集合。字面 resource segment MUST 使用小写 kebab-case（`[a-z][a-z0-9]*(?:-[a-z0-9]+)*`）；模板参数 MUST 以 `{snake_case_name}` 表达。路径模板 MUST NOT 包含协议版本段、空段、尾 `/`、query、fragment、percent-encoded 字面替身或未登记 route alias。运行时参数值仍按各自 schema 校验和 URL percent encoding 规则编码，不受 resource segment 的 kebab-case 判据约束。
 - **末段动作**：只允许在路径末段使用 `<resource>:<action>`；两部分分别使用 kebab-case。该形态 MUST 对应 registry 中明确登记的 `POST` command、upload 或 exchange，表达对该资源或集合的协议动作。HTTP action 名不自动派生 `operation_id`，也不要求逐词相同：例如 `registrations:apply` 对应 `ak.edge.push.command.apply_registration.v1`；唯一映射仍由 canonical operation 行固定。
 - **path / query 参数**：参数名 MUST 使用与 JSON 字段相同的严格 snake_case 词法。每个路径占位符 MUST 恰好出现一次，并由每个绑定操作的必填 path 参数精确覆盖；不得多声明或少声明。query 中的许可／拒绝集合 MUST 使用 `allowed_`／`denied_` 前缀，包含编码为逗号分隔字符串的集合；不得使用 `*_allow`、`*_deny`、`allow_*`、`deny_*`、`permitted_*`、`forbidden_*`、`blocked_*` 或 `banned_*` 作为同义形态。
+- **身份参数 terminal**：path / query 中已登记的单态 ID 参数 MUST 复用所属 canonical identifier schema，不得只声明裸 `string` 后依靠参数名推断类型。承载完整 `AccountId`、`ActorId` 或 `RealmActorId` 的参数 MUST 保留相应 carrier 后缀及 canonical closed schema。以单一参数值传输复合身份时，先取 JCS JSON 再进行 URL percent encoding，OpenAPI MUST 用 parameter `content.application/json.schema` 引用该 canonical carrier。专属合同明确使用 query `deepObject` 的平面对象继续复用其 canonical schema，不得隐式补充缺失的 Station 或主体分量。
+- **公共类型镜像**：OpenAPI schema component 直接引用 canonical 公共 DTO 时，component 名 MUST 与该 DTO 的 canonical 类型名逐字相同；不得为同一领域合同另造镜像别名。
+- **component 本地引用名**：Arkret 自有 `components` 下的 schema、parameter、response、header、request body、example、security scheme、link、callback、path item 与 media type 引用名 MUST 为 PascalCase，并遵循 R4 的缩写折叠规则。它们是 OpenAPI 文档内各自独立的引用 namespace，引用名与 wire header / 参数名是不同角色，不能因本地引用名变更而改写 HTTP 字节拼写。
 - **HTTP header**：header 名 MUST 使用 HTTP ASCII token 语法，identity 按 HTTP 的不区分大小写规则比较；同一参数集合或响应中 MUST NOT 以不同大小写重复声明同一个 header。已有 `DPoP`、`MIMI-Room-URI`、`Source-Service-ID` 等名称保留其所属 HTTP 合同拼写，MUST NOT 按 JSON snake_case 或概念类型 PascalCase 改写。operation 层覆盖 path 层的 header 声明时 MUST 保留其 canonical 拼写。请求参数、响应 header 与 security scheme 的 header 声明遵守同一规则。
 - **HTTP operation identity**：每个 registry operation MUST 具有唯一登记的 method/path，OpenAPI `operationId` MUST 严格等于其去掉末尾 `.v1` 后的部分，并以该 exact method/path 绑定；不得通过参数占位符改名、宽松 namespace segment 或 HTTP method 别名生成第二个入口。OpenAPI Operation Object MUST 使用其规定的小写 method key 声明；current-v1 只使用 `get`、`head`、`post`、`put`、`patch`、`delete`、`options`、`trace`、`query` 这组 key，不使用 `additionalOperations` 绕过登记或引入未定义的 method。
 
@@ -630,7 +633,7 @@ X-Arkret-Wait-For: <cursor>
 - `policy_version` 或等价版本/hash。
 - `entries[]`，每项绑定 `endpoint` 或 `operation_id`。
 - 适用范围：`rate_limit_scope`，例如 actor DID、service DID、device id、source IP、Realm id 或 blob quota。
-- 窗口与额度：`window_seconds`、`max_request_count`、`burst`；若是字节或批量限制，使用 `max_bytes`、`max_event_count_per_batch`、`max_body_bytes`。
+- 窗口与额度：`window_seconds`、`max_request_count`、`burst_request_count`；若是字节或批量限制，使用 `max_bytes`、`max_event_count_per_batch`、`max_body_bytes`。
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
 - `effective_at` / `expires_at` 或缓存 TTL。若这些时间界限未知，客户端 MUST 把该策略视为最多缓存 60 秒，并按默认退避重试：首次重试间隔 ≥ 1,000 ms，随后指数倍增（factor=2）到 ≥ 60,000 ms 上限，加入 0-20% jitter，且同一 `(endpoint, scope)` 在 5 分钟内最多重试 5 次。
 

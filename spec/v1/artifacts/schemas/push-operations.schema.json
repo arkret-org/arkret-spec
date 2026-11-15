@@ -80,10 +80,11 @@
             }
           ]
         },
-        "unread_increment": {
+        "unread_increment_count": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 99
+          "maximum": 99,
+          "x-arkret-member-role": "count"
         },
         "missed_call": {
           "description": "Coarse missed-call indicator. Under blind_wakeup it MUST NOT carry a plaintext absolute count; only a boolean presence flag or the policy-declared bucket string is allowed. See push-notifications.md §5.1.",

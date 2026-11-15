@@ -4283,7 +4283,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one approval CONFIGURATION (models/governance-objects.md section 3.4). The value is the closed {action, approval_required, approval_quorum, policy_scope} document and nothing else: an accepted ak.policy.action is not an execution receipt and not an approval grant, so it confers no authority to run the action and satisfies no actual approval. The payload's closed XOR over policy_id / action_id is TWO namespaces rather than one coalesced subject, and the selector carries the branch tag verbatim so they can never merge: branch=policy_ref is keyed by (policy_id, value.action), because one Policy document may configure several actions and keying on policy_id alone would let an edit of one action silently overwrite the others; branch=realm_action is keyed by a Realm-local configuration name that hangs off no Policy document, and MUST NOT be read as naming an action inside one. Both branches live inside the Event's own Realm, which is why no realm_id member appears here (conformance/encoding.md section 4).",
+      "description": "Registered projection of one approval CONFIGURATION (models/governance-objects.md section 3.4). The value is the closed {action, approval_required, min_approver_count, policy_scope} document and nothing else: an accepted ak.policy.action is not an execution receipt and not an approval grant, so it confers no authority to run the action and satisfies no actual approval. The payload's closed XOR over policy_id / action_id is TWO namespaces rather than one coalesced subject, and the selector carries the branch tag verbatim so they can never merge: branch=policy_ref is keyed by (policy_id, value.action), because one Policy document may configure several actions and keying on policy_id alone would let an edit of one action silently overwrite the others; branch=realm_action is keyed by a Realm-local configuration name that hangs off no Policy document, and MUST NOT be read as naming an action inside one. Both branches live inside the Event's own Realm, which is why no realm_id member appears here (conformance/encoding.md section 4).",
       "properties": {
         "selector": {
           "type": "object",
@@ -6845,7 +6845,7 @@
         },
         "recovery_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
-          "description": "Immutable selection-time Recovery source from the original accepted series record; this is not necessarily the current Recovery source used for new PUT auth_binding."
+          "description": "Immutable selection-time Recovery source from the original accepted series record; this is not necessarily the current Recovery source used for new PUT authorization_binding."
         },
         "recipient_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"

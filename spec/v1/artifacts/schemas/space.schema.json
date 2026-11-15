@@ -81,14 +81,15 @@
     },
     "fields": {
       "type": "object",
-      "description": "Space kind-specific fields. For kind=list, wip_limit is an integer 1..100000 and wip_limit_enforcement is required with enum warn|reject|require_review whenever wip_limit is present; these are the sole write-policy source and MUST NOT be read from View. For kind=board, view_id may identify a default presentation. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
+      "description": "Space kind-specific fields. For kind=list, max_active_strand_count is an integer 1..100000 and active_strand_count_enforcement is required with enum warn|reject|require_review whenever max_active_strand_count is present; these are the sole write-policy source and MUST NOT be read from View. For kind=board, view_id may identify a default presentation. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
       "properties": {
-        "wip_limit": {
+        "max_active_strand_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 100000
+          "maximum": 100000,
+          "x-arkret-member-role": "count"
         },
-        "wip_limit_enforcement": {
+        "active_strand_count_enforcement": {
           "type": "string",
           "enum": [
             "warn",
@@ -97,8 +98,8 @@
           ],
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
-            "authority": "space.schema.json#/properties/fields/properties/wip_limit_enforcement",
-            "owner": "space.schema.json#/properties/fields/properties/wip_limit_enforcement",
+            "authority": "space.schema.json#/properties/fields/properties/active_strand_count_enforcement",
+            "owner": "space.schema.json#/properties/fields/properties/active_strand_count_enforcement",
             "values": [
               "warn",
               "reject",
@@ -108,8 +109,8 @@
         }
       },
       "dependentRequired": {
-        "wip_limit": [
-          "wip_limit_enforcement"
+        "max_active_strand_count": [
+          "active_strand_count_enforcement"
         ]
       },
       "not": {
@@ -220,12 +221,12 @@
               "anyOf": [
                 {
                   "required": [
-                    "wip_limit"
+                    "max_active_strand_count"
                   ]
                 },
                 {
                   "required": [
-                    "wip_limit_enforcement"
+                    "active_strand_count_enforcement"
                   ]
                 }
               ]
@@ -279,8 +280,8 @@
               "type": "object",
               "propertyNames": {
                 "enum": [
-                  "wip_limit",
-                  "wip_limit_enforcement",
+                  "max_active_strand_count",
+                  "active_strand_count_enforcement",
                   "view_id"
                 ],
                 "x-arkret-value-ownership": {
@@ -288,8 +289,8 @@
                   "authority": "space.schema.json#/allOf/2/oneOf/1/properties/fields/propertyNames",
                   "owner": "space.schema.json#/allOf/2/oneOf/1/properties/fields/propertyNames",
                   "values": [
-                    "wip_limit",
-                    "wip_limit_enforcement",
+                    "max_active_strand_count",
+                    "active_strand_count_enforcement",
                     "view_id"
                   ]
                 }
@@ -396,12 +397,12 @@
               },
               {
                 "required": [
-                  "wip_limit"
+                  "max_active_strand_count"
                 ]
               },
               {
                 "required": [
-                  "wip_limit_enforcement"
+                  "active_strand_count_enforcement"
                 ]
               },
               {

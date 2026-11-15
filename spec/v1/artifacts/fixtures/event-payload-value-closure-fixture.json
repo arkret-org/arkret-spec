@@ -287,7 +287,7 @@
         "value": {
           "action": "ak.realm.admin",
           "approval_required": true,
-          "approval_quorum": 2,
+          "min_approver_count": 2,
           "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       }
@@ -316,7 +316,7 @@
           "action_family": "custom",
           "action": "ak.realm.admin",
           "approval_required": true,
-          "approval_quorum": 2,
+          "min_approver_count": 2,
           "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       }
@@ -349,7 +349,7 @@
         "value": {
           "action": "ak.realm.admin",
           "approval_required": true,
-          "approval_quorum": 2,
+          "min_approver_count": 2,
           "policy_scope": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         },
         "reason": "unexpected"

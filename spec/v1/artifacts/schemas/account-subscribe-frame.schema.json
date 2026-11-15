@@ -931,7 +931,7 @@
         "head_commit_ref",
         "next_position",
         "limited",
-        "window_limit",
+        "max_window_event_count",
         "complete"
       ],
       "properties": {
@@ -951,15 +951,16 @@
           "type": "boolean",
           "description": "Gap marker for THIS stream: history this caller is permitted to read exists below this stream's window start. It is read against the caller's permitted range, never against the physical stream: history below the caller's readable floor MUST NOT set it, and it MUST NOT be cleared because the remaining history happens to be unreadable. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.committed_event.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
         },
-        "window_limit": {
+        "max_window_event_count": {
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
-          "description": "Cumulative item ceiling of the frozen window for THIS stream after merging the request targets (account_filter.window_limit), not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it. Per stream, so one stream being limited never depends on how much budget the other streams consumed. 0 is a boundary-and-context-only window: the server delivers no ordinary event rows for this stream, limited and complete still describe the caller's permitted range (complete true means the zero-row window was delivered in full, never that the stream was scanned to its start), and the client MUST NOT read a zero-row window as an empty or exhausted stream."
+          "description": "Cumulative item ceiling of the frozen window for THIS stream after merging the request targets (account_filter.max_window_event_count), not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it. Per stream, so one stream being limited never depends on how much budget the other streams consumed. 0 is a boundary-and-context-only window: the server delivers no ordinary event rows for this stream, limited and complete still describe the caller's permitted range (complete true means the zero-row window was delivered in full, never that the stream was scanned to its start), and the client MUST NOT read a zero-row window as an empty or exhausted stream.",
+          "x-arkret-member-role": "count"
         },
         "complete": {
           "type": "boolean",
-          "description": "The server has delivered every segment of this stream's frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission, and never that the stream was read down to position 0 — the window is bounded by window_limit and by the caller's permitted range."
+          "description": "The server has delivered every segment of this stream's frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission, and never that the stream was read down to position 0 — the window is bounded by max_window_event_count and by the caller's permitted range."
         },
         "preview_only": {
           "type": "boolean",
@@ -1594,12 +1595,13 @@
           },
           "description": "Optional explicit stream selection for the selected Realms, at most 64 per window. Entries MUST be unique, MUST each name a Realm present in realm_ids, and MUST each be a stream this caller is permitted to see; a member that is not is rejected rather than silently dropped. The Realm stream occupies one slot like any other entry when a group includes it, and a group that omits it is a valid selection. Omitted keeps the current behaviour: the server fills streams[] up to its own 64-entry ceiling and reports streams_limited. When present, the window is the selected set: the server advances the tail of exactly those streams, an omitted stream counts as not delivered rather than delivered-and-empty, and the cursor handle binds filter_digest to this selection, so switching groups needs a new filter and a new cursor while the position each group reached stays retrievable. Discovery of streams added or removed since the selection was made travels through ak.self.realm.read.streams.v1 or the visible discovery delta."
         },
-        "window_limit": {
+        "max_window_event_count": {
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
           "default": 20,
-          "description": "Per-VISIBLE-STREAM item ceiling after merging the request targets, same name and same meaning as the response-side realm_sync_entry.streams[].window_limit. For a frozen baseline window it is the cumulative ceiling across every segment of that window; for live delta it applies per frame. Byte budgets only decide segmentation and never lower it. It is deliberately not a per-Realm budget: a bucket-level quota would force the server to divide it across N streams, so one stream being marked limited could mean only that another stream consumed the budget."
+          "description": "Per-VISIBLE-STREAM item ceiling after merging the request targets, same name and same meaning as the response-side realm_sync_entry.streams[].max_window_event_count. For a frozen baseline window it is the cumulative ceiling across every segment of that window; for live delta it applies per frame. Byte budgets only decide segmentation and never lower it. It is deliberately not a per-Realm budget: a bucket-level quota would force the server to divide it across N streams, so one stream being marked limited could mean only that another stream consumed the budget.",
+          "x-arkret-member-role": "count"
         },
         "lazy_load_members": {
           "type": "boolean",

@@ -320,7 +320,7 @@ def native_recovery_fixture(*, relocate=False, portable=True, content_backup_pub
         def document(did, i):
             value = actor_document(did, i)
             value["service"] = [{"id": did + "#arkret", "type": "ArkretService",
-                "serviceKind": "station", "serviceEndpoint": station_endpoint}]
+                "service_kind": "station", "serviceEndpoint": station_endpoint}]
             return value
     first = {"versionId": "{SCID}", "versionTime": "2026-10-20T00:00:00Z", "parameters": {"method": "did:webvh:1.0", "scid": "{SCID}", "portable": portable, "updateKeys": [multikey(roots[0])], "nextKeyHashes": [multihash(multikey(roots[1]).encode())], "witness": {"threshold": 1, "witnesses": [{"id": "did:key:" + multikey(witness)}]}}, "state": document(placeholder, 0)}
     scid = multihash(canonical(first))

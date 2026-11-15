@@ -93,7 +93,8 @@ class SchemaPositionBoundariesTests(unittest.TestCase):
         self.assertEqual(self.openapi_errors(document), [])
 
     def test_valid_international_https_authority_is_accepted(self):
-        marker = {"specification": "Example", "anchor": "https://例子.测试/spec#object"}
+        marker = {"specification": "Example", "anchor": "https://例子.测试/spec#object",
+                  "external_properties": ["camelCase"]}
         self.assertEqual(self.schema_errors({**self.malformed_schema(),
                          "x-arkret-external-literal-object": marker}), [])
 
