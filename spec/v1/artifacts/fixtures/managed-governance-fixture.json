@@ -217,7 +217,36 @@
       "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
     },
     "accepted_role": "bot",
-    "owning_realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+    "owning_realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+    "parent_installation_instance": "accepted-installation-1",
+    "current_installation_instance": "accepted-installation-1",
+    "current_registration_revision": "same-instance-reaffirm-revision-1",
+    "installation_instance_boundary": "Reference-only qualified immutable source relation; no new wire ID/field, native acceptance or physical storage claim.",
+    "parent_resources": [
+      {
+        "kind": "circle",
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+      }
+    ],
+    "signed_authorization_ref": "ak:grant:AQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM",
+    "child_accepting_position": 2,
+    "contributing_sources": [
+      {
+        "grant_id": "ak:grant:AQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM",
+        "created_position": 1,
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "resource": {
+          "kind": "circle",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+        },
+        "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+        "service_id": "ak:did_core:webvh:z6mkfixtureapplet",
+        "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "installation_instance": "accepted-installation-1"
+      }
+    ]
   },
   "acceptance_cases": [
     "service_only_install_no_bot",

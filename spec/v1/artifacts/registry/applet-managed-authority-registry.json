@@ -21,7 +21,10 @@
     "ordinary_authority_control_required": true,
     "managed_subject_verified_provision_required": true,
     "all_alternative_authority_paths_current_installation_ceiling": true,
-    "shared_parent_quota": true
+    "shared_parent_quota": true,
+    "installation_source": "All actual contributing accepted parents have one canonical exact resource scope and unique Applet/Service executor/epoch with frozen accepted registration instance; same full historical tuple and signed authorization_ref contribution required. Governance Event/Commit source remains Realm, ordinary business scope remains exact effect.",
+    "original_issuer_cleanup": "Resolve the original accepted child/issuer/parent ancestry, require exact current target CAS and original Realm/Applet/Service pair current legal key; parent business expiry/revoke or inactive install does not prevent narrowing. No retired-pair, bare-DID, sibling or third-party fallback. First new Revoke uses the current original pair key/epoch for both Event producer proof and HTTP; its accepted signer fact freezes that current source, independently of the old target child/parent epoch. Exact already-accepted old Revoke preserves original proof/fact at original acceptance, with fresh current HTTP authentication; no rewriting or today-key reinterpretation.",
+    "mixed_batch": "Each business/governance item independently proves the same full historical source tuple. Old-epoch cleanup and new-epoch business split deliveries; native-series maintenance is not widened."
   },
   "device_authentication": {
     "schema_ref": "schemas/applet-device-authentication.schema.json",

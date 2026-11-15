@@ -417,30 +417,6 @@
       ]
     },
     {
-      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/did"
-    },
-    {
-      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#arkret",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/service/0/id"
-    },
-    {
-      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#control-0",
-      "role": "derived_positive",
-      "sources": [
-        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
-      ],
-      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/verificationMethod/0/id"
-    },
-    {
       "value": "did:webvh:QmaN34LdvfEc2DqRBjKNGAW7jbNJhjB5gSKpcsa8E1TbMg:witness-vector.example",
       "role": "deployment_like_example",
       "sources": [
@@ -501,6 +477,30 @@
         "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json"
       ],
       "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-signature-kat-fixture.json#/native_recovery/log_entries/2/state/verificationMethod/0/id"
+    },
+    {
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/did"
+    },
+    {
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#arkret",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/service/0/id"
+    },
+    {
+      "value": "did:webvh:Qmeb5RhmwTxUYLrj1N7TPi3b7K3GP2UFJWLQP5iGXGM14d:applet.example:actors:bot#control-0",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json#/original_authority_reference/governor_history/log_entries/0/state/verificationMethod/0/id"
     },
     {
       "value": "did:webvh:z2dmj",
@@ -857,6 +857,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturealice:alice.example#ak:device:01904100-0000-7000-8000-000000000012",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
       "role": "test_material",
       "sources": [
@@ -869,6 +876,20 @@
     },
     {
       "value": "did:webvh:z6mkfixtureapplet:applet.example#fixture",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
@@ -942,6 +963,13 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturegovernor:governor.example#authority-signing-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
       ]
     },
     {

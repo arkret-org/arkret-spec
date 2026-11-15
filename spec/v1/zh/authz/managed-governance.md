@@ -128,6 +128,11 @@ child subject **MUST** 是 accepted provision 属于本 Applet 的具体 Bot／G
 `issuer_authority_refs.kind=grant` 指向真实有效parent；depth、roots、逐动作／资源贡献、全部约束收窄沿普通 lineage合同计算。
 child **MUST** 显式 `max_authority_depth=0`、`authority_regrant_allowed=false`；Service不能授予第三方或另一Applet的主体。
 
+**有限安装来源（normative）**：本节 Service terminal child profile 的每个实际贡献 parent MUST 有单一规范 Realm／Circle resource scope；这是此 profile 的来源限制，不是普通 Grant 的全局单资源限制。该 scope、唯一 `applet_authority` 中的 Applet／Service executor／registration_epoch，与 parent 接纳时冻结的 registration 原件及 parent→真实 accepted installation 实例的不可变关联共同导出唯一 `(Realm, Applet, Service, scope, source registration epoch)`。所有贡献 parent MUST 给出同一完整来源 tuple 并关联同一真实安装实例，signed `authorization_ref` MUST 是其中实际贡献者；缺失、未来、未 accepted、不贡献、跨 tuple 或无唯一规范 scope 均拒绝。submitted child.resources 只能接受已证明上界约束，不能反过来创造安装来源。连续安全重申按 Applet §4b 保留原实例；current revision 改变不等于新实例，关闭后以同 epoch 重装也不复活旧来源。registration 原件＋epoch 或当前 registration revision 本身不能区分全部关闭／重装历史。实现可复用既有 install_id／immutable accepted source 关联，或在既有 source 存储中保留等价的 parent→真实实例关系；物理表示自选，不新增公开字段、scope 镜像、selector、独立 ledger 或隐式安装搜索。
+
+Grant／Revoke 的原 Event.scope_ref、covering Commit.stream_ref 与 Grant current source MUST 为所属 Realm；即使资源是 Circle，也不能写成 Circle 治理序列。普通业务 Event 仍 exact 匹配上述 tuple.scope，所有约束和 actual action/resource 贡献独立核验。
+
+
 parent 与 child 各 **MUST** 恰有一条 allow、grant_local 的 `applet_authority`。parent 的 `executed_by` **MUST** 等于其 Service subject（亦为 child issuer）；child 的 `executed_by` **MUST** 等于其完整 Bot／Ghost realm ActorId subject。两条绑定的 `applet_id`、`registration_epoch` **MUST** 相同；accepted provision 另外证明该主体的不可变 Applet／角色／所属 Realm 与当前 manager Service，不能靠 namespace 或同 principal 推断。child 复制 Service executor、缺失／重复绑定、混入其它 Applet／epoch／Station 均拒绝。
 
 这是普通约束收窄中有且仅有的受管 terminal executor 重绑定：仅将上述已验证 Service parent 的绑定 executor 换成其已批准具体 realm ActorId，不能删掉绑定、保留第二条 Service 绑定或扩大任何其它约束。普通 authority_control、动作／资源／期限、所有 deny／review／quarantine 与共享 ancestor quota 继续原收窄／持续上界；本规则不授权一般 delegation，也不使 terminal child 可再转授。持续 parent 求值使用其 Service 主体事实，child 执行使用其真实 Realm actor producer 事实；不能以一个求值上下文替代两者。Service→Realm actor child 不授权 Service 借用它签 Account 的业务 Event，subject_only 本人同意仍要求该 Account 原签。
@@ -138,6 +143,9 @@ Service身份／historical signer证据沿 accepted registration与原签grant�
 
 parent revoke、期限、本 Service 的 registration实例／epoch或相应scope安装失效即时使child ineffective，不逐个铸造child revoke。其它 Service 不受这次精确撤销影响；明确 applet target 的 deny 仍覆盖其全部 Service，精确 allow 不覆盖该 deny。聚合 quota 与 Ghost tuple 去重不得按 Service 分裂。
 Service 沿 `ak.edge.applet.command.transaction.v1` 的封闭原 issuer 准入原签撤销自己的 accepted terminal child，携 exact revision；业务 parent 已失效也不阻止合法收权，不赋一般 revoke 权。child revoke只影响自己；parent共享quota按原parent／constraint／Service／时间切片原子消耗，新增主体／设备／child不重置总额。
+Revoke MUST 从指定原 accepted child、原 issuer 与其已接受 parent ancestry 恢复同一来源；不要求 parent 业务权限、原业务安装或已被替换的 manager 仍授权该收权。本次 HTTP 仍 MUST 验 `(Realm, Applet, 原 issuer Service)` pair 当前合法 registration／method-native signing key；正常 key／epoch 轮换使用该 pair 的当前来源，不改旧 child／parent source epoch。 首次新 Revoke 的内层 producer_proof 与 HTTP 都 MUST 使用当前 pair 的实际合法 key／epoch（例如 B），首次接纳的 Service signer fact 也冻结本次 B；被收权 child／parent 的历史 source（例如 A）仍只定位原目标与 ancestry，不要求复活 A。旧已 accepted Revoke A 的 exact Event 重放则保其当年原 proof／fact，当前 HTTP 独立认证 B，不能按 today B 改判历史或重签原 Event。另一 Service pair 的新增不关闭原 pair；原 pair 真正 retired 或无当前合法 key 时拒绝，禁止旧 retired key、其它 Service 或裸 DID fallback。治理 owner 原有收权与 Realm lifecycle 门保持。
+
+同一 transaction 可混合普通业务与上述有限治理 Event，但每 item MUST 独立解析并核得同一完整历史来源 tuple；任何 item 不继承其它 item 的权限。旧 source epoch 的 Revoke 与新 source epoch 的业务须分投，不能以 HTTP key 相同合并。原生 series 维护的既有窄条件不因此扩大。HTTP 当前认证／投递幂等先独立通过；同 Event 的 accepted exact replay 保持原 Event／Commit／evidence／outcome，不重跑历史准入、不重扣 quota。换 key／epoch 导致稳定认证记录改变时，同 delivery identity 仍 duplicate_conflict；新 delivery identity 可恢复同 accepted Event。
 所有 membership-derived reading、直接 grant、订阅、Blob、未来MLS材料及跨站新交付 **MUST** 继续受该managed主体的
 当前 Applet业务上界与安装fence限制；不能用另一许可入口绕过来源。
 普通成员读取不必另外创建child read grant，但上游须覆盖读取：Event／Commit／history、Welcome及MLS状态供给要求
@@ -146,7 +154,7 @@ Service 沿 `ak.edge.applet.command.transaction.v1` 的封闭原 issuer 准入�
 Service通过 `ak.self.applet.authority.read.material.v1` 用自己的 Service认证取得自己exact scope／指定grant的
 原文、accepted Event／Commit及同cut current结果。只接受parent.subject等于该Service且绑定本Applet的grant，
 已失效／terminal仍可用于受限审计；不提供其他grant枚举、群history、私钥或SessionGrant。
-结果每个grant与请求、registration、scope、Realm/current generation、revision及effective head **MUST**一致；
+结果每个grant与请求、原registration及授权实例、exact effect scope、Realm/current generation、revision及effective head **MUST**一致。原 Grant Event／Commit、Grant current.source_stream_ref 与 effective governance head MUST 核所属 Realm stream；request.effective_scope 和原 parent 的规范 resources 则独立核 Realm／Circle 安装来源，不要求两者等于原 Event.scope_ref。单一 registration 响应不能以最新同 epoch 登记替换不同原来源；不能完整表达的原件组应拆分既有请求。
 Station接纳child仍重读权威current，不信任Service缓存allow。完整审计也不把私有parent原文写入共享Event。
 
 该响应 MUST 携封闭 `current_binding`，与 current_states 使用同一只读 MVCC cut、Realm／governance_generation 和相应来源 stream heads。`status=active` 恰携 `registration_ref: CommittedEventRef`、`registration_epoch: Hash`、`service_id: DidCoreId`，指向本请求 Service 在 exact Applet／scope 的当前有效安装登记；`status=inactive` 禁带这三个成员，只表示本请求 Service 在该范围没有有效安装，不披露其他 Service 的替代安装。active 必须展开 registration 实例、epoch、实际 grants、scope、membership／controller 等有效安装依赖，不能只检查登记行存在或单个 grant 的状态；治理或依赖未知时整体失败，不能返回 inactive。

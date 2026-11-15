@@ -93,7 +93,7 @@
         "since_join",
         "all_history_for_current_members"
       ],
-      "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS requires since_join.",
+      "description": "Circle's own governance history range ratchet, initialized by Circle create. The only state-changing update is all_history_for_current_members to since_join; widening is permanently forbidden. It is never dynamically inherited from or capped by the parent Realm history_access, while current access still requires active parent-Realm membership. Standard MLS can be activated under either registered history_access value. Accepting Genesis does not establish durability of application content roots or content-history readiness.",
       "x-arkret-value-ownership": {
         "class": "owned_symbol",
         "authority": "circle.schema.json#/properties/history_access",

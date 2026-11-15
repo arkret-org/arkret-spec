@@ -41,6 +41,25 @@ def policy_gate(policies, controller, operation):
 
 
 def lineage_effective(state):
+    # Qualified reference source rows, not caller authority or a second wire
+    # model. Ordinary action/role/narrowing predicates remain below.
+    if state["parent_subject"].get("kind")!="service":
+        return False
+    resources=state["parent_resources"]
+    sources=state["contributing_sources"]
+    if len(resources)!=1 or not sources:
+        return False
+    source_tuple=(state["owning_realm_id"],resources[0],state["parent_binding"]["applet_id"],
+                  state["parent_subject"]["service_id"],state["parent_binding"]["registration_epoch"],
+                  state["parent_installation_instance"])
+    if state["signed_authorization_ref"] not in {row["grant_id"] for row in sources}:
+        return False
+    for row in sources:
+        if row["created_position"]>=state["child_accepting_position"]:
+            return False
+        if (row["realm_id"],row["resource"],row["applet_id"],row["service_id"],
+            row["registration_epoch"],row["installation_instance"])!=source_tuple:
+            return False
     return (state["parent_subject"] == state["child_issuer"] and state["child_issuer"]["kind"] == "service"
             and state["child_subject"]["kind"] == "realm" and state["accepted_subject"]
             and state["child_subject"] == state["accepted_subject_actor"]
@@ -49,6 +68,7 @@ def lineage_effective(state):
             and state["ordinary_authority_control"] and state["accepted_role"] in state["parent_roles"]
             and set(state["child_actions"]).issubset(state["parent_actions"])
             and state["max_child_depth"] == 0 and state["parent_active"] and state["scope_active"]
+            and state["parent_installation_instance"] == state["current_installation_instance"]
             and state["parent_binding_count"] == state["child_binding_count"] == 1
             and state["parent_binding"]["executed_by"] == state["parent_subject"]
             and state["child_binding"]["executed_by"] == state["child_subject"] == state["actual_producer"]
@@ -182,6 +202,56 @@ class ManagedGovernanceTests(unittest.TestCase):
                 state = copy.deepcopy(original)
                 state[key] = value
                 self.assertFalse(lineage_effective(state))
+
+    def test_same_epoch_reinstall_does_not_revive_old_instance_but_safe_reaffirm_does(self):
+        state=copy.deepcopy(self.fixture["lineage"])
+        self.assertTrue(lineage_effective(state))
+        state["current_registration_revision"]="same-instance-reaffirm-revision-2"
+        self.assertTrue(lineage_effective(state), "current registration revision is not the installation instance")
+        # Keep epoch, bindings, all action/resource and other current predicates
+        # identical: only the qualified actual installation instance changed.
+        state["current_installation_instance"]="accepted-installation-2-after-close"
+        self.assertEqual(state["parent_binding"]["registration_epoch"],state["child_binding"]["registration_epoch"])
+        self.assertFalse(lineage_effective(state))
+
+    def test_parent_resource_tuple_and_actual_source_cannot_be_invented_by_child(self):
+        original=self.fixture["lineage"]
+        self.assertTrue(lineage_effective(original))
+        for field,value in [("registration_epoch","sha256:"+"b"*64),
+                            ("service_id","ak:did_core:web:other.example"),
+                            ("installation_instance","different-accepted-installation")]:
+            state=copy.deepcopy(original)
+            state["contributing_sources"][0][field]=value
+            self.assertFalse(lineage_effective(state),field)
+        # This profile resolves source identity, not resource containment.
+        # A typed narrowed candidate does not change that source. The real
+        # resource/action contribution owner remains SDK grant_evaluation::
+        # resource_selector_covers/current_sources; no local scope evaluator.
+        state=copy.deepcopy(original)
+        realm_resource={"kind":"realm","realm_id":state["owning_realm_id"]}
+        state["parent_resources"]=[realm_resource]
+        state["contributing_sources"][0]["resource"]=realm_resource
+        state["submitted_child_resources"]=copy.deepcopy(original["parent_resources"])
+        resource=self.validator("capability-grant.schema.json","#/properties/resources/items")
+        resource.validate(realm_resource)
+        resource.validate(state["submitted_child_resources"][0])
+        self.assertTrue(lineage_effective(state),"narrowed candidate does not become the installation source")
+        state=copy.deepcopy(original)
+        state["parent_resources"].append({"kind":"realm","realm_id":state["owning_realm_id"]})
+        self.assertFalse(lineage_effective(state),"no unique canonical parent scope")
+        state=copy.deepcopy(original)
+        state["signed_authorization_ref"]="non-contributing-parent"
+        self.assertFalse(lineage_effective(state))
+        state=copy.deepcopy(original)
+        state["contributing_sources"][0]["created_position"]=state["child_accepting_position"]
+        self.assertFalse(lineage_effective(state),"future source")
+        state=copy.deepcopy(original)
+        extra=copy.deepcopy(state["contributing_sources"][0])
+        extra["grant_id"]="second-qualified-contributing-parent"
+        state["contributing_sources"].append(extra)
+        self.assertTrue(lineage_effective(state),"same-tuple sources remain legal")
+        state["contributing_sources"][1]["resource"]={"kind":"realm","realm_id":state["owning_realm_id"]}
+        self.assertFalse(lineage_effective(state),"cross-install sources cannot be combined")
 
     def test_terminal_executor_transfer_preserves_source_and_rejects_service_borrowing(self):
         original = self.fixture["lineage"]

@@ -65,7 +65,8 @@
             "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
           },
           "minItems": 1,
-          "maxItems": 64
+          "maxItems": 64,
+          "description": "Exact requested original accepted Grant Events and covering Realm Commits. Their immutable registration/instance and Realm source differ from the requested exact Realm/Circle effect scope; never substitute the latest registration."
         },
         "current_states": {
           "type": "array",
@@ -73,7 +74,8 @@
             "$ref": "./exact-current-state-read.schema.json#/$defs/exact_current_state_present"
           },
           "minItems": 1,
-          "maxItems": 256
+          "maxItems": 256,
+          "description": "Same-cut original Grant current/revision/effective governance head binds the owning Realm stream; exact effect scope is independently bound to request and original parent resources. No Circle source head may stand in for a Grant Realm source."
         },
         "current_binding": {
           "$ref": "#/$defs/current_binding"
@@ -84,7 +86,7 @@
       "x-arkret-name-role": "response_body"
     },
     "current_binding": {
-      "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read.",
+      "description": "Same-cut current effective installation of the authenticated Service in the exact Applet scope. Historical material access and creation confirmation do not require active status. Unknown authority or dependencies fail the entire read. This current installation is not business authority and does not rewrite historical registration/grant sources; original Grant source/head remains Realm even for a Circle effect.",
       "oneOf": [
         {
           "type": "object",

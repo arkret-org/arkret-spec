@@ -9,6 +9,616 @@
   ],
   "generated_by": "tools/regenerate_applet_management_source_fixture.py",
   "description": "Executable reference models plus real deterministic Ed25519 outer transcript KATs. Referenced IDs and creation refs are shape material, not proof of accepted native Events. Native Realm actor create/Commit/current verification and all production MR/CR live runs remain required; no SUT or complete native signature-chain claim. Source binding tests are separate from whole-source cryptographic/native acceptance.",
+  "governance_delivery_kats": {
+    "boundary": "Cryptographic reference KAT with explicit qualified historical source/key inputs; original Device/registration refs are explicit qualified reference inputs, not proof of native DID-history, storage admission, current-key freshness, effect-once or SUT.",
+    "effect_scope": {
+      "kind": "circle",
+      "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+      "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+    },
+    "source_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "first_current_key_revoke": {
+      "event": {
+        "kind": "ak.capability.revoke",
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+        },
+        "actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+        },
+        "created_at": "2026-10-19T08:02:00.000Z",
+        "payload": {
+          "grant_id": "ak:grant:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+          "expected_commit_id": "ak:realm_commit:AX8Vf0eyeUR7J7HZhkSqoM4VTjVt90_QmB6qeXa36C8R"
+        },
+        "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+        "authorization_ref": "ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+        "event_id": "ak:event:AXLdMbCxw5j2XtyMjcvL20SRc6Knn16nIPAGTUneKwfj",
+        "producer_proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+          "event_digest": "sha256:72dd31b0b1c398f65edc8c8dcbcbdb449173a2a79f5ea720f0064d49de2b07e3",
+          "created_at": "2026-10-19T08:02:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..wcQhFmCvNC-TGOKJ6M5W8quUBEq12vXrnDgYOydGVr5kk76lbGsuRgQy3oNcfldybGVBLSCE4_mVcRy22dunBA"
+        }
+      },
+      "body": {
+        "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+        "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+        "events": [
+          {
+            "kind": "ak.capability.revoke",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+            },
+            "actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+            },
+            "created_at": "2026-10-19T08:02:00.000Z",
+            "payload": {
+              "grant_id": "ak:grant:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+              "expected_commit_id": "ak:realm_commit:AX8Vf0eyeUR7J7HZhkSqoM4VTjVt90_QmB6qeXa36C8R"
+            },
+            "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+            "authorization_ref": "ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+            "event_id": "ak:event:AXLdMbCxw5j2XtyMjcvL20SRc6Knn16nIPAGTUneKwfj",
+            "producer_proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+              "event_digest": "sha256:72dd31b0b1c398f65edc8c8dcbcbdb449173a2a79f5ea720f0064d49de2b07e3",
+              "created_at": "2026-10-19T08:02:00.000Z",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..wcQhFmCvNC-TGOKJ6M5W8quUBEq12vXrnDgYOydGVr5kk76lbGsuRgQy3oNcfldybGVBLSCE4_mVcRy22dunBA"
+            }
+          }
+        ]
+      },
+      "delivery": {
+        "name": "first_current_key_revoke",
+        "components": {
+          "@method": "POST",
+          "@target-uri": "https://governor.example/_arkret/edge/applet/transactions",
+          "@authority": "governor.example",
+          "content-digest": "sha-256=:UHcKwVcYoJ5LZH8ZtpN9ZMoi5UVR3EhtRiAtAI3LHgc=:",
+          "arkret-operation": "ak.edge.applet.command.transaction.v1",
+          "source-service-id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination-service-id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "idempotency-key": "profile-cleanup-first-current"
+        },
+        "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "signature_base_utf8": "\"@method\": POST\n\"@target-uri\": https://governor.example/_arkret/edge/applet/transactions\n\"@authority\": governor.example\n\"content-digest\": sha-256=:UHcKwVcYoJ5LZH8ZtpN9ZMoi5UVR3EhtRiAtAI3LHgc=:\n\"arkret-operation\": ak.edge.applet.command.transaction.v1\n\"source-service-id\": ak:did_core:webvh:z6mkfixtureapplet\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturegovernor\n\"idempotency-key\": profile-cleanup-first-current\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "public_key_base64url": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+        "signature_base64url": "miaHTfonMEY_1JfL6G80qsLqHl-H-2voGjND4DSHku17ATZwR0Kw8HYul0XhTrXREnHIo-EpHdIyiiWXhAfRDw",
+        "record": {
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "direction": "applet_to_arkret_inbound",
+          "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination_id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "signature_label": "sig1",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+          "verification_key_digest": "sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28",
+          "signature_algorithm": "ed25519",
+          "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "idempotency_key": "profile-cleanup-first-current",
+          "content_digest": "sha-256=:UHcKwVcYoJ5LZH8ZtpN9ZMoi5UVR3EhtRiAtAI3LHgc=:",
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "arkret-operation",
+            "source-service-id",
+            "destination-service-id",
+            "idempotency-key"
+          ],
+          "created": 1792396920,
+          "expires": 1792396980
+        },
+        "stable_canonical_utf8": "{\"content_digest\":\"sha-256=:UHcKwVcYoJ5LZH8ZtpN9ZMoi5UVR3EhtRiAtAI3LHgc=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"destination_id\":\"ak:did_core:webvh:z6mkfixturegovernor\",\"direction\":\"applet_to_arkret_inbound\",\"idempotency_key\":\"profile-cleanup-first-current\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"verification_key_digest\":\"sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-current\"}",
+        "stable_digest": "sha256:cb53ffe083204b6daed70571629bbe610c6e979dae575a7308e4e7400177b00b"
+      }
+    },
+    "source_rows": [
+      {
+        "event": {
+          "kind": "ak.capability.grant",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+          },
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            }
+          },
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "payload": {
+            "grant": {
+              "schema": "ak.schema.capability.v1",
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+              "issuer_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestation"
+                }
+              },
+              "subject": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+              },
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                {
+                  "kind": "circle",
+                  "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+                  "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+                }
+              ],
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "constraint_subkind": "applet_authority",
+                  "effect": "allow",
+                  "evaluation_class": "grant_local",
+                  "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+                  "executed_by": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+                  },
+                  "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "authority_regrant_allowed": true,
+                  "max_authority_depth": 2,
+                  "allowed_managed_actor_roles": [
+                    "bot"
+                  ]
+                }
+              ],
+              "issuer_authority_refs": [
+                {
+                  "kind": "realm_root",
+                  "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+                  "authority_event_ref": "ak:event:AUjq4HCbdCDhaykuf3jcJ0p3vU4WOjcaGfPgoCLhc0fn",
+                  "authority_generation": "0"
+                }
+              ],
+              "issued_at": "2026-09-20T00:00:00.000Z"
+            }
+          },
+          "event_id": "ak:event:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturealice:alice.example#ak:device:01904100-0000-7000-8000-000000000012",
+            "event_digest": "sha256:093cf6654dd46bf5042068752bd25ca69a34a7c1e797c876b58837016cc0865e",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..MmBlR9qVzErCwVdb78KIOwg4eZ0ucofimeJzb3SUpZSNdr3gqQotKvq5xVIzh9mW1Bt5JimMcXk-XMZd45JtBA"
+          }
+        },
+        "commit": {
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+          },
+          "stream_position": 1,
+          "previous_commit_ref": "ak:realm_commit:AWHLv4xAcLKXEtPiMJmv8UP6fTflpWN7zvAmH9IbDczm",
+          "event_ref": "ak:event:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+          "governance_generation": "0",
+          "authority_ref": "ak:event:AUjq4HCbdCDhaykuf3jcJ0p3vU4WOjcaGfPgoCLhc0fn",
+          "committed_at": "2026-09-20T00:00:00.000Z",
+          "producer_signer_fact_digest": "sha256:6b2da0796b39cedae2486419aa0c478199198101b27e5fefca70940f1f523424",
+          "commit_id": "ak:realm_commit:AW6lV76HxPZRq8KUhjEEQbaoXOBSbUOiqISZJ68NEmYj",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturegovernor:governor.example#authority-signing-key",
+            "signed_digest": "sha256:3c70d591b83f2b07df2646e918978c0f5ad1986ac1f73d68707f83b26c34c793",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "N0AEZLqpksnGvZN8Snn7vFOkoeJzlrIgy7AKsCSkCWyIa-gM_CO809_97pcwOpvm3uUXFxSPwBUA_1cFEE_2Dg"
+          }
+        },
+        "producer_signer_fact": {
+          "event_id": "ak:event:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            }
+          },
+          "device_id": "ak:device:01904100-0000-7000-8000-000000000012",
+          "verification_method": "did:webvh:z6mkfixturealice:alice.example#ak:device:01904100-0000-7000-8000-000000000012",
+          "key": {
+            "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+            "authorization_ref": {
+              "event_id": "ak:event:Ad1JpmCPt6zsDVgGMF2UXXQijbS_FLTXNyXFnZULwYrj",
+              "commit_id": "ak:realm_commit:Ad1JpmCPt6zsDVgGMF2UXXQijbS_FLTXNyXFnZULwYrj",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AbLDDKL4YT6hWbpaBvbCY11FGfsEmK0W7JGW9QET8Ptg"
+              },
+              "stream_position": 0
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ad1JpmCPt6zsDVgGMF2UXXQijbS_FLTXNyXFnZULwYrj",
+              "stream_position": 0
+            },
+            "governance_generation": "0"
+          },
+          "accepted_at": "2026-09-20T00:00:00.000Z"
+        }
+      },
+      {
+        "event": {
+          "kind": "ak.capability.grant",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+          },
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+          },
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "payload": {
+            "grant": {
+              "schema": "ak.schema.capability.v1",
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+              "issuer_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+              },
+              "subject": {
+                "kind": "realm",
+                "realm_actor_id": {
+                  "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+                  "principal_id": "ak:did_core:webvh:z6mkfixturebot"
+                }
+              },
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                {
+                  "kind": "circle",
+                  "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+                  "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+                }
+              ],
+              "constraints": [
+                {
+                  "constraint_kind": "authority_control",
+                  "constraint_subkind": "applet_authority",
+                  "effect": "allow",
+                  "evaluation_class": "grant_local",
+                  "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+                  "executed_by": {
+                    "kind": "realm",
+                    "realm_actor_id": {
+                      "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+                      "principal_id": "ak:did_core:webvh:z6mkfixturebot"
+                    }
+                  },
+                  "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                {
+                  "constraint_kind": "authority_control",
+                  "effect": "allow",
+                  "authority_regrant_allowed": false,
+                  "max_authority_depth": 0
+                }
+              ],
+              "issuer_authority_refs": [
+                {
+                  "kind": "grant",
+                  "grant_id": "ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe"
+                }
+              ],
+              "issued_at": "2026-09-20T00:00:00.000Z"
+            }
+          },
+          "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+          "authorization_ref": "ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+          "event_id": "ak:event:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
+            "event_digest": "sha256:3d4813328a92a923a802aaaded638e6ca8c0b1d5d0ca209798c0dcd610f54e25",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..JVQgA3BvZJPc0K5VxpDLy6bDfg-1LkfemCCD_yTtt5b0TM93ImJJcL9xIhO3Qqs6NuDNOd3dPtLOZg3656OwDA"
+          }
+        },
+        "commit": {
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+          },
+          "stream_position": 2,
+          "previous_commit_ref": "ak:realm_commit:AW6lV76HxPZRq8KUhjEEQbaoXOBSbUOiqISZJ68NEmYj",
+          "event_ref": "ak:event:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+          "governance_generation": "0",
+          "authority_ref": "ak:event:AUjq4HCbdCDhaykuf3jcJ0p3vU4WOjcaGfPgoCLhc0fn",
+          "committed_at": "2026-09-20T00:00:00.000Z",
+          "producer_signer_fact_digest": "sha256:10eace439a004efcacc5b2b2eb3fad7da8edcda9bd7de85e9c044ce81600a428",
+          "commit_id": "ak:realm_commit:AX8Vf0eyeUR7J7HZhkSqoM4VTjVt90_QmB6qeXa36C8R",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturegovernor:governor.example#authority-signing-key",
+            "signed_digest": "sha256:d0d3a326773e64a61d87cf93b7813b21bf85d5429c3e977a167ad5046612c0e0",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "signature": "j1AV7_YP8oMLpXzf0pAeY7SwpdZwpBkj4VMJXs7gekwXEIF2iTP7FG6r8qK0UcjQlupKBaKtUZMSQz-fcx0OCw"
+          }
+        },
+        "producer_signer_fact": {
+          "event_id": "ak:event:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+          "actor": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+          },
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
+          "accepted_at": "2026-09-20T00:00:00.000Z",
+          "key": {
+            "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+            "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+            "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "registration_ref": {
+              "event_id": "ak:event:AZJb6yrCdHSc4pEJEXFNjq6sioBHcle0AFkPC_20jhGb",
+              "commit_id": "ak:realm_commit:AZJb6yrCdHSc4pEJEXFNjq6sioBHcle0AFkPC_20jhGb",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+              },
+              "stream_position": 0
+            },
+            "authorization_ref": {
+              "event_id": "ak:event:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+              "commit_id": "ak:realm_commit:AW6lV76HxPZRq8KUhjEEQbaoXOBSbUOiqISZJ68NEmYj",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+              },
+              "stream_position": 1
+            },
+            "effective_scope": {
+              "kind": "circle",
+              "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+              "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+            }
+          }
+        }
+      }
+    ],
+    "body": {
+      "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+      "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+      "events": [
+        {
+          "kind": "ak.capability.revoke",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
+          },
+          "actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+          },
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "payload": {
+            "grant_id": "ak:grant:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l",
+            "expected_commit_id": "ak:realm_commit:AX8Vf0eyeUR7J7HZhkSqoM4VTjVt90_QmB6qeXa36C8R"
+          },
+          "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+          "authorization_ref": "ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe",
+          "event_id": "ak:event:AZB6hTOIoqfbAHywe6fUoy7j3xu4b51StIt7aPE420ms",
+          "producer_proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
+            "event_digest": "sha256:907a853388a2a7db007cb07ba7d4a32ee3df1bb86f9d52b48b7b68f138db49ac",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..8sACcwqJRO6nmg2SEGGy2Wx16TmLQZZLQgdkG1raO3QXVaJ2gBGzO3wV87sXURhwprSlnddoVIRg62If_5VaBQ"
+          }
+        }
+      ]
+    },
+    "canonical_body_utf8": "{\"applet_id\":\"ak:applet:01904100-0000-7000-8000-000000000011\",\"events\":[{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureapplet\"},\"applet_id\":\"ak:applet:01904100-0000-7000-8000-000000000011\",\"authorization_ref\":\"ak:grant:AQk89mVN1Gv1BCBodSvSXKaaNKfB55fIdrWINwFswIZe\",\"created_at\":\"2026-09-20T00:00:00.000Z\",\"event_id\":\"ak:event:AZB6hTOIoqfbAHywe6fUoy7j3xu4b51StIt7aPE420ms\",\"kind\":\"ak.capability.revoke\",\"payload\":{\"expected_commit_id\":\"ak:realm_commit:AX8Vf0eyeUR7J7HZhkSqoM4VTjVt90_QmB6qeXa36C8R\",\"grant_id\":\"ak:grant:AT1IEzKKkqkjqAKqre1jjmyowLHV0Mogl5jA3NYQ9U4l\"},\"producer_proof\":{\"created_at\":\"2026-09-20T00:00:00.000Z\",\"event_digest\":\"sha256:907a853388a2a7db007cb07ba7d4a32ee3df1bb86f9d52b48b7b68f138db49ac\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0..8sACcwqJRO6nmg2SEGGy2Wx16TmLQZZLQgdkG1raO3QXVaJ2gBGzO3wV87sXURhwprSlnddoVIRg62If_5VaBQ\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-old\"},\"realm_id\":\"ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK\"}}],\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\"}",
+    "authority_public_key_base64url": "JUO5L_EJVRFHatyDadtt3JM2ZaEZeN2hQE7hBmypVZ0",
+    "deliveries": [
+      {
+        "name": "accepted",
+        "components": {
+          "@method": "POST",
+          "@target-uri": "https://governor.example/_arkret/edge/applet/transactions",
+          "@authority": "governor.example",
+          "content-digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "arkret-operation": "ak.edge.applet.command.transaction.v1",
+          "source-service-id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination-service-id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "idempotency-key": "profile-cleanup-1"
+        },
+        "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396800;expires=1792396860;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-old\";alg=\"ed25519\"",
+        "signature_base_utf8": "\"@method\": POST\n\"@target-uri\": https://governor.example/_arkret/edge/applet/transactions\n\"@authority\": governor.example\n\"content-digest\": sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\n\"arkret-operation\": ak.edge.applet.command.transaction.v1\n\"source-service-id\": ak:did_core:webvh:z6mkfixtureapplet\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturegovernor\n\"idempotency-key\": profile-cleanup-1\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396800;expires=1792396860;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-old\";alg=\"ed25519\"",
+        "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "signature_base64url": "NLTjcYFNnFExVqDgPmmq6_cbxpqNgzAoKqfq96pvJA939kaAdqC7k_BHZ1pVVP4TBU0SEWDSP51U0_yE2VZxBQ",
+        "record": {
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "direction": "applet_to_arkret_inbound",
+          "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination_id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "signature_label": "sig1",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
+          "verification_key_digest": "sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c",
+          "signature_algorithm": "ed25519",
+          "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "profile-cleanup-1",
+          "content_digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "arkret-operation",
+            "source-service-id",
+            "destination-service-id",
+            "idempotency-key"
+          ],
+          "created": 1792396800,
+          "expires": 1792396860
+        },
+        "stable_canonical_utf8": "{\"content_digest\":\"sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"destination_id\":\"ak:did_core:webvh:z6mkfixturegovernor\",\"direction\":\"applet_to_arkret_inbound\",\"idempotency_key\":\"profile-cleanup-1\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"verification_key_digest\":\"sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-old\"}",
+        "stable_digest": "sha256:c9f493282eb43a01f4a5ffc865158b1bd2d5e7afd65f252eee2b6c6ffd314c51"
+      },
+      {
+        "name": "fresh_time_retry",
+        "components": {
+          "@method": "POST",
+          "@target-uri": "https://governor.example/_arkret/edge/applet/transactions",
+          "@authority": "governor.example",
+          "content-digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "arkret-operation": "ak.edge.applet.command.transaction.v1",
+          "source-service-id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination-service-id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "idempotency-key": "profile-cleanup-1"
+        },
+        "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396860;expires=1792396920;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-old\";alg=\"ed25519\"",
+        "signature_base_utf8": "\"@method\": POST\n\"@target-uri\": https://governor.example/_arkret/edge/applet/transactions\n\"@authority\": governor.example\n\"content-digest\": sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\n\"arkret-operation\": ak.edge.applet.command.transaction.v1\n\"source-service-id\": ak:did_core:webvh:z6mkfixtureapplet\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturegovernor\n\"idempotency-key\": profile-cleanup-1\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396860;expires=1792396920;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-old\";alg=\"ed25519\"",
+        "public_key_base64url": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "signature_base64url": "QPwdfybAqO-u0LETccLKrApIUoIPAeVll05N8fGpVpqWd1L0N1eLDHc4h-pRW8W0saaSlV-iu5EkHk28AvMqCQ",
+        "record": {
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "direction": "applet_to_arkret_inbound",
+          "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination_id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "signature_label": "sig1",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-old",
+          "verification_key_digest": "sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c",
+          "signature_algorithm": "ed25519",
+          "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "idempotency_key": "profile-cleanup-1",
+          "content_digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "arkret-operation",
+            "source-service-id",
+            "destination-service-id",
+            "idempotency-key"
+          ],
+          "created": 1792396860,
+          "expires": 1792396920
+        },
+        "stable_canonical_utf8": "{\"content_digest\":\"sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"destination_id\":\"ak:did_core:webvh:z6mkfixturegovernor\",\"direction\":\"applet_to_arkret_inbound\",\"idempotency_key\":\"profile-cleanup-1\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"verification_key_digest\":\"sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-old\"}",
+        "stable_digest": "sha256:c9f493282eb43a01f4a5ffc865158b1bd2d5e7afd65f252eee2b6c6ffd314c51"
+      },
+      {
+        "name": "current_key_same_identity",
+        "components": {
+          "@method": "POST",
+          "@target-uri": "https://governor.example/_arkret/edge/applet/transactions",
+          "@authority": "governor.example",
+          "content-digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "arkret-operation": "ak.edge.applet.command.transaction.v1",
+          "source-service-id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination-service-id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "idempotency-key": "profile-cleanup-1"
+        },
+        "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "signature_base_utf8": "\"@method\": POST\n\"@target-uri\": https://governor.example/_arkret/edge/applet/transactions\n\"@authority\": governor.example\n\"content-digest\": sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\n\"arkret-operation\": ak.edge.applet.command.transaction.v1\n\"source-service-id\": ak:did_core:webvh:z6mkfixtureapplet\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturegovernor\n\"idempotency-key\": profile-cleanup-1\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "public_key_base64url": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+        "signature_base64url": "T10npE88g9S3CgncHfdz1zkq-T5cQ5qyzvtmwZJKHKqxlZkRLZhvpji6Pxa1GEFDQbqiqrh8IdX6I7bFS-v8DQ",
+        "record": {
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "direction": "applet_to_arkret_inbound",
+          "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination_id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "signature_label": "sig1",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+          "verification_key_digest": "sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28",
+          "signature_algorithm": "ed25519",
+          "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "idempotency_key": "profile-cleanup-1",
+          "content_digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "arkret-operation",
+            "source-service-id",
+            "destination-service-id",
+            "idempotency-key"
+          ],
+          "created": 1792396920,
+          "expires": 1792396980
+        },
+        "stable_canonical_utf8": "{\"content_digest\":\"sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"destination_id\":\"ak:did_core:webvh:z6mkfixturegovernor\",\"direction\":\"applet_to_arkret_inbound\",\"idempotency_key\":\"profile-cleanup-1\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"verification_key_digest\":\"sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-current\"}",
+        "stable_digest": "sha256:4abbda8f9b9bbafbeb7182418b8e04de827454074755bc6f2fd9843e4cb8bf62"
+      },
+      {
+        "name": "current_key_new_identity",
+        "components": {
+          "@method": "POST",
+          "@target-uri": "https://governor.example/_arkret/edge/applet/transactions",
+          "@authority": "governor.example",
+          "content-digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "arkret-operation": "ak.edge.applet.command.transaction.v1",
+          "source-service-id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination-service-id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "idempotency-key": "profile-cleanup-2"
+        },
+        "signature_params": "(\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "signature_base_utf8": "\"@method\": POST\n\"@target-uri\": https://governor.example/_arkret/edge/applet/transactions\n\"@authority\": governor.example\n\"content-digest\": sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\n\"arkret-operation\": ak.edge.applet.command.transaction.v1\n\"source-service-id\": ak:did_core:webvh:z6mkfixtureapplet\n\"destination-service-id\": ak:did_core:webvh:z6mkfixturegovernor\n\"idempotency-key\": profile-cleanup-2\n\"@signature-params\": (\"@method\" \"@target-uri\" \"@authority\" \"content-digest\" \"arkret-operation\" \"source-service-id\" \"destination-service-id\" \"idempotency-key\");created=1792396920;expires=1792396980;keyid=\"did:webvh:z6mkfixtureapplet:applet.example#service-current\";alg=\"ed25519\"",
+        "public_key_base64url": "Kay64UG8yvCyLhqU000LxzYeUm0L_hLIl5S8kyKWbdc",
+        "signature_base64url": "20XdmqutQ3WhP8SGfnnErEo587QQ9xYj2fBwFgtUSYG_5C5tmbWsb_FWwyGd_syCzgHBxOKJPEvsZhPRAoE3DA",
+        "record": {
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "direction": "applet_to_arkret_inbound",
+          "source_id": "ak:did_core:webvh:z6mkfixtureapplet",
+          "destination_id": "ak:did_core:webvh:z6mkfixturegovernor",
+          "signature_label": "sig1",
+          "verification_method": "did:webvh:z6mkfixtureapplet:applet.example#service-current",
+          "verification_key_digest": "sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28",
+          "signature_algorithm": "ed25519",
+          "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "idempotency_key": "profile-cleanup-2",
+          "content_digest": "sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:",
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "arkret-operation",
+            "source-service-id",
+            "destination-service-id",
+            "idempotency-key"
+          ],
+          "created": 1792396920,
+          "expires": 1792396980
+        },
+        "stable_canonical_utf8": "{\"content_digest\":\"sha-256=:oRcxW0yo+wFZKMJeCrOvdx4EuLBizg3Q3Lcq/FME/9s=:\",\"covered_components\":[\"@method\",\"@target-uri\",\"@authority\",\"content-digest\",\"arkret-operation\",\"source-service-id\",\"destination-service-id\",\"idempotency-key\"],\"destination_id\":\"ak:did_core:webvh:z6mkfixturegovernor\",\"direction\":\"applet_to_arkret_inbound\",\"idempotency_key\":\"profile-cleanup-2\",\"operation_id\":\"ak.edge.applet.command.transaction.v1\",\"registration_epoch\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"signature_algorithm\":\"ed25519\",\"signature_label\":\"sig1\",\"source_id\":\"ak:did_core:webvh:z6mkfixtureapplet\",\"verification_key_digest\":\"sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28\",\"verification_method\":\"did:webvh:z6mkfixtureapplet:applet.example#service-current\"}",
+        "stable_digest": "sha256:7472f8ac4357d6c2e8d8ba3b262382edc2e838b317a4170aa55399d9ca7e0809"
+      }
+    ]
+  },
   "test_key": {
     "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
     "public_key_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",

@@ -151,6 +151,9 @@
                   "ak.capability.grant"
                 ]
               }
+            },
+            "scope_ref": {
+              "$ref": "./event-envelope.schema.json#/$defs/scope_ref/oneOf/0"
             }
           }
         }

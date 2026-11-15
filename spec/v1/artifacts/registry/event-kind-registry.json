@@ -1753,7 +1753,8 @@
       },
       "admission": "capability_or_owned_agent",
       "admission_checks": [
-        "Applet Service-authored terminal child: exact active installation, accepted managed Realm actor subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4. Parent and child each have exactly one allow/grant_local applet_authority: parent executor is its Service subject, child executor is its full managed Realm actor subject; same Applet and registration epoch. Only this accepted managed terminal relationship permits executor rebinding; every other constraint and current ancestor ceiling remains mandatory. A Service cannot consume the Realm actor child."
+        "Applet Service-authored terminal child: exact active installation, accepted managed Realm actor subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4. Parent and child each have exactly one allow/grant_local applet_authority: parent executor is its Service subject, child executor is its full managed Realm actor subject; same Applet and registration epoch. Only this accepted managed terminal relationship permits executor rebinding; every other constraint and current ancestor ceiling remains mandatory. A Service cannot consume the Realm actor child.",
+        "Finite Applet Service terminal Grant derives one exact historical installation tuple from all actual contributing accepted parents, their unique canonical resources/Applet/Service/epoch and frozen original registration and immutable parent-to-accepted-installation-instance binding; signed authorization_ref must contribute. Governance Event/Commit source is Realm. No submitted-resource, singleton or latest-install inference; current lineage/installation/role/constraints/quota/approvals remain required."
       ]
     },
     {
@@ -1852,7 +1853,8 @@
       },
       "admission": "capability_or_owned_agent",
       "admission_checks": [
-        "Exact Applet Service issuer may revoke only its own accepted terminal managed child, with exact revision/CAS and historical source; no general revoke power or active business parent is needed to close that child. Retained legal Service authentication and current signer eligibility still required."
+        "Exact Applet Service issuer may revoke only its own accepted terminal managed child, with exact revision/CAS and historical source; no general revoke power or active business parent is needed to close that child. Retained legal Service authentication and current signer eligibility still required.",
+        "Original Service issuer child cleanup derives source from that accepted child and its original parent ancestry, regardless of parent business expiry/revoke or inactive business installation. Authenticate the original Realm/Applet/Service pair current legal registration/key; no retired-key/bare-DID fallback, third-party revoke or general new permission. Preserve exact scalar CAS and immutable accepted outcome. First new Revoke uses the current original pair key/epoch for both Event producer proof and HTTP; its accepted signer fact freezes that current source, independently of the old target child/parent epoch. Exact already-accepted old Revoke preserves original proof/fact at original acceptance, with fresh current HTTP authentication; no rewriting or today-key reinterpretation."
       ]
     },
     {

@@ -98,6 +98,134 @@ class AppletManagementSourceTests(unittest.TestCase):
         schema = json.loads((ART/'schemas/applet-authority-material.schema.json').read_text(encoding='utf-8'))
         self.assertIn('current_binding', schema['$defs']['response_body']['required'])
         self.assertIn('registration', schema['$defs']['response_body']['required'])
+
+    def test_governance_originals_bind_actual_event_ids_proofs_and_realm_commits(self):
+        case=self.f['governance_delivery_kats']; public=decode(case['deliveries'][0]['public_key_base64url'])
+        previous=None
+        for row in case['source_rows']:
+            event=row['event'];commit=row['commit']
+            self.schema('schemas/event-envelope.schema.json').validate(event)
+            self.schema('schemas/realm-commit.schema.json').validate(commit)
+            self.schema('schemas/authority-commit-operations.schema.json#/$defs/historical_producer_signer_fact').validate(row['producer_signer_fact'])
+            self.assertEqual(commit['producer_signer_fact_digest'],'sha256:'+hashlib.sha256(canonical(row['producer_signer_fact'])).hexdigest())
+            self.assertEqual(row['producer_signer_fact']['event_id'],event['event_id'])
+            self.assertEqual(row['producer_signer_fact']['actor'],event['actor_id'])
+            self.assertEqual(row['producer_signer_fact']['verification_method'],event['producer_proof']['verification_method'])
+            self.schema('schemas/event-payload.schema.json#/$defs/capability_grant_payload').validate(event['payload'])
+            unsigned={k:v for k,v in event.items() if k not in {'event_id','producer_proof'}}
+            event_digest='sha256:'+hashlib.sha256(canonical(unsigned)).hexdigest()
+            self.assertEqual(event['event_id'],'ak:event:'+base64.urlsafe_b64encode(b'\x01'+hashlib.sha256(canonical(unsigned)).digest()).rstrip(b'=').decode())
+            proof=event['producer_proof'];head,empty,sig=proof['jws'].split('.')
+            self.assertEqual(empty,'');self.assertEqual(proof['event_digest'],event_digest)
+            binding={'context':'ak.event_proof.v1','event_digest':event_digest,'actor_id':event['actor_id'],'verification_method':proof['verification_method'],'created_at':event['created_at']}
+            Ed25519PublicKey.from_public_bytes(public).verify(decode(sig),(head+'.'+base64.urlsafe_b64encode(canonical(binding)).rstrip(b'=').decode()).encode())
+            self.assertEqual(event['scope_ref'],{'kind':'realm','realm_id':event['realm_id']})
+            self.assertEqual(commit['stream_ref'],event['scope_ref']);self.assertEqual(commit['event_ref'],event['event_id'])
+            body={k:v for k,v in commit.items() if k not in {'commit_id','signature'}}
+            self.assertEqual(commit['commit_id'],'ak:realm_commit:'+base64.urlsafe_b64encode(b'\x01'+hashlib.sha256(canonical(body)).digest()).rstrip(b'=').decode())
+            signature=commit['signature'];self.assertEqual(signature['signed_digest'],'sha256:'+hashlib.sha256(canonical({k:v for k,v in commit.items() if k!='signature'})).hexdigest())
+            envelope={k:v for k,v in signature.items() if k!='signature'}
+            Ed25519PublicKey.from_public_bytes(decode(case['authority_public_key_base64url'])).verify(decode(signature['signature']),b'ak.realm_commit_signature.v1\n'+canonical(envelope))
+            if previous is not None:self.assertEqual(commit['previous_commit_ref'],previous)
+            previous=commit['commit_id']
+        parent,child=(x['event'] for x in case['source_rows'])
+        self.assertEqual(child['authorization_ref'],'ak:grant:'+parent['event_id'].split(':')[-1])
+        self.assertEqual(child['payload']['grant']['issuer_authority_refs'],[{'kind':'grant','grant_id':child['authorization_ref']}])
+        self.assertEqual(parent['payload']['grant']['resources'],[case['effect_scope']])
+        self.assertEqual(child['payload']['grant']['resources'],[case['effect_scope']])
+        self.assertEqual(child['payload']['grant']['issuer_id'],parent['payload']['grant']['subject'])
+
+    def test_governance_authoring_is_realm_but_payload_effect_stays_circle(self):
+        case=self.f['governance_delivery_kats']
+        grant_validator=self.schema('schemas/applet-install-authoring.schema.json#/$defs/capability_grant_event')
+        for row in case['source_rows']:
+            event=row['event']
+            grant_validator.validate(event)
+            self.assertEqual(event['payload']['grant']['resources'],[case['effect_scope']])
+            wrong=copy.deepcopy(event);wrong['scope_ref']=case['effect_scope']
+            self.assertFalse(grant_validator.is_valid(wrong),'a Circle effect is not a Circle governance Event')
+        revoke=case['body']['events'][0]
+        submission=self.schema('schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/capability_revoke_events/items')
+        submission.validate({'event':revoke})
+        wrong=copy.deepcopy(revoke);wrong['scope_ref']=case['effect_scope']
+        self.assertFalse(submission.is_valid({'event':wrong}))
+        body=copy.deepcopy(case['body']);body['effective_scope']=case['effect_scope']
+        request=self.schema('schemas/applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body')
+        self.assertFalse(request.is_valid(body),'no redundant routing selector is added')
+
+
+    def test_first_new_revoke_uses_current_inner_and_http_key_with_old_target_source(self):
+        case=self.f['governance_delivery_kats'];fresh=case['first_current_key_revoke']
+        event=fresh['event'];delivery=fresh['delivery'];record=delivery['record']
+        self.schema('schemas/event-envelope.schema.json').validate(event)
+        self.schema('schemas/event-payload.schema.json#/$defs/capability_revoke_payload').validate(event['payload'])
+        self.schema('schemas/applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body').validate(fresh['body'])
+        original_child=case['source_rows'][1]
+        self.assertEqual(event['payload']['grant_id'],'ak:grant:'+original_child['event']['event_id'].split(':')[-1])
+        self.assertEqual(event['payload']['expected_commit_id'],original_child['commit']['commit_id'])
+        self.assertEqual(event['authorization_ref'],original_child['event']['authorization_ref'])
+        self.assertEqual(event['actor_id'],original_child['event']['actor_id'])
+        self.assertNotIn('executed_by',event)
+        proof=event['producer_proof']
+        self.assertEqual(proof['verification_method'],record['verification_method'])
+        self.assertNotEqual(proof['verification_method'],case['body']['events'][0]['producer_proof']['verification_method'])
+        self.assertNotEqual(record['registration_epoch'],case['source_epoch'])
+        unsigned={k:v for k,v in event.items() if k not in {'event_id','producer_proof'}}
+        content_hash=hashlib.sha256(canonical(unsigned)).digest()
+        self.assertEqual(event['event_id'],'ak:event:'+base64.urlsafe_b64encode(b'\x01'+content_hash).rstrip(b'=').decode())
+        self.assertNotEqual(event['event_id'],case['body']['events'][0]['event_id'])
+        self.assertEqual(proof['event_digest'],'sha256:'+content_hash.hex())
+        binding={'context':'ak.event_proof.v1','event_digest':proof['event_digest'],'actor_id':event['actor_id'],'verification_method':proof['verification_method'],'created_at':event['created_at']}
+        head,empty,sig=proof['jws'].split('.');self.assertEqual(empty,'')
+        signing=(head+'.'+base64.urlsafe_b64encode(canonical(binding)).rstrip(b'=').decode()).encode()
+        current=Ed25519PublicKey.from_public_bytes(decode(delivery['public_key_base64url']))
+        current.verify(decode(sig),signing)
+        old=Ed25519PublicKey.from_public_bytes(decode(case['deliveries'][0]['public_key_base64url']))
+        with self.assertRaises(InvalidSignature):old.verify(decode(sig),signing)
+        body=canonical(fresh['body'])
+        self.assertEqual(record['content_digest'],'sha-256=:'+base64.b64encode(hashlib.sha256(body).digest()).decode()+':')
+        components=delivery['components']
+        base='\n'.join('"'+key+'": '+components[key] for key in record['covered_components'])+'\n"@signature-params": '+delivery['signature_params']
+        self.assertEqual(base,delivery['signature_base_utf8'])
+        current.verify(decode(delivery['signature_base64url']),base.encode())
+        self.assertEqual(components['source-service-id'],event['actor_id']['service_id'])
+        # This proves both new signatures/immutable old target coordinates.
+        # Native current-pair qualification and first-accept fact persistence
+        # remain the existing issuer/Station consumer's independent duty.
+
+    def test_actual_http_signatures_have_stable_time_retry_but_not_key_rotation_identity(self):
+        from tools.check_applet_delivery_authentication_kat import record_digest
+        case=self.f['governance_delivery_kats'];body=canonical(case['body'])
+        self.assertEqual(case['canonical_body_utf8'],body.decode())
+        self.schema('schemas/applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body').validate(case['body'])
+        observed=[]
+        for delivery in case['deliveries']:
+            record=delivery['record'];components=delivery['components']
+            self.assertEqual(record['content_digest'],'sha-256=:'+base64.b64encode(hashlib.sha256(body).digest()).decode()+':')
+            base='\n'.join('"'+key+'": '+components[key] for key in record['covered_components'])+'\n"@signature-params": '+delivery['signature_params']
+            self.assertEqual(base,delivery['signature_base_utf8'])
+            key=Ed25519PublicKey.from_public_bytes(decode(delivery['public_key_base64url']))
+            key.verify(decode(delivery['signature_base64url']),base.encode())
+            self.assertEqual(record['verification_key_digest'],'sha256:'+hashlib.sha256(decode(delivery['public_key_base64url'])).hexdigest())
+            stable={k:v for k,v in record.items() if k not in {'created','expires'}}
+            self.assertEqual(delivery['stable_canonical_utf8'],canonical(stable).decode())
+            expected='sha256:'+hashlib.sha256(b'ak.applet.delivery_authentication_record.v1\n'+canonical(stable)).hexdigest()
+            self.assertEqual(delivery['stable_digest'],expected)
+            self.assertEqual(record_digest('ak.applet.delivery_authentication_record.v1',record),(canonical(stable).decode(),expected))
+            observed.append(expected)
+            changed=dict(components);changed['content-digest']='sha-256=:'+base64.b64encode(bytes(32)).decode()+':'
+            changed_base='\n'.join('"'+name+'": '+changed[name] for name in record['covered_components'])+'\n"@signature-params": '+delivery['signature_params']
+            with self.assertRaises(InvalidSignature):key.verify(decode(delivery['signature_base64url']),changed_base.encode())
+        self.assertNotEqual(case['deliveries'][0]['signature_base64url'],case['deliveries'][1]['signature_base64url'])
+        self.assertEqual(observed[0],observed[1])
+        self.assertNotEqual(observed[0],observed[2])
+        self.assertEqual(case['deliveries'][2]['record']['idempotency_key'],case['deliveries'][0]['record']['idempotency_key'])
+        self.assertNotEqual(observed[2],observed[3])
+        self.assertNotEqual(case['source_epoch'],case['deliveries'][2]['record']['registration_epoch'])
+        # Original Event/producer proof are exactly the same body in all four
+        # signed deliveries. This is a cryptographic reference, not a native
+        # storage once-effect or current-key/DID qualification assertion.
+
     def test_fixture_reconstruction_and_closed_coverage(self):
         self.assertEqual(self.f,build())
         self.assertEqual({c['acceptance_id'] for c in self.f['cases']},{'MR-'+str(i) for i in range(1,10)}|{'CR-'+str(i) for i in range(1,13)})
