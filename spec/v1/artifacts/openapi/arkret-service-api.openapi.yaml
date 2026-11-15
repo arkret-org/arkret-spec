@@ -2150,6 +2150,9 @@ paths:
           items:
             type: string
             minLength: 1
+            contentMediaType: application/json
+            contentSchema:
+              $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
           minItems: 1
           maxItems: 256
           uniqueItems: true

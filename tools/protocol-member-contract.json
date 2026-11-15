@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:0a47ff29339938877ab6195854a8787ed9c128d3a1a1a7b49f0c5389f75d10cf",
+  "contract_digest": "sha256:43e32d2a11a577566d76e293f37307bb7d1ace4de0765544710c65560e475fd5",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -117906,7 +117906,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:8ddcf0da2cfe50820dd58abb5342a43e9be83dbf218e6dd3237b4157c0f9d506"
+      "digest": "sha256:e8d8646475bd750e1d39c0d3eebbb3147d423f59d0fe56473b92c3189886e575"
     },
     {
       "file": "operation-clause-registry.json",
@@ -120920,7 +120920,11 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "contentMediaType": "application/json",
+                  "contentSchema": {
+                    "$ref": "../schemas/common-ids.schema.json#/$defs/actor_id"
+                  }
                 },
                 "minItems": 1,
                 "maxItems": 256,

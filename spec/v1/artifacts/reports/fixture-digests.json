@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
-      "sha256": "0927eff5066928177974b9bb53c03090cc7cd63f2529350c1da041317cd9230b"
+      "sha256": "ac1f37d8cebbb19d87f0fef108fe8dc720d9dbea840d830970301debbac95815"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",

@@ -882,7 +882,10 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             or actor_schema.get("minItems") != 1
             or actor_schema.get("maxItems") != 256
             or actor_schema.get("uniqueItems") is not True
-            or actor_schema.get("items") != {"type": "string", "minLength": 1}
+            or actor_schema.get("items") != {
+                "type": "string", "minLength": 1, "contentMediaType": "application/json",
+                "contentSchema": {"$ref": "../schemas/common-ids.schema.json#/$defs/actor_id"},
+            }
             or actor_param.get("style") != "form"
             or actor_param.get("explode") is not True
             or "RFC 8785 JCS" not in actor_param.get("description", "")

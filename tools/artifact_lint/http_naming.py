@@ -271,10 +271,53 @@ def _compound_parameter_identifier_errors(document: dict[str, Any], parameter: d
     name = parameter.get("name")
     if parameter.get("in") not in {"query", "path"} or not isinstance(name, str):
         return
-    carrier = next((value for value in COMPOUND_ID_CARRIERS if name == value or name.endswith("_" + value)), None)
-    if carrier is None:
+    matched = next(((value, plural) for value in COMPOUND_ID_CARRIERS for plural in (False, True)
+                    if name == value + ("s" if plural else "")
+                    or name.endswith("_" + value + ("s" if plural else ""))), None)
+    if matched is None:
         return
-    if parameter.get("style") == "deepObject":
+    carrier, repeated = matched
+    from .semantic_naming import ALIAS_ANNOTATIONS
+
+    def local_schema(schema: Any) -> Any:
+        seen = set()
+        while isinstance(schema, dict) and isinstance(schema.get("$ref"), str):
+            reference = schema["$ref"]
+            siblings = set(schema) - {"$ref"} - ALIAS_ANNOTATIONS
+            if siblings:
+                errors.append(f"{where}: compound identity schema references must be transparent aliases; "
+                              f"unsupported sibling keywords: {sorted(map(str, siblings))}")
+                return None
+            if not reference.startswith("#/"):
+                return schema
+            if reference in seen:
+                errors.append(f"{where}: compound identity parameter schema reference must be acyclic")
+                return None
+            seen.add(reference)
+            target: Any = document
+            try:
+                for part in reference[2:].split("/"):
+                    target = target[part.replace("~1", "/").replace("~0", "~")]
+            except (KeyError, TypeError, IndexError):
+                errors.append(f"{where}: compound identity parameter schema reference must resolve")
+                return None
+            schema = target
+        return schema
+
+    if repeated:
+        array = local_schema(parameter.get("schema"))
+        if (parameter.get("in") != "query" or parameter.get("style") != "form"
+                or parameter.get("explode") is not True or "content" in parameter
+                or not isinstance(array, dict) or array.get("type") != "array"):
+            errors.append(f"{where}: compound identity collection requires repeated form query values")
+            return
+        items = local_schema(array.get("items"))
+        if (not isinstance(items, dict) or items.get("type") != "string"
+                or items.get("contentMediaType") != "application/json" or "contentEncoding" in items):
+            errors.append(f"{where}: each repeated compound identity value must declare its decoded application/json content schema")
+            return
+        schema = items.get("contentSchema")
+    elif parameter.get("style") == "deepObject":
         if parameter.get("in") != "query" or parameter.get("explode") is not True or "content" in parameter or carrier == "actor_id":
             errors.append(f"{where}: deepObject identity requires an exploded flat closed carrier")
         schema = parameter.get("schema")
@@ -285,21 +328,7 @@ def _compound_parameter_identifier_errors(document: dict[str, Any], parameter: d
             return
         media = content["application/json"]
         schema = media.get("schema") if isinstance(media, dict) else None
-    seen = set()
-    while isinstance(schema, dict) and isinstance(schema.get("$ref"), str) and schema["$ref"].startswith("#/"):
-        reference = schema["$ref"]
-        if reference in seen:
-            errors.append(f"{where}: compound identity parameter schema reference must be acyclic")
-            return
-        seen.add(reference)
-        target: Any = document
-        try:
-            for part in reference[2:].split("/"):
-                target = target[part.replace("~1", "/").replace("~0", "~")]
-        except (KeyError, TypeError, IndexError):
-            errors.append(f"{where}: compound identity parameter schema reference must resolve")
-            return
-        schema = target
+    schema = local_schema(schema)
     canonical_refs = {
         f"../schemas/common-ids.schema.json#/$defs/{carrier}",
         f"https://arkret.org/v1/schemas/common-ids.schema.json#/$defs/{carrier}",

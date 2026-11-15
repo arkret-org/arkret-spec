@@ -74,8 +74,8 @@
       },
       "assertions": [
         "re-serializing the same document with any other raw JSON property order MUST produce the same digest",
-        "removing also_known_as MUST change the digest to sha256:41a9952f2759044d26d640dba9c54b4d7702de30bc4ca5621a56667495e1fb58",
-        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:acbe292d7600ba1e26ca284e5f408795aae4ac3dc6247e4a4e312ae6ada5b251",
+        "removing also_known_as MUST change the digest to sha256:d34d2ef57520899cc87f1cc0ad60f3682f4a93d7703e357426d6830d97f73d54",
+        "removing both also_known_as and metadata.primary_handle MUST change the digest to sha256:037eb484864b3bafb857255825359908e735c4444de5950a3c3856f18e1da69d",
         "duplicate or conflicting property, verification-method id, service id, metadata key, relationship or extension name MUST fail before digesting",
         "a raw resolver response digest MUST NOT be carried in document_digest; raw bytes use raw_document_digest"
       ]

@@ -1,10 +1,11 @@
 """Independent regressions for declaration, reference and example boundaries."""
 from __future__ import annotations
 
+import copy
 import unittest
 from unittest.mock import patch
 
-from tools.artifact_lint.core import Lint
+from tools.artifact_lint.core import ARTIFACTS, Lint, load_yaml
 from tools.artifact_lint import naming_contracts
 from tools.artifact_lint.semantic_naming import enum_errors
 
@@ -31,6 +32,19 @@ class SchemaPositionBoundariesTests(unittest.TestCase):
         errors = self.openapi_errors(document)
         self.assertTrue(any("/components/mediaTypes/Payload/schema/properties/camelCase" in error
                             for error in errors), errors)
+
+    def test_repeated_query_identity_content_schema_is_a_real_declaration(self):
+        lint = Lint()
+        document = copy.deepcopy(load_yaml(lint, ARTIFACTS / "openapi/arkret-service-api.openapi.yaml"))
+        positions = dict(naming_contracts.openapi_schema_positions(document))
+        pointer = ("/paths/~1_arkret~1self~1committed-events~1subscribe/get/parameters/2"
+                   "/schema/items/contentSchema")
+        self.assertEqual(positions[pointer], {
+            "$ref": "../schemas/common-ids.schema.json#/$defs/actor_id"})
+        parameter = document["paths"]["/_arkret/self/committed-events/subscribe"]["get"]["parameters"][2]
+        parameter["schema"]["items"]["contentSchema"] = self.malformed_schema()
+        errors = self.openapi_errors(document)
+        self.assertTrue(any(pointer + "/properties/camelCase" in error for error in errors), errors)
 
     def test_media_reference_siblings_are_not_inline_schemas(self):
         document = {"components": {"mediaTypes": {"Payload": {"schema": {"type": "string"}}}},

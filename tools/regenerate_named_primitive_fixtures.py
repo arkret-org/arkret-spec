@@ -77,6 +77,22 @@ def build(name, source):
             expected[digest_fields[source_field]] = sha(encoded)
             if 'jcs_utf8' in expected:
                 expected['jcs_utf8'] = encoded
+            if source_field == 'normalized_document':
+                without_aliases = copy.deepcopy(case['input'][source_field])
+                del without_aliases['also_known_as']
+                without_aliases_and_handle = copy.deepcopy(without_aliases)
+                del without_aliases_and_handle['metadata']['primary_handle']
+                mutations = (
+                    ('removing also_known_as MUST change the digest to ', without_aliases),
+                    ('removing both also_known_as and metadata.primary_handle MUST change the digest to ',
+                     without_aliases_and_handle),
+                )
+                for prefix, preimage in mutations:
+                    matches = [index for index, assertion in enumerate(case['assertions'])
+                               if assertion.startswith(prefix)]
+                    if len(matches) != 1:
+                        raise ValueError('DID document KAT requires exactly one assertion for each deletion preimage')
+                    case['assertions'][matches[0]] = prefix + sha(canonical(preimage))
     elif name == 'encoding-fixture.json':
         for node in nodes(result):
             if 'expected_canonical_bytes_utf8' in node and 'expected_digest' in node:

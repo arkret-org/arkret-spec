@@ -3,6 +3,10 @@
 import copy
 import json
 import unittest
+from urllib.parse import quote, unquote
+
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 from .artifact_lint.http_naming import http_naming_errors, operation_id_errors, path_name_errors, transport_naming_errors, http_index_errors, SCALAR_PARAMETER_REFS
 from .artifact_lint.core import ARTIFACTS, Lint, load_json, load_yaml
@@ -131,6 +135,154 @@ class HttpNamingTests(unittest.TestCase):
             self.assertTrue(http_naming_errors(invalid, rows), changed)
         document["components"]["schemas"]["RealmActorId"] = {"$ref": "#/components/schemas/RealmActorId"}
         self.assertTrue(http_naming_errors(document, rows))
+
+    def test_repeated_compound_identity_values_require_decoded_content_schemas(self):
+        for name, carrier in (("account_ids", "account_id"), ("source_actor_ids", "actor_id"),
+                              ("target_realm_actor_ids", "realm_actor_id")):
+            document, rows = specimen()
+            item = {"type": "string", "contentMediaType": "application/json", "contentSchema": {
+                "$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier}}
+            parameter = {"in": "query", "name": name, "style": "form", "explode": True,
+                         "schema": {"type": "array", "items": item}}
+            next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+            self.assertEqual(http_naming_errors(document, rows), [])
+            invalid_items = [
+                {"type": "string"},
+                {"type": "string", "contentMediaType": "application/json"},
+                {key: value for key, value in item.items() if key != "contentMediaType"},
+                {**item, "contentMediaType": "text/plain"},
+                {**item, "contentEncoding": "base64"},
+                {**item, "type": "object"},
+                {**item, "contentSchema": {"type": "object"}},
+                {**item, "contentSchema": {"$ref": "../schemas/common-ids.schema.json#/$defs/did_core_id"}},
+                {**item, "contentSchema": {"$ref": "../schemas/common-ids.schema.json#/$defs/" + (
+                    "account_id" if carrier != "account_id" else "actor_id")}},
+            ]
+            for changed_item in invalid_items:
+                invalid = copy.deepcopy(document)
+                selected = next(iter(invalid["paths"].values()))["get"]["parameters"][1]
+                selected["schema"]["items"] = changed_item
+                with self.subTest(name=name, item=changed_item):
+                    self.assertTrue(http_naming_errors(invalid, rows))
+            for changed in (
+                {**parameter, "style": "deepObject"}, {**parameter, "style": "simple"},
+                {**parameter, "explode": False}, {**parameter, "in": "path"},
+                {**parameter, "content": {"application/json": {"schema": parameter["schema"]}}},
+                {**parameter, "schema": {"type": "string"}},
+            ):
+                invalid = copy.deepcopy(document)
+                next(iter(invalid["paths"].values()))["get"]["parameters"][1] = changed
+                errors = http_naming_errors(invalid, rows)
+                with self.subTest(name=name, parameter=changed):
+                    self.assertTrue(any("compound identity collection" in error for error in errors), errors)
+
+    def test_repeated_identity_content_schema_follows_local_aliases(self):
+        document, rows = specimen()
+        document["components"] = {"schemas": {
+            "ActorId": {"$ref": "../schemas/common-ids.schema.json#/$defs/actor_id"},
+            "EncodedActor": {"type": "string", "contentMediaType": "application/json",
+                             "contentSchema": {"$ref": "#/components/schemas/ActorId"}},
+            "EncodedActors": {"type": "array", "items": {"$ref": "#/components/schemas/EncodedActor"}},
+        }}
+        parameter = {"in": "query", "name": "actor_ids", "style": "form", "explode": True,
+                     "schema": {"$ref": "#/components/schemas/EncodedActors"}}
+        next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+        self.assertEqual(http_naming_errors(document, rows), [])
+        for reference in ("#/components/schemas/Missing", "#/components/schemas/ActorId"):
+            invalid = copy.deepcopy(document)
+            invalid["components"]["schemas"]["ActorId"] = {"$ref": reference}
+            self.assertTrue(http_naming_errors(invalid, rows), reference)
+
+    def test_repeated_identity_aliases_reject_shape_and_content_siblings_at_every_layer(self):
+        document, rows = specimen()
+        annotation = {"description": "The same complete decoded identity.", "title": "Identity alias"}
+        document["components"] = {"schemas": {
+            "ActorId": {"$ref": "../schemas/common-ids.schema.json#/$defs/actor_id", **annotation},
+            "ActorIdAlias": {"$ref": "#/components/schemas/ActorId", **annotation},
+            "EncodedActor": {"type": "string", "contentMediaType": "application/json",
+                             "contentSchema": {"$ref": "#/components/schemas/ActorIdAlias", **annotation}},
+            "EncodedActorAlias": {"$ref": "#/components/schemas/EncodedActor", **annotation},
+            "EncodedActors": {"type": "array", "items": {
+                "$ref": "#/components/schemas/EncodedActorAlias", **annotation}},
+            "EncodedActorsAlias": {"$ref": "#/components/schemas/EncodedActors", **annotation},
+        }}
+        parameter = {"in": "query", "name": "actor_ids", "style": "form", "explode": True,
+                     "schema": {"$ref": "#/components/schemas/EncodedActorsAlias", **annotation}}
+        operation = next(iter(document["paths"].values()))["get"]
+        operation["parameters"][1] = parameter
+        self.assertEqual(http_naming_errors(document, rows), [])
+        path = next(iter(document["paths"]))
+        cases = (
+            (("paths", path, "get", "parameters", 1, "schema"), {"type": "string"}),
+            (("components", "schemas", "EncodedActorsAlias"), {"minItems": 1}),
+            (("components", "schemas", "EncodedActors", "items"), {"contentEncoding": "base64"}),
+            (("components", "schemas", "EncodedActorAlias"), {"contentMediaType": "text/plain"}),
+            (("components", "schemas", "EncodedActor", "contentSchema"), {"type": "string"}),
+            (("components", "schemas", "ActorIdAlias"), {"allOf": [{"type": "string"}]}),
+            (("components", "schemas", "ActorId"), {"type": "string"}),
+        )
+        for parts, sibling in cases:
+            invalid = copy.deepcopy(document)
+            target = invalid
+            for part in parts:
+                target = target[part]
+            target.update(sibling)
+            errors = http_naming_errors(invalid, rows)
+            with self.subTest(path=parts, sibling=sibling):
+                self.assertTrue(any("transparent aliases" in error for error in errors), errors)
+
+    def test_single_compound_identity_canonical_references_allow_only_annotations(self):
+        annotations = {"title": "Identity alias", "description": "One complete identity.", "$comment": "Alias.",
+                       "examples": [], "default": {}, "deprecated": False, "readOnly": True, "writeOnly": False}
+        for carrier in ("actor_id", "account_id", "realm_actor_id"):
+            for local in (False, True):
+                document, rows = specimen()
+                reference = {"$ref": "../schemas/common-ids.schema.json#/$defs/" + carrier, **annotations}
+                if local:
+                    document["components"] = {"schemas": {"Identity": reference}}
+                    schema = {"$ref": "#/components/schemas/Identity", **annotations}
+                else:
+                    schema = reference
+                parameter = {"in": "query", "name": carrier, "content": {"application/json": {"schema": schema}}}
+                next(iter(document["paths"].values()))["get"]["parameters"][1] = parameter
+                self.assertEqual(http_naming_errors(document, rows), [])
+                for sibling in ({"type": "string"}, {"properties": {"unknown_member": {}}},
+                                {"contentEncoding": "base64"}, {"contentSchema": {"type": "string"}}):
+                    invalid = copy.deepcopy(document)
+                    target = (invalid["components"]["schemas"]["Identity"] if local else
+                              next(iter(invalid["paths"].values()))["get"]["parameters"][1]["content"]["application/json"]["schema"])
+                    target.update(sibling)
+                    errors = http_naming_errors(invalid, rows)
+                    with self.subTest(carrier=carrier, local=local, sibling=sibling):
+                        self.assertTrue(any("transparent aliases" in error for error in errors), errors)
+
+    def test_real_repeated_actor_ids_decode_before_canonical_identity_validation(self):
+        """Content annotations identify the decoded schema; receivers perform validation."""
+        lint = Lint()
+        document = load_yaml(lint, ARTIFACTS / "openapi/arkret-service-api.openapi.yaml")
+        parameters = document["paths"]["/_arkret/self/committed-events/subscribe"]["get"]["parameters"]
+        parameter = next(value for value in parameters if value.get("name") == "actor_ids")
+        items = parameter["schema"]["items"]
+        filename, pointer = items["contentSchema"]["$ref"].split("#", 1)
+        canonical = json.loads((ARTIFACTS / "openapi" / filename).read_text(encoding="utf-8"))
+        registry = Registry().with_resource(canonical["$id"], Resource.from_contents(canonical))
+        validator = Draft202012Validator({"$ref": canonical["$id"] + "#" + pointer}, registry=registry)
+        account = {"kind": "account", "account_id": {
+            "principal_id": "ak:did_core:web:alice.example", "station_id": "ak:did_core:web:station.example"}}
+        missing_station = {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:alice.example"}}
+        for value, valid in (
+            (account, True), ({"kind": "service", "service_id": "ak:did_core:web:service.example"}, True),
+            (missing_station, False), ({}, False), ("did:web:alice.example", False),
+            ({**account, "unknown_member": True}, False),
+        ):
+            jcs = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            encoded = quote(jcs, safe="")
+            decoded = json.loads(unquote(encoded, encoding="utf-8", errors="strict"))
+            with self.subTest(value=value):
+                self.assertEqual(validator.is_valid(decoded), valid)
+        with self.assertRaises(json.JSONDecodeError):
+            json.loads(unquote(quote("did:web:alice.example", safe="")))
+        self.assertTrue(Draft202012Validator(items).is_valid(json.dumps(missing_station)))
 
     def test_canonical_public_dto_mirrors_cannot_create_type_name_aliases(self):
         document, rows = specimen()

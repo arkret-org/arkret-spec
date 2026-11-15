@@ -129,7 +129,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:c9ef92194efa94379d79b5d3bfc718793ff3a233ac9f5c1569bde78730152e46",
+      "section_digest": "sha256:74e335e6ef5b2e33703faf76f50056c19a0735d699fb63b72f3ced0c7c943397",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
