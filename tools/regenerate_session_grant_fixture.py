@@ -7,15 +7,18 @@ import argparse
 import copy
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from session_grant_reference import ath, b64u, credential_digest, grant_ref, jcs_text, jwk_thumbprint, secret_from_random, sign_dpop
-
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.session_grant_reference import ath, b64u, credential_digest, grant_ref, jcs_text, jwk_thumbprint, secret_from_random, sign_dpop
+
+
 FIXTURE = ROOT / "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
 ISSUER_A = "ak:did_core:webvh:z6mkfixtureauthaexample"
 ISSUER_B = "ak:did_core:webvh:z6mkfixtureauthbexample"

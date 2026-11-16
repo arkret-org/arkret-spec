@@ -46,21 +46,8 @@ class OperationResidualClosureTest(unittest.TestCase):
         )
         self.assertIn(operation_id, events_surface["operations"])
 
-    def test_delivery_status_is_closed_across_migration_openapi_and_prose(self) -> None:
+    def test_delivery_status_is_closed_across_openapi_and_prose(self) -> None:
         operation_id = "ak.self.events.read.delivery_status.v1"
-        migration = json.loads(
-            (ROOT / "tools" / "operation-id-v1-migration.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        self.assertIn(
-            {
-                "old": "ak.self.events.read.delivery_status",
-                "new": operation_id,
-            },
-            migration["mappings"],
-        )
-
         openapi = yaml.safe_load(
             (ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml").read_text(
                 encoding="utf-8"

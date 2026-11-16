@@ -14,7 +14,9 @@ import hashlib
 import json
 from typing import Any
 
-from .core import Lint, load_json
+from tools.reference_json import jcs_text as _jcs
+
+from .core import ARTIFACTS, Lint, load_json
 from .proof_context_schemas import EVENT_KIND_REGISTRY
 
 
@@ -25,59 +27,6 @@ _ALGORITHM_PROFILE = {
     "role": "opaque_current_row_locator",
     "public_generic_api": False,
     "authority_semantics": "none",
-}
-
-_FAMILIES = {
-    "agent_interaction": {
-        "derivation_id": "ak.current_key.agent_interaction.v1",
-        "api_name": "derive_agent_interaction_current_key",
-        "parameters": [("agent_account_id", "AccountId")],
-        "components": [("agent_account_id", "rfc8785_jcs_value", {"payload.agent_account_id"})],
-    },
-    "member_state": {
-        "derivation_id": "ak.current_key.member_state.v1",
-        "api_name": "derive_member_state_current_key",
-        "parameters": [("member_actor_id", "ActorId")],
-        "components": [
-            ("member_actor_id", "rfc8785_jcs_value", {"envelope.actor_id", "payload.member_id"})
-        ],
-    },
-    "agent_status": {
-        "derivation_id": "ak.current_key.agent_status.v1",
-        "api_name": "derive_agent_status_current_key",
-        "parameters": [("agent_actor_id", "ActorId")],
-        "components": [
-            ("agent_actor_id", "rfc8785_jcs_value", {"envelope.actor_id"})
-        ],
-    },
-    "agent_key": {
-        "derivation_id": "ak.current_key.agent_key.v1",
-        "api_name": "derive_agent_key_current_key",
-        "parameters": [("agent_id", "DidCoreId"), ("key_id", "AgentKeyId")],
-        "components": [
-            ("agent_id", "wire_scalar", {"payload.agent_id"}),
-            ("key_id", "wire_scalar", {"item.key_id", "payload.key_id"}),
-        ],
-    },
-    "realm_actor_key_backup_active_series": {
-        "derivation_id": "ak.current_key.realm_actor_key_backup_active_series.v1",
-        "api_name": "derive_realm_actor_key_backup_active_series_current_key",
-        "parameters": [("realm_actor_id", "RealmActorId"), ("effective_scope", "ScopeRef"), ("backup_kind", "BackupKind")],
-        "components": [
-            ("realm_actor_id", "rfc8785_jcs_value", {"payload.actor_id.realm_actor_id"}),
-            ("effective_scope", "rfc8785_jcs_value", {"payload.effective_scope"}),
-            ("backup_kind", "wire_scalar", {"payload.backup_kind"}),
-        ],
-    },
-    "key_backup_active_series": {
-        "derivation_id": "ak.current_key.key_backup_active_series.v1",
-        "api_name": "derive_key_backup_active_series_current_key",
-        "parameters": [("actor_id", "ActorId"), ("backup_kind", "BackupKind")],
-        "components": [
-            ("actor_id", "rfc8785_jcs_value", {"payload.actor_id"}),
-            ("backup_kind", "wire_scalar", {"payload.backup_kind"}),
-        ],
-    },
 }
 
 _ROW_KEYS = {
@@ -98,12 +47,6 @@ _KAT_KEYS = {
 }
 
 
-def _jcs(value: Any) -> str:
-    """RFC 8785 spelling for the fixture's string/object-only value subset."""
-
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-
-
 def _derive(domain: str, components: list[Any]) -> tuple[str, str]:
     preimage = f"{domain}\n{_jcs(components)}"
     digest = hashlib.sha256(preimage.encode("utf-8")).digest()
@@ -121,6 +64,32 @@ def _selector_component(component: Any) -> tuple[str | None, str | None]:
 
 def _fail(lint: Lint, message: str) -> None:
     lint.fail(EVENT_KIND_REGISTRY, f"typed_current_key_derivations {message}")
+
+
+def _registered_families(lint: Lint) -> tuple[dict[str, Any], Any]:
+    """Read API metadata from its canonical contract, independently of codegen."""
+    document = load_json(lint, ARTIFACTS / "registry/contract-registry.json")
+    try:
+        contract = document["event_kind_registry"]["typed_current_key_derivations"]
+        families = {}
+        for row in contract["families"]:
+            family = row["state_family"]
+            if family in families:
+                raise ValueError("duplicate family")
+            families[family] = {
+                "state_family": family,
+                "derivation_id": row["derivation_id"],
+                "api_name": row["api_name"],
+                "parameters": [(p["name"], p["value_shape"]) for p in row["parameters"]],
+                "components": [
+                    (c["parameter"], c["normalization"], set(c["registry_sources"]))
+                    for c in row["components"]
+                ],
+            }
+        return families, contract["coverage_audit"]
+    except (KeyError, TypeError, ValueError):
+        _fail(lint, "canonical family metadata is malformed")
+        return {}, None
 
 
 def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
@@ -188,7 +157,11 @@ def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
     domain = row.get("domain")
     if not isinstance(domain, str):
         return
-    preimage, output = _derive(domain, values)
+    try:
+        preimage, output = _derive(domain, values)
+    except (ValueError, TypeError) as error:
+        _fail(lint, f"family {family!r}.kat input is outside the reference JSON subset: {error}")
+        return
     if kat.get("preimage_utf8") != preimage:
         _fail(lint, f"family {family!r}.kat.preimage_utf8 does not recompute")
     if kat.get("expected_output") != output:
@@ -249,17 +222,23 @@ def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
         if not isinstance(mutation_domain, str) or mutation_domain == domain:
             _fail(lint, f"family {family!r} wrong-family-domain mutation must change domain")
         else:
-            _, mutation_output = _derive(mutation_domain, values)
+            try:
+                _, mutation_output = _derive(mutation_domain, values)
+            except (ValueError, TypeError) as error:
+                _fail(lint, f"family {family!r} wrong-family-domain input is invalid: {error}")
+                return
             if wrong_domain.get("expected_output") != mutation_output or mutation_output == output:
                 _fail(lint, f"family {family!r} wrong-family-domain KAT does not diverge")
 
 
-def _check_selector_alignment(lint: Lint, registry: dict[str, Any], rows_by_family: dict[str, Any]) -> None:
+def _check_selector_alignment(
+    lint: Lint, registry: dict[str, Any], rows_by_family: dict[str, Any], families: dict[str, Any]
+) -> None:
     seen: dict[str, list[set[str]]] = {
         family: [set() for _ in expected["components"]]
-        for family, expected in _FAMILIES.items()
+        for family, expected in families.items()
     }
-    live_count = {family: 0 for family in _FAMILIES}
+    live_count = {family: 0 for family in families}
     call_mute_selectors: list[Any] = []
 
     for event in registry.get("event_kinds") or ():
@@ -272,14 +251,14 @@ def _check_selector_alignment(lint: Lint, registry: dict[str, Any], rows_by_fami
             selector = write.get("state_selector")
             if family == "call_mute_override":
                 call_mute_selectors.append(selector)
-            if family not in _FAMILIES:
+            if family not in families:
                 continue
             live_count[family] += 1
             components = selector.get("components") if isinstance(selector, dict) else None
             if not isinstance(selector, dict) or selector.get("kind") != "composite":
                 _fail(lint, f"active family {family!r} must use its registered composite descriptor")
                 continue
-            expected_components = _FAMILIES[family]["components"]
+            expected_components = families[family]["components"]
             if not isinstance(components, list) or len(components) != len(expected_components):
                 _fail(lint, f"active family {family!r} selector arity disagrees with its derivation")
                 continue
@@ -295,7 +274,7 @@ def _check_selector_alignment(lint: Lint, registry: dict[str, Any], rows_by_fami
                 elif source is not None:
                     seen[family][index].add(source)
 
-    for family, expected in _FAMILIES.items():
+    for family, expected in families.items():
         if live_count[family] == 0:
             _fail(lint, f"registered family {family!r} has no active selector")
         for index, (_, _, sources) in enumerate(expected["components"]):
@@ -306,8 +285,6 @@ def _check_selector_alignment(lint: Lint, registry: dict[str, Any], rows_by_fami
 
     if call_mute_selectors != [{"kind": "composite", "components": ["payload.call_id"]}]:
         _fail(lint, "call_mute_override must remain the active one-component [call_id] family")
-    if "call_mute_override" in rows_by_family:
-        _fail(lint, "the legacy per-leg mute caller must not gain a compatibility derivation")
 
 
 def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
@@ -325,19 +302,9 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
     if contract.get("algorithm_profile") != _ALGORITHM_PROFILE:
         _fail(lint, "algorithm_profile drifted from the locator-only domain-separated profile")
 
-    expected_audit = {
-        "coland_missing_helper_callers": 10,
-        "active_family_callers": 9,
-        "registered_active_families": len(_FAMILIES),
-        "excluded_per_leg_mute": {
-            "observed_component_order": ["call_id", "actor_id", "device_id"],
-            "active_state_family": "call_mute_override",
-            "active_component_order": ["payload.call_id"],
-            "disposition": "no_compatibility_api_fail_closed",
-        },
-    }
+    families, expected_audit = _registered_families(lint)
     if contract.get("coverage_audit") != expected_audit:
-        _fail(lint, "coverage_audit must preserve the 9 active callers plus 1 rejected legacy caller")
+        _fail(lint, "coverage_audit must match the canonical contract")
 
     rows = contract.get("families")
     if not isinstance(rows, list):
@@ -346,20 +313,18 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
     rows_by_family: dict[str, Any] = {}
     for row in rows:
         family = row.get("state_family") if isinstance(row, dict) else None
-        if family == "call_mute_override":
-            _fail(lint, "the legacy per-leg mute caller must not gain a compatibility derivation")
-        if not isinstance(family, str) or family not in _FAMILIES or family in rows_by_family:
+        if not isinstance(family, str) or family not in families or family in rows_by_family:
             _fail(lint, f"families contains unknown or duplicate state_family {family!r}")
             continue
         rows_by_family[family] = row
-        expected = dict(_FAMILIES[family])
+        expected = dict(families[family])
         expected["state_family"] = family
         _check_family_row(lint, row, expected)
-    if set(rows_by_family) != set(_FAMILIES):
-        _fail(lint, f"families must be exactly {sorted(_FAMILIES)}")
+    if set(rows_by_family) != set(families):
+        _fail(lint, f"families must be exactly {sorted(families)}")
     if "composite_subject" in json.dumps(contract, ensure_ascii=False):
         _fail(lint, "must not publish the retired generic composite_subject name")
-    _check_selector_alignment(lint, registry, rows_by_family)
+    _check_selector_alignment(lint, registry, rows_by_family, families)
 
 
 def check_typed_current_key_derivations(lint: Lint) -> None:

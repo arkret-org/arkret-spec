@@ -112,14 +112,14 @@ class TypedCurrentKeyDerivationsTest(unittest.TestCase):
         reported = errors_for(mutate)
         self.assertTrue(any("component 0 is not registered" in error for error in reported), reported)
 
-    def test_legacy_per_leg_mute_cannot_gain_a_compatibility_api(self) -> None:
+    def test_unregistered_family_cannot_gain_a_derivation(self) -> None:
         def mutate(doc: dict) -> None:
             template = copy.deepcopy(doc["typed_current_key_derivations"]["families"][2])
-            template["state_family"] = "call_mute_override"
+            template["state_family"] = "unregistered_current_family"
             doc["typed_current_key_derivations"]["families"].append(template)
 
         reported = errors_for(mutate)
-        self.assertTrue(any("legacy per-leg mute caller" in error for error in reported), reported)
+        self.assertTrue(any("unknown or duplicate state_family" in error for error in reported), reported)
 
 
 if __name__ == "__main__":

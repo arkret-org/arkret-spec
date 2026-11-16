@@ -26,6 +26,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.reference_json import jcs_text
+
 SPEC = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC / "artifacts"
 CONTRACT_PATH = ARTIFACTS / "registry" / "contract-registry.json"
@@ -58,30 +62,6 @@ DIGEST_KEY = "delivery_authentication_record_digest"
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _jcs_sort_key(name: str) -> bytes:
-    """RFC 8785 orders property names by UTF-16 code unit."""
-    return name.encode("utf-16-be")
-
-
-def jcs_text(value: Any) -> str:
-    if isinstance(value, dict):
-        members = sorted(value.items(), key=lambda item: _jcs_sort_key(item[0]))
-        body = ",".join(
-            f"{json.dumps(key, ensure_ascii=False)}:{jcs_text(item)}"
-            for key, item in members
-        )
-        return "{" + body + "}"
-    if isinstance(value, list):
-        return "[" + ",".join(jcs_text(item) for item in value) + "]"
-    if isinstance(value, bool) or value is None:
-        return json.dumps(value)
-    if isinstance(value, int):
-        return str(value)
-    if isinstance(value, str):
-        return json.dumps(value, ensure_ascii=False)
-    raise TypeError(f"JCS: unsupported value {value!r}")
 
 
 def record_digest(domain: str, record: dict[str, Any]) -> tuple[str, str]:

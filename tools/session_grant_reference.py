@@ -23,6 +23,9 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 
+from tools.reference_json import jcs_text
+
+
 GRANT_PREFIX = "ak:session_grant:"
 ID_RE = re.compile(r"^ak:session_grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SECRET_RE = re.compile(r"^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$")
@@ -32,35 +35,6 @@ PRIVATE_JWK_MEMBERS = {"d", "k", "p", "q", "dp", "dq", "qi", "oth"}
 
 class GrantError(ValueError):
     """Stable conformance rejection label."""
-
-
-def jcs_text(value: Any) -> str:
-    if value is None:
-        return "null"
-    if value is True:
-        return "true"
-    if value is False:
-        return "false"
-    if isinstance(value, int):
-        if abs(value) > 9_007_199_254_740_991:
-            raise ValueError("JCS integer is outside the interoperable IEEE-754 range")
-        return str(value)
-    if isinstance(value, float):
-        raise ValueError("floating-point values are not supported by this KAT checker")
-    if isinstance(value, str):
-        encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)
-        encoded.encode("utf-8", errors="strict")
-        return encoded
-    if isinstance(value, list):
-        return "[" + ",".join(jcs_text(item) for item in value) + "]"
-    if isinstance(value, dict):
-        if any(not isinstance(key, str) for key in value):
-            raise ValueError("JCS object property names must be strings")
-        return "{" + ",".join(
-            jcs_text(key) + ":" + jcs_text(value[key])
-            for key in sorted(value, key=lambda key: key.encode("utf-16-be", errors="strict"))
-        ) + "}"
-    raise ValueError(f"unsupported JCS value type: {type(value).__name__}")
 
 
 def b64u(value: bytes) -> str:
