@@ -1911,6 +1911,7 @@
           "realm_id",
           "genesis_event",
           "genesis_commit",
+          "producer_signer_fact",
           "authority_transitions",
           "current_generation",
           "current_service_id",

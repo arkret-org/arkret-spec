@@ -10,7 +10,8 @@
     "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry.",
     "Existing self signer-key historical results for a self-submitted Human PCR target expose only query_signing_key: original same-Station self-admission and exact target must bind the authenticated recipient fullAccount to the actual Human producer fullAccount and complete immutable historical authorization/proof. Controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that same transaction. This does not expose PCR Events/history, grant scan/membership, alter floor, allow sibling/foreign admission, or reconstruct missing facts from current rows.",
     "All carriers intersect the PCR profile pcr_governance_policy derived from verified accepted genesis provenance. Human PCR has no governance-change, handoff Snapshot/import, separated-governor proxy/publication or foreign-current-authority exposure; Human PCR genesis/Commit/current assertion MUST NOT be disclosed through the public authority-bundle operation; indistinguishable not_found applies. User-managed Agent PCR likewise forbids governance change, handoff and separated-governor proxy/publication/foreign current; existing generation-zero minimal authority disclosure remains governed by its own gates. The shared union is not per-subject permission. Unknown provenance fails closed; ordinary client projections do not establish provenance.",
-    "Every admitted PCR kind has two current_agent_history_custodian exact-original self read carriers. This policy is applicable only to independently verified accepted agent_control PCR provenance and immutable provision custody; it never authorizes a Human PCR or a peer/public path. Covering RealmCommits retain their original signatures. Blob and root-backup reads apply the same native subject/custody gate and the narrower original protection context, not general cross-principal access."
+    "Every admitted PCR kind has two current_agent_history_custodian exact-original self read carriers. This policy is applicable only to independently verified accepted agent_control PCR provenance and immutable provision custody; it never authorizes a Human PCR or a peer/public path. Covering RealmCommits retain their original signatures. Blob and root-backup reads apply the same native subject/custody gate and the narrower original protection context, not general cross-principal access.",
+    "Only independently verified Organization PCR Genesis additionally exposes its original organization_genesis_signer_fact through the public authority bundle. This includes only necessary complete Org root/governance approval originals and method history plus independently verified Service history or finite Device minimal historical key. All non-Organization bundles omit this entire member; no change private approvals, Human Device PCR originals, ordinary private approvals or additional PCR Events become public."
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
@@ -1523,6 +1524,17 @@
           "schema_ref": "schemas/realm-authority-bundle.schema.json",
           "json_pointers": [
             "/properties/genesis_commit"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.public.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.open.realm_authority.read.bundle.v1",
+          "direction": "response",
+          "schema_ref": "schemas/realm-authority-bundle.schema.json",
+          "json_pointers": [
+            "/properties/producer_signer_fact"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.public.v1"
         },

@@ -989,6 +989,36 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 
 本 native unit 恰含一个上述组织 create 及其完整授权闭包；不得借此提交任意 Event batch 或自动追加 DeviceAuthorize。完整 source、组织 Account/PCR binding、原 Event/position-0 RealmCommit、初始 resolution/current/authority root、真实 producer facts、批准或 delegation 原件及其 accepted basis、nonce 消费和首次幂等 outcome MUST 在同一接纳事务中全部提交或全部回滚。canonical Event 接受而 binding/proof 尚缺失的半单元不可对外成功。exact 完整重试返回首次原件和 outcome，不重消费、不建立第二 Account；同身份异 bytes 冲突。后续交接与分离治理的 Consent MUST 消费该真正 accepted 闭包，并在完整 frozen import 中保留它，不从结构标记或 Human/Agent 改标签取得资格。
 
+组织初始 governor 的公共资格 MUST 由 `RealmAuthorityBundle.producer_signer_fact` 中唯一的
+`organization_genesis_signer_fact` 独立建立；该成员紧随 `genesis_commit`，只适用于已完整验证为
+Organization 的原 genesis。非 Organization bundle MUST 完全省略此成员。缺少 Human descriptor、
+结构 selector、profile 或 G 自报接纳均不建立 Organization 来源。fact 只引用原 `event_id`，携完整
+原生 `method_history_evidence` 与需要的原 `approval_signatures`；实际 producer 为
+Service 时 MUST 携原 `AuthenticatedServiceResolution` 的 `producer_resolution`，为有限根批准
+授权的 Account Device 时 MUST 携原最小 `public_key_base64url`，两者恰一且不得为 null。
+
+有限批准的公共验证先独立核组织 method、`approved_at` 控制关系、exact signed Event 目标及原
+`genesis_commit.committed_at` 适用 quorum，从而建立该 Event 选择的 G；此后才可按既有
+server-trusted 模型信 G 承诺的最小历史 Device key，并核原 Event producer proof。
+Service 不论有限批准还是显式 delegation，均 MUST 独立验证真实 S 的 method history、assertion
+key 及 exact Event 原签；delegation 支先由 Org 原历史授权 exact S，再由独立 S 原签证明选择 G，
+最后验证 G Commit。MUST NOT 先用尚未获信任的 G 提供的裸 S key 自证该选择，也不得借 Applet
+registration／installation fact 假冒 native Service。原 first admission 仍验证完整 H／S producer
+原件、hosting 同意及 current 资格；公共最小证书不替代这些私有原件。
+
+公共 fact 是同一不可变 native 原提交及其 accepted basis 的唯一确定性投影，与原 Event、
+position-0 Commit、批准 nonce、source 和首次 outcome 同事务冻结。原 Commit 以既有
+`producer_signer_fact_digest = SHA256(JCS(fact))` 绑定它；fact 不重复完整 Event、target Commit
+坐标或 accepted time，不增加摘要域。Event 和原批准先固定，fact 后准备，最后形成 Commit，
+不得形成签名／内容 ID 环。重复读取与冷验证使用原 `committed_at` 和原件，不按今天重授权。
+公开证书只证明原 accepted cut，不授予当前权限，也不声称 method history 可证明从未观测的
+未知后继不存在。普通私审批仍私密，唯一 Genesis 公开例外见 constraint-schema §9.2.5。
+
+一旦该来源独立建立 G0，后续 Organization planned handoff 继续由已获信任 oldG 的原 change
+Commit 与新旧双方 handoff 签名认证；公众不重新获取该 change 的私有组织审批或组织 DID history。
+change 首次接纳仍须完整 current root／quorum／actual producer／source／nonce 及原 native 事务，
+bootstrap-only delegation 不授予 change；完整私有原件与审计仍须随合法 handoff 保留。
+
 #### 标准 service entry 类型
 
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |

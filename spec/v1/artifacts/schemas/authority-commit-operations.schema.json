@@ -2950,6 +2950,56 @@
       },
       "additionalProperties": false
     },
+    "organization_genesis_signer_fact": {
+      "type": "object",
+      "description": "Original Organization PCR ak.realm.create authority certificate only. Independently establish Org method/control and exact finite approval or valid bootstrap delegation before trusting the selected generation-zero governor. A finite Device branch uses the governor-bound minimal original key only after exact Org root approval establishes that governor. Every Service branch independently verifies the original AuthenticatedServiceResolution and genuine Event signature, never a G-only Service key or Applet installation fact. Original accepted cut only; no current authority, change authorization, full Event, target Commit coordinates or accepted-time mirror. Deterministically projected from the one immutable native admission source and bound by the original Commit producer_signer_fact_digest.",
+      "required": [
+        "event_id",
+        "method_history_evidence"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+        },
+        "approval_signatures": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission/properties/approval_signatures",
+          "description": "Complete original necessary Org approvals in original submission order. Optional only when independently verified exact Service delegation and applicable accepted-cut quorum need no finite votes; explicit null and empty arrays are invalid. Ordinary key rotation does not erase a historically valid finite approval."
+        },
+        "producer_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        },
+        "public_key_base64url": {
+          "$ref": "./signer-key-operations.schema.json#/$defs/query_signing_key/properties/public_key_base64url"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "producer_resolution"
+          ],
+          "not": {
+            "required": [
+              "public_key_base64url"
+            ]
+          }
+        },
+        {
+          "required": [
+            "approval_signatures",
+            "public_key_base64url"
+          ],
+          "not": {
+            "required": [
+              "producer_resolution"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "historical_producer_signer_fact": {
       "oneOf": [
         {
@@ -2969,6 +3019,9 @@
         },
         {
           "$ref": "#/$defs/agent_runtime_historical_signer_fact"
+        },
+        {
+          "$ref": "#/$defs/organization_genesis_signer_fact"
         }
       ]
     },

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d905e3abb5ad1fc1257f46c23d83112052f97b2e3fb41dfd2dc649c05f99123d",
+  "contract_digest": "sha256:8bc37f73c2bda5bcf5a31c7e7573b94a57298c1b8d41ddc90a13d855427f6c6d",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -23136,6 +23136,56 @@
             },
             "additionalProperties": false
           },
+          "organization_genesis_signer_fact": {
+            "type": "object",
+            "description": "Original Organization PCR ak.realm.create authority certificate only. Independently establish Org method/control and exact finite approval or valid bootstrap delegation before trusting the selected generation-zero governor. A finite Device branch uses the governor-bound minimal original key only after exact Org root approval establishes that governor. Every Service branch independently verifies the original AuthenticatedServiceResolution and genuine Event signature, never a G-only Service key or Applet installation fact. Original accepted cut only; no current authority, change authorization, full Event, target Commit coordinates or accepted-time mirror. Deterministically projected from the one immutable native admission source and bound by the original Commit producer_signer_fact_digest.",
+            "required": [
+              "event_id",
+              "method_history_evidence"
+            ],
+            "properties": {
+              "event_id": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id"
+              },
+              "method_history_evidence": {
+                "$ref": "./identity-resolution.schema.json#/$defs/webvh_method_history_evidence"
+              },
+              "approval_signatures": {
+                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission/properties/approval_signatures",
+                "description": "Complete original necessary Org approvals in original submission order. Optional only when independently verified exact Service delegation and applicable accepted-cut quorum need no finite votes; explicit null and empty arrays are invalid. Ordinary key rotation does not erase a historically valid finite approval."
+              },
+              "producer_resolution": {
+                "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+              },
+              "public_key_base64url": {
+                "$ref": "./signer-key-operations.schema.json#/$defs/query_signing_key/properties/public_key_base64url"
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "producer_resolution"
+                ],
+                "not": {
+                  "required": [
+                    "public_key_base64url"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "approval_signatures",
+                  "public_key_base64url"
+                ],
+                "not": {
+                  "required": [
+                    "producer_resolution"
+                  ]
+                }
+              }
+            ],
+            "additionalProperties": false
+          },
           "historical_producer_signer_fact": {
             "oneOf": [
               {
@@ -23155,6 +23205,9 @@
               },
               {
                 "$ref": "#/$defs/agent_runtime_historical_signer_fact"
+              },
+              {
+                "$ref": "#/$defs/organization_genesis_signer_fact"
               }
             ]
           },
@@ -98593,7 +98646,7 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/realm-authority-bundle.schema.json",
-        "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams. Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. User-managed Agent PCR is also fixed to its original full Agent/controller Account Station at generation zero with no authority transitions; accepted agent_control genesis and controller provision must bind that Station. Existing generation-zero Agent disclosure retains its own gates. Other proven subject branches retain their existing rules. The public operation MUST NOT disclose a Human PCR bundle: indistinguishable not_found under pcr_governance_policy; its private native authority checks remain mandatory. Non-Human managed-device verification retains this carrier. Direct Conversation fixes the accepted genesis governance_station_id for life at generation zero: authority_transitions is empty and current_service_id equals that genesis Station, including the current assertion. Same-Station endpoint/key/deployment changes remain legal; normal generation-zero Direct bundles retain existing disclosure gates.",
+        "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams. Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. User-managed Agent PCR is also fixed to its original full Agent/controller Account Station at generation zero with no authority transitions; accepted agent_control genesis and controller provision must bind that Station. Existing generation-zero Agent disclosure retains its own gates. Other proven subject branches retain their existing rules. The public operation MUST NOT disclose a Human PCR bundle: indistinguishable not_found under pcr_governance_policy; its private native authority checks remain mandatory. Non-Human managed-device verification retains this carrier. Direct Conversation fixes the accepted genesis governance_station_id for life at generation zero: authority_transitions is empty and current_service_id equals that genesis Station, including the current assertion. Same-Station endpoint/key/deployment changes remain legal; normal generation-zero Direct bundles retain existing disclosure gates. Organization PCR alone additionally carries its original Genesis producer_signer_fact immediately after genesis_commit; non-Organization bundles omit it entirely. Independent Org intent and actual Service source establish the first governor; subsequent transitions retain the existing trusted old-governor Commit and dual-handoff model without public private-approval replay.",
         "type": "object",
         "required": [
           "realm_id",
@@ -98616,6 +98669,10 @@
           },
           "genesis_commit": {
             "$ref": "./realm-commit.schema.json"
+          },
+          "producer_signer_fact": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/organization_genesis_signer_fact",
+            "description": "Only an independently verified Organization PCR includes this original Genesis authority fact; all non-Organization bundles MUST omit the entire member. Required for the Organization branch and bound to the existing genesis_event/genesis_commit and original producer_signer_fact_digest. Explicit null is invalid. It establishes only original accepted-cut authority, not current permission. The unique target is already in the bundle: no Entry target, array or change source is added. Organization provenance must be independently established, never inferred from a missing Human descriptor."
           },
           "authority_transitions": {
             "type": "array",
@@ -98814,6 +98871,62 @@
                     }
                   }
                 }
+              }
+            }
+          },
+          {
+            "description": "This is only the registered Organization genesis candidate selector, never proof of Organization authority. The native verifier independently validates the complete source before trusting G. Other subject branches omit the new public fact entirely.",
+            "if": {
+              "required": [
+                "genesis_event"
+              ],
+              "properties": {
+                "genesis_event": {
+                  "required": [
+                    "executed_by",
+                    "authorization_ref",
+                    "payload"
+                  ],
+                  "properties": {
+                    "payload": {
+                      "required": [
+                        "object"
+                      ],
+                      "properties": {
+                        "object": {
+                          "required": [
+                            "purpose"
+                          ],
+                          "properties": {
+                            "purpose": {
+                              "const": "principal_control",
+                              "x-arkret-value-ownership": {
+                                "class": "owned_symbol",
+                                "authority": "realm-authority-bundle.schema.json#/allOf/1/if/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                "owner": "realm-authority-bundle.schema.json#/allOf/1/if/properties/genesis_event/properties/payload/properties/object/properties/purpose",
+                                "values": [
+                                  "principal_control"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "producer_signer_fact"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "producer_signer_fact"
+                ]
               }
             }
           }
@@ -119141,7 +119254,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:2df2145bcc76d96185606e75c43515f3f1e0444ff7b43183cd5cfb92238a79bc"
+      "digest": "sha256:a8b006c872b341d396ba1064e62e816fae1841dd6ec218ae981941d829ad11e1"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -119201,7 +119314,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:a5c1b526369c0dece03104b7f1ed284508e08bb9e320186e03fcf7c09c42a086"
+      "digest": "sha256:335ff754b0f0abbdd93936dfda710e8f187038d6841b5ac4d0185b76e36e0299"
     },
     {
       "file": "operation-clause-registry.json",
@@ -119225,7 +119338,7 @@
     },
     {
       "file": "pcr-exposure-registry.json",
-      "digest": "sha256:59047aa40c3a458a7a5f9a6e58524ac3c923ed124666361ef00a950a66a6587e"
+      "digest": "sha256:58664edb5b22265a388c7fd3249e49f93fb76e3317a3a2ba309a8ea85b6bcf70"
     },
     {
       "file": "preimage-identity-exemption-registry.json",

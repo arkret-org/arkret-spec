@@ -732,14 +732,23 @@ override 的 action MUST NOT 被 grant approval constraint 或 `ak.policy.action
 
 **接纳审计**：治理 Station MUST 在接纳／执行的**同一原子事务**内持久化 evidence、验证依据、
 nonce 消费记录与到原始提交的绑定。共享 Realm Event store 保持原 Event 字节不变；
-私密审批材料只向获准审计者提供。accepted 历史按 **accepted-at** 依据验证：
+除本节唯一 Organization Genesis 公开例外，私密审批材料只向获准审计者提供。accepted 历史按 **accepted-at** 依据验证：
 approver 之后换 key 或被撤销 MUST NOT 使已接纳 Event 作废；
 但当前的**新**执行仍 MUST 重新核对资格、grant 与 policy。
 `authority_forward` 是向治理 Station 递交首次准入证据的路径，MUST 保留原提交的
 `approval_signatures[]`；`committed_replication` 是已接纳 Event 的成员站副本路径，
 其 `event_submission` MUST 省略该私密成员，并保持 `event` 的完整 canonical bytes 不变。
 复制接收方验证 source Event／Commit 与自身复制资格，不重新验证或消费审批票；
-原提交及 accepted-at 审计只留在治理 Station 的私密存储。
+除下述唯一 Organization Genesis 例外，原提交及 accepted-at 审计只留在治理 Station 的私密存储。
+
+Organization PCR 的首个治理 Station 尚未受信任，公众需要独立验证组织选择该 G 的授权。
+仅此原 `ak.realm.create` 的必要组织根／治理批准，可按 identity-did §8 作为公共
+`organization_genesis_signer_fact.approval_signatures` 提供；MUST 保留每份原
+`ApprovalSignature.input` 与 `proof` 的全部签名参与成员、nonce 与原序，不得另造摘要投影、
+再签名或重新消费 nonce。该例外只证明原 accepted cut，不授予 current 权限，不披露完整 Human
+Device PCR／H 资格原件或其它私审计。后续 change 由已信 oldG 的 Commit 与双签 handoff 认证，
+其组织私审批保持私有；普通协作／私管理审批与 `committed_replication.event_submission` 的私字段
+禁令均保持不变。完整 native source／accepted 审计仍必须向获准 handoff 参与方保留。
 
 **Reducer normative**：
 

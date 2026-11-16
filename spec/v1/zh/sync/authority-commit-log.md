@@ -304,7 +304,20 @@ Human 的 PCR genesis／Commit／current assertion MUST NOT 经 `ak.open.realm_a
 
 以下 PCR handoff／hosting 代理规则只适用于上述已验证且满足交接门的独立 Organization PCR；Human 和用户管理的 Agent PCR 均不得用于此分支，亦不开放任意账号跨 Station 替换。公开 authority bundle 另按各主体既有披露门执行。
 
-公开 `RealmAuthorityBundle` 对 PCR 只提供既有最小权威证书链：genesis Event／Commit、治理变更 Event／Commit、双签 handoff 与 nonce-bound current assertion。对应 kind 的该项外露必须在 PCR exposure registry 显式登记。它不授予 PCR membership、普通历史 scan、完整 Snapshot 或任何 Consent／设备／恢复内容读取权；私有 frozen stream head 清单与迁入材料仍只交给已验证的交接参与方。未经独立信任的候选地址只是 locator hint。
+Organization 的公开 authority chain MUST 先按 identity-did §8 独立验证原 genesis 的
+`organization_genesis_signer_fact`，并核原 `genesis_commit.producer_signer_fact_digest`；在首次 G
+尚未受信任前，不能仅用其自签 Commit 证明组织选择。bundle 在 `genesis_commit` 后只增加单个
+optional、非 null 的 `producer_signer_fact`；Organization 必携其原 Genesis 分支，所有非 Organization
+bundle MUST 省略整个成员。其唯一目标由现 `genesis_event`／`genesis_commit` 给出，不增加数组、
+排序、Entry target 或其它 Commit 坐标。该公共新增成员不改变其它主体既有披露门。
+
+已独立建立 oldG 后，后续 change 仍验证原 Event 内容 ID、oldG 原 Commit、连续 generation／
+final head 与新旧双方 handoff 签名；不公开或重审 change 私审批／Org method history。
+oldG 对其 native first admission 的完整权限判断负责；公开链验证不冒充独立 change producer Ed
+或完整私有导入验证。获准交接双方仍 MUST 独立核完整原 producer／accepted evidence，并保留
+私审批、current basis、nonce 与原 outcome。原 private `historical_signer_facts` Entry 全集不因此缩减。
+
+公开 `RealmAuthorityBundle` 对 PCR 只提供最小权威证书链：genesis Event／Commit、仅 Organization 原 Genesis 的专用 `producer_signer_fact`、治理变更 Event／Commit、双签 handoff 与 nonce-bound current assertion。对应 kind 的该项外露必须在 PCR exposure registry 显式登记。它不授予 PCR membership、普通历史 scan、完整 Snapshot 或任何 Consent／设备／恢复内容读取权；私有 frozen stream head 清单与迁入材料仍只交给已验证的交接参与方。未经独立信任的候选地址只是 locator hint。
 
 旧方冻结点必须同时阻止新的控制 Event 与相关 native 私有接受事务；只冻结 Commit 而让 quota、去重或 delivery CAS 继续前进，不构成完整 handoff。完整迁入必须保留所有当前与历史来源、精确重试结果、撤权 tombstone、高水位、未完成私有事务及其业务 fence，不能从成员可读 floor、缺项 Snapshot 或当前设备 key 重建。新方必须对本地导入状态与旧方冻结材料作完整性比较，并在同一激活事务中建立唯一接受位置；任一缺项或未知域都保持不可用，不能签 acceptance。
 
@@ -358,7 +371,7 @@ Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，�
 
 ## Account Device signer fact commitment and transfer (Normative)
 
-原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；新普通 Human Account Device、Realm Device 与 Applet Service 业务接纳 MUST 携带；Realm 控制事件携私有 realm_control fact，Applet 恢复 Service 事件携私有 realm_recovery_service fact，其它既有 producer/PCR native 分支保持原规则。字段可省仅对应没有此类 signer fact 的协议分支，不提供旧版 Applet 身份兼容。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合严格采用 `authority-commit-operations.schema.json` 登记的 Account Device、Service、Realm Device、realm_control、realm_recovery_service与Agent runtime六个闭合分支；原 Human Account Device 的字段、编码和摘要不变。Realm Device 使用独立 realm_device fact，不得借用 Account Device 形状；realm_control fact 的私有披露边界仍按 [Realm 主体 §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签) 执行，摘要本身不授予控制原件读取权。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
+原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；新普通 Human Account Device、Realm Device 与 Applet Service 业务接纳 MUST 携带；Realm 控制事件携私有 realm_control fact，Applet 恢复 Service 事件携私有 realm_recovery_service fact，其它既有 producer/PCR native 分支保持原规则。字段可省仅对应没有此类 signer fact 的协议分支，不提供旧版 Applet 身份兼容。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合严格采用 `authority-commit-operations.schema.json` 登记的 Account Device、Service、Realm Device、realm_control、realm_recovery_service、Agent runtime 与 organization_genesis 七个闭合分支；Organization 原生 Genesis MUST 使用其专用分支，不借其它角色的普通 fact；原 Human Account Device 的字段、编码和摘要不变。Realm Device 使用独立 realm_device fact，不得借用 Account Device 形状；realm_control fact 的私有披露边界仍按 [Realm 主体 §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签) 执行，摘要本身不授予控制原件读取权。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 

@@ -311,6 +311,18 @@
     },
     {
       "file": "authority-commit-operations.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "OrganizationGenesisSignerFact reuses the closed complete native WebVH carrier: independently verified inception/controller proofs, applicable witness attestations, exact history boundary and receipt commitments. It is the unique deterministic projection of the original native admission source at the original accepted cut, retained for the same lifetime as its canonical Genesis Commit and transferred intact in authorized private handoff. Only this Org Genesis certificate has the explicit public authority-bootstrap exception in identity-did section 8 and constraint-schema section 9.2.5; ordinary private approvals, Human Device PCR originals and change audits remain private. It grants no current permission and does not prove absence of an unobserved history suffix."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
       "key": "producer_agent_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",

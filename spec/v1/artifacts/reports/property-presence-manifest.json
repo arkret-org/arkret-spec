@@ -13,13 +13,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11011,
+    "total_properties": 11021,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2535,
+      "optional": 2539,
       "optional_defaulted": 46,
-      "required": 7818,
-      "required_nullable": 372,
+      "required": 7821,
+      "required_nullable": 375,
       "tristate": 240
     },
     "tristate_occurrences": 240,
@@ -4604,6 +4604,11 @@
         "/$defs/ordinary_realm_bootstrap_unit_submission/properties/events": "required",
         "/$defs/ordinary_realm_bootstrap_unit_submission/properties/idempotency_key": "required",
         "/$defs/ordinary_realm_bootstrap_unit_submission/properties/unit_kind": "required",
+        "/$defs/organization_genesis_signer_fact/properties/approval_signatures": "optional",
+        "/$defs/organization_genesis_signer_fact/properties/event_id": "required",
+        "/$defs/organization_genesis_signer_fact/properties/method_history_evidence": "required",
+        "/$defs/organization_genesis_signer_fact/properties/producer_resolution": "optional",
+        "/$defs/organization_genesis_signer_fact/properties/public_key_base64url": "optional",
         "/$defs/pcr_private_handoff_manifest/properties/effective_stream_head": "required",
         "/$defs/pcr_private_handoff_manifest/properties/governance_generation": "required",
         "/$defs/pcr_private_handoff_manifest/properties/holder_account_id": "required",
@@ -4730,6 +4735,9 @@
       "conditionally_required": [
         "/$defs/committed_event_submission/properties/genesis_event_ref",
         "/$defs/committed_event_submission/properties/producer_signer_fact",
+        "/$defs/organization_genesis_signer_fact/properties/approval_signatures",
+        "/$defs/organization_genesis_signer_fact/properties/producer_resolution",
+        "/$defs/organization_genesis_signer_fact/properties/public_key_base64url",
         "/$defs/peer_submit_request_body/properties/atomic_producer_evidence",
         "/$defs/peer_submit_request_body/properties/atomic_submission",
         "/$defs/peer_submit_request_body/properties/event_submission",
@@ -12652,6 +12660,10 @@
         "/allOf/0/then/properties/current_generation": "optional",
         "/allOf/0/then/properties/genesis_commit": "tristate",
         "/allOf/0/then/properties/genesis_commit/properties/governance_generation": "optional",
+        "/allOf/1/if/properties/genesis_event": "required_nullable",
+        "/allOf/1/if/properties/genesis_event/properties/payload": "required_nullable",
+        "/allOf/1/if/properties/genesis_event/properties/payload/properties/object": "required_nullable",
+        "/allOf/1/if/properties/genesis_event/properties/payload/properties/object/properties/purpose": "required",
         "/properties/authority_transitions": "required",
         "/properties/bundle_issued_at": "required",
         "/properties/current_assertion": "required",
@@ -12660,9 +12672,13 @@
         "/properties/current_service_id": "required",
         "/properties/genesis_commit": "required",
         "/properties/genesis_event": "required",
+        "/properties/producer_signer_fact": "optional",
         "/properties/realm_id": "required",
         "/properties/realm_stream_head": "required"
-      }
+      },
+      "conditionally_required": [
+        "/properties/producer_signer_fact"
+      ]
     },
     "realm-authority-handoff.schema.json": {
       "schema_ids": [

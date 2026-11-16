@@ -331,6 +331,12 @@
     },
     {
       "schema": "authority-commit-operations.schema.json",
+      "json_pointer": "/$defs/organization_genesis_signer_fact/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/realm_control_historical_signer_fact/properties/control_event_ref",
       "field": "control_event_ref",
       "classification": "complete_event_id"

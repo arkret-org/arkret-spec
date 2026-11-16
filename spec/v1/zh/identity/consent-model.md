@@ -122,7 +122,7 @@ peer 签名继续唯一引用 `ak.http_signature.scenario.consent_current_read.v
 
 Human 的 完整替换、current、quarantine、quota／去重、policy、delivery 最终 CAS 与通知在 owning Station 的同一 PCR 权威边界内完成；内部拆分仍须原子提交和耐久 exact retry，不产生 remote PCR governor、代理会话证明或跨 governor publication。普通设备同步、account subscribe 的 baseline／catch-up 和本地耐久通知保持。
 
-本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的 Organization PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，完整替换 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human／用户管理的 Agent 请求该跨站分支 MUST 零效果拒绝。
+本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的 Organization PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，完整替换 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Organization 的初始 G MUST 先按 identity-did §8 验 bundle 中原 Genesis 专用 `producer_signer_fact`，之后沿已信 oldG Commit／双签 handoff 与 nonce-bound current assertion 确认当前 G；不得以待验 G 的 Consent 回答反向自证其资格，也不为后续 change 公开私审批。Human／用户管理的 Agent 请求该跨站分支 MUST 零效果拒绝。
 
 完整替换 MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
 
