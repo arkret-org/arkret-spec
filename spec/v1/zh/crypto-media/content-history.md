@@ -752,16 +752,17 @@ recovery_source，包含exact recovery_source_attestation及在attested_at冻结
 原Actor Event先冻结ID；source仅在submission wrapper，不进入该Event preimage，不形成自引用。
 
 attestation按UTF8("ak.mls.recovery_source.v1\n") || JCS(attestation删除signature)签署，复用标准Ed25519 service签名形状。
-必须逐字绑定Event ref、完整replacement、scope、base、previous_epoch、inventory_digest与原verification_method；
+必须逐字绑定Event ref、完整replacement、scope、base、previous_epoch、inventory_digest与该origin来源的verification_method；
 origin签署时原Event ID、endpoint、授权实例和公钥均已冻结，不预签尚未由governor确定的committed_at或最终fact摘要。binding.authorization_event_ref必须等于replacement.authorization_event_ref，
 binding.base_group_state_ref及expected_epoch必须逐项等于原payload的base_group_state_ref及previous_epoch；scope/current membership仍由governor独立核验。原接纳时TTL<=300秒，attested_at <= committed_at < expires_at且expires_at-attested_at在(0,300秒]内，
 签名method在attested_at须属于该Actor owning Station且获assertionMethod／Station服务角色授权。
+source.verification_method仅标识该owning Station对source的服务签名方法；它不是原Event的Device／Agent producer方法，二者不得强制相等。
 重试保留完全相同source；终局未知先对账，不能重绑到新Event或新base。
 
 roster recovery记录保留完整recovery_source，origin_resolution不是当前路由。own Station独立验证该原origin角色、
 同core、已登记方法版本、完整历史及原签，核source与原Event／binding逐项一致；
 另核covering RealmCommit的producer_signer_fact_digest等于SHA256(JCS完整原fact))。
-原fact的Event、完整Actor、实际method、公钥和authorization Event必须分别等于source／replacement，
+原fact的Event、完整Actor和authorization Event须逐字绑定source／replacement；其实际method须逐字等于原Event.producer_proof.verification_method，并以原fact的公钥独立验证该Event producer原签，
 Human还须核DeviceId；fact.accepted_at等于该Commit.committed_at，原授权在source时有效。
 再验原endpoint producer签名及RFC path leaf。
 这不是接受governor manifest代替原作者或origin来源，也不把最小Agent fact单独当作授权。
@@ -845,6 +846,9 @@ principal／operation作用域、24小时下限及同identity异body冲突严格
 I唯一为closed对象`{replacement,inventory_digest,inventory_entry,nonce_base64url}`，
 request_digest=`sha256(UTF8("ak.mls.recovery_scope_cleanup_request.v1\n") || JCS(I))`。
 同内层身份对应不同I须duplicate_conflict、零新效果；不同scope、entry、replacement或inventory不能借重试换绑。
+每个exact完整subject／replacement.authorization_event_ref／effective_scope／genesis_event_ref的首次合法最小预留，
+MUST 在own Station与governor各自原生账本固定唯一nonce及完整I；包括首次确定性failed_precondition，
+同一episode-entry改用其它nonce一律duplicate_conflict、零新效果，不得为已有终局生成nonce别名或重签原proof。
 最小意图预留与scope业务效果分开：own Station在当前reader、prepared exact inventory与请求结构均合法后，
 须先在subject／episode／nonce锁序原子耐久固定完整I，再派生／签发任何peer来源；该表跨全部目标governor唯一，
 不得用每个governor各自的局部表代替。governor在当前来源与原生目标资格核实后也保管同I绑定，先于首次参与资格判定。

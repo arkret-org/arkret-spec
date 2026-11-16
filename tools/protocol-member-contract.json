@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:ce1cf832554d0501b95fcdff43cc27901c4d3d1dfaebf8cca18ec21b754de9f8",
+  "contract_digest": "sha256:95b4905fb6faf66ba683368cd819ec291ae8bc8f4b4364012e8963035ae17e3c",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -36000,7 +36000,8 @@
                 "pattern": "^sha256:[0-9a-f]{64}$"
               },
               "verification_method": {
-                "$ref": "./common-ids.schema.json#/$defs/did_url"
+                "$ref": "./common-ids.schema.json#/$defs/did_url",
+                "description": "The owning Station assertion method signing this origin source at attested_at. This is independent from the Device or Agent producer method in the original Event; the original producer signer fact separately binds and verifies that Event method and key."
               },
               "attested_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"

@@ -1018,7 +1018,8 @@
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "The owning Station assertion method signing this origin source at attested_at. This is independent from the Device or Agent producer method in the original Event; the original producer signer fact separately binds and verifies that Event method and key."
         },
         "attested_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
