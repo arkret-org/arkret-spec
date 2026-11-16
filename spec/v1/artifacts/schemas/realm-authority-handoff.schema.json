@@ -84,7 +84,7 @@
     },
     "management_private_state_digest": {
       "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-      "description": "New eligible handoffs require SHA256(JCS of the private management handoff manifest), including empty state, independent of Applet/review presence. Both existing handoff signatures cover it. Historical originals remain immutable. No private manifest/archive enters public authority bundles."
+      "description": "New eligible handoffs require SHA256(JCS of the private management handoff manifest), including empty state, independent of Applet/review presence. Both existing handoff signatures cover it. Historical originals remain immutable. No private manifest/archive enters public authority bundles. The existing manifest state_digest covers the complete finite frozen operational inventory specified in authority-commit-log section 10, including eligible ordinary Collaboration retained full envelopes/proofs and actual custody/retention obligations; it is not an unsigned body-presence list. The five-field manifest and both signature projections/contexts remain unchanged; no extra digest or member is introduced. Acceptance follows independent original verification, physical import and canonical re-export equality, with original eligibility and hosting/Account/Station-secret exclusions preserved."
     }
   },
   "additionalProperties": false

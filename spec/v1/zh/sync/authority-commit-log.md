@@ -375,7 +375,15 @@ Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，�
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 
-计划handoff MUST 同冻结cut迁移全部原digest-bearing Commit/fact及原既有合法private audit。现RealmAuthorityHandoff在final_stream_heads_digest后携historical_signer_facts_digest，现realm_authority_handoff_request_body在原四字段后携historical_signer_facts；newhandoff即使无facts亦携空数组及其digest。inventory是完整 {target,producer_signer_fact}，按stream_ref JCS UTF8、numeric stream_position、event_id UTF8、commit_id UTF8排序；digest为SHA256(JCS数组)。target只能由原已accepted Commit配出，逐项核Commitfactdigest。new governor MUST 在冻结 cut 下将已导入原件中全部 digest-bearing Full Commit 的 exact target 集合与 inventory entry target 集合作相等比较：没有重复、缺项或额外项，逐项签名不能代替全集核验。交接治理授权负责迁移所有 stream 的冻结原件（含依法迁移的隐藏 stream/private audit），MUST NOT 以普通成员 readable floor 裁剪此全集；普通 peer Full 披露仍受原成员可见性与 floor 门约束，不能借交接权限扩大普通查询。原非流请求预算不扩，超过既有预算返回 limit_exceeded，禁止 partial 导入后启动。禁止从snapshot current补历史，漏项/冲突/digest错零导入，完成原chain/原件/facts原子导入前不得签new acceptance或启动authority。
+计划handoff MUST 同冻结cut迁移全部原digest-bearing Commit/fact及原既有合法private audit。现RealmAuthorityHandoff在final_stream_heads_digest后携historical_signer_facts_digest，现realm_authority_handoff_request_body在原四字段后携historical_signer_facts；newhandoff即使无facts亦携空数组及其digest。inventory是完整 {target,producer_signer_fact}，按stream_ref JCS UTF8、numeric stream_position、event_id UTF8、commit_id UTF8排序；digest为SHA256(JCS数组)。target只能由原已accepted Commit配出，逐项核Commitfactdigest。new governor MUST 在冻结 cut 下将已导入完整 Commit 链中全部 digest-bearing RealmCommit 的 exact target 集合与 inventory entry target 集合作相等比较：没有重复、缺项或额外项，逐项签名不能代替全集核验。交接治理授权负责迁移所有 stream 的冻结原件（含依法迁移的隐藏 stream/private audit），MUST NOT 以普通成员 readable floor 裁剪此全集；普通 peer Full 披露仍受原成员可见性与 floor 门约束，不能借交接权限扩大普通查询。原非流请求预算不扩，超过既有预算返回 limit_exceeded，禁止 partial 导入后启动。禁止从snapshot current补历史，漏项/冲突/digest错零导入，完成原chain/原件/facts原子导入前不得签new acceptance或启动authority。
+
+本段 Commit／fact 全集不以正文是否仍在或普通成员披露分支决定；原 target、fact digest、治理任期／原历史 method 与签名、
+完整逐流链及原来源的适用核验始终必需。仍保有 Full Event 时，双方 MUST 保持其完整原 envelope／producer proof、
+exact Event／Commit 绑定及原 native 接受来源／适用业务检查，不以 current key 或旧方声明代替。
+仅对 §10 与历史 §3.2 允许已合法删除、且不是必保来源依赖的普通旧正文，MUST 核原 Commit／fact 承诺、
+适用历史签署来源与受原双签保护的完整保留库存；不存在 Event preimage 时不能重验或声称已重验该 producer proof，
+也不能从 Snapshot 补造正文／原签。此条件不裁剪 C／F、不免除必保 Genesis／治理 change、完整 unit 或其它 native 原来源，
+不授予新的首次 admission、历史披露或 source 缺失豁免；相关主体资格与 §8.1 的原 producer／accepted evidence 门保持。
 
 old/new handoff unsigned projection仍仅删两signature，保留handoff_id及所有实际字段，新增inventorydigest由两个原context覆盖。旧无digesthandoff只可exact 旧已签原件解码，不能迁移或宣称已闭合新digest-bearing历史。旧没有完整source/digest的Commit保持旧原字节与Unavailable，不重签后冒原记录。正式切换须将全部原件签名/ID消费者同批同步，未支持新成员的消费者failclosed。
 
@@ -392,6 +400,38 @@ management_private_state（含realm_id、governance_generation、final_stream_he
 状态为空仍携同类加盐承诺，不能按Applet安装／review存在与否决定外露。两份现handoff签名覆盖新承诺，nonce至少128bit CSPRNG。
 state_digest绑定完整冻结配置／review ledger、原intent／候选、来源／批准依据、终态／消费／quota／nonce与exact恢复结果
 的canonical私有导出；双方以实际完整导入／重新导出比较，缺项／未知保持不可激活，不只比较manifest。
+
+**普通 Collaboration 的有限保留库存（normative）**：同一完整 opaque operational export 及其 `state_digest`
+还 MUST 绑定本 Realm 在冻结 cut 实际应保有的有限治理库存：全部 stream 从 position0 到各自 final head 的原
+RealmCommit 链、仍应保有的完整原 Event envelope（含原 `producer_proof`）、Commit-bound 历史 signer fact／必要原来源，
+以及完整治理范围同 cut current、history floor、tombstone／高水位与其不可从 current 推导的原生接受／业务 fence。
+来源集合必须受原 Realm、stream、accepted source 与实际 owning 域限定，不能按整个 Actor 或所有含 realm_id 的本地表导出。
+同一完整原件只收一次并以不可变身份关联；只有既有承诺实际覆盖被省略的全部原字段时才可复用其绑定，仍须实际耐久导入并重新导出比较。
+Event ID 的原像不含 `producer_proof`，因此 ID 列表不等价于完整原 envelope，不得省掉原 proof、改用 current key 或补造历史签名。
+
+本库存 MUST 同时覆盖旧方实际承担、交接后仍须履行的内容／Blob／密文保管和适用 retention／legal hold 的最小原依据、
+原字节与来源／引用／分类绑定；本来由已登记合同下独立合法 custodian 持续履行的保管，保留其真实原绑定与可用性，
+不复制不属本治理库存的私态或凭一个 URL／元数据假称已保管。freeze 的一致 cut MUST 稳定本库存的实际 writer，
+包括 native 接受、固定结果／未决意图，以及会改变保留集合或保管义务的 GC、retention、hold 和适用 source fence；
+仅冻结 Commit 但允许这些状态继续变化不构成完整导出。此条不新增通用 hold／删除权、外部保管权限或全 Station 导出。
+
+按[历史 §3.2](../governance/history-visibility.md#32-retention-不裁剪-commit-链normative)，retention 不裁剪原 accepted Commit 链；
+已依法删除且不再是必保来源依赖的普通旧 Event 正文无须重建。成员 readable floor、缺项 Snapshot 或 `withheld` 读取标记
+均不证明原件已合法删除，也不允许省略仍须保管的原件／义务；沿实际 retention owner 在同 cut 固定真实集合，
+不新增永久删除证明 ledger。完整授权覆盖的同 cut `full_recovery` Snapshot MAY 作为 typed current 的安装基线，
+从各 stream 的已验 head 后连续运行 reducer；可由它确定性重建的纯索引无需另存副本，不能因此要求对合法缺失正文全量重放。
+该等价不替代完整 Commit 链、原 signer fact、完整 unit 原 outcome／fence、nonce／quota、root custody 或其它独立 native 私态。
+专用 scope recovery 的原生预留／episode／inventory／cleanup 及交付账本仍按 §8 和 content-history §10.1 实际完整迁入；
+普通 MLS retry 投影不能代替它。真实非空的必需域缺失、未知或格式不受支持，仍须在旧方冻结前报告不可迁移，不能冒空集合。
+
+上述完整库存继续使用现 `state_digest = SHA256(RFC8785_JCS(canonical export))`，现五字段 manifest 的完整 JCS 摘要
+继续作为 `management_private_state_digest`，由 §8 两份原 handoff 签名覆盖；不新增每正文摘要、manifest 成员、HTTP、版本或平行账本。
+此承诺固定旧治理方对真实 frozen 库存的责任，并防止传输删漏或导入遗漏被冒充为合法缺席；不提供对恶意旧治理方的独立 omission proof。
+新方必须独立验原件、实际完整导入／重新导出比对，并核完整头／fact／current 覆盖后才签 acceptance，按原 generation／head CAS 激活唯一 writer。
+普通 Realm 交接不转移 H 的 Account、Human／用户管理 Agent PCR、Device current、session／pairing、hosting transport journal，
+也不导入旧／新 Station 身份私钥、manager archive 私钥或成员 private MLS state；原 Realm 历史 producer 证据不变成本地账号／设备资格。
+本条不改变 §8.1／§8.2 的主体资格，Organization PCR 仍须独立满足原组织来源及 PCR 私态合同。
+
 同一冻结cut还必须完整纳入[原生内容根保管](../crypto-media/content-history.md#324-完整保管管理转交与治理交接)的
 RealmActor root namespace：全部首次PUT（含无业务Event、CAS loser及丢ACK）、原签密文／原准入来源、recipient／scope-series原件与指针、coverage／充分替代义务、challenge／nonce／去重／固定结果／未决意图及原archive_revision。此全集使用同一management_private_state.state_digest绑定并实际完整导入／重新导出比较，缺项或未知域不得签acceptance或激活；不能仅从业务引用、当前series或成员可读历史重建。manager的archive私钥、秘密交接challenge与成员private MLS state不进入Station私态导出。
 同一 `management_private_state` opaque operational export MUST 包含本 Realm 每条已 accepted `ak.realm.owner.transfer` 的实际 successor W1 完整 evidence 及其 exact Event／RealmCommit 关联；从 W1 完整原像重算并核对本次 wrapper ref，B proof／intent 则从 exact 原 Event 重建核验，不要求再存冗余镜像。该有限稳定投影属于同一个 state_digest 全集，不能误放入只覆盖实际作者 A 的 historical_signer_facts，也不能仅按 realm_control 的收集范围漏掉它；不要求导出／比较数据库全行、本地 PK 或本地接收元数据。完整导出／导入／重新导出比较必须拒绝缺项、多项、冲突或来源不明。目标先经 Full 原件装入 Event 时，仅能在 exact Event／Commit 相同时填原 null evidence，或对完全相等 W1 作 no-op；非空不同必须失败关闭，不能因原件已存在而忽略证据，也不得覆盖为后来的 W2。缺集不得签 handoff acceptance／激活；备份恢复遵守同一原件绑定。此载体不公开 PCR 正文、B 证据或新 snapshot 字段，不提供新的成员历史 key 查询，也不新增 authority ledger。
@@ -400,7 +440,7 @@ RealmActor root namespace：全部首次PUT（含无业务Event、CAS loser及�
 来源 MUST 绑定 exact 原 Event；拒绝没有 RealmCommit 时仍保留其原 Event／终态依赖，不能因只 join accepted Commit 而漏集。
 接收方 MUST 按本 Realm 的不可变 source identity 验证和重映射本地坐标，实际完整导入／重新导出比较；
 缺项、跨 Realm、冲突或无法证明终局的 queued 输入保持不可激活。不得按整个 actor 导出其它 Realm／普通私有缓存，
-也不得为旧 Event-only 原件伪造从未存在的 retry key。这里不复制专用 content recovery 的独立原生 episode／inventory ledger。
+也不得为旧 Event-only 原件伪造从未存在的 retry key。本段普通 MLS retry 投影不复制专用 content recovery 的独立原生 episode／inventory ledger；后者仍按 §8 与 content-history §10.1 的独立 owning 域履行完整交接。
 
 最小 canonical 重试结果的保留 MUST 随其实际 source：共享 canonical Event 仍按原 Realm retention 保留时，
 不得因通用短期缓存 GC 或仅因作者账号终态而删除配套的最小去重／原结果事实；这不授权保留额外私密请求材料。

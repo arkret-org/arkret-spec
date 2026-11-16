@@ -204,7 +204,7 @@
     },
     {
       "operation_id": "ak.open.realm_authority.read.bundle.v1",
-      "sha256": "sha256:65d542abb934f1143f0a03826fec52bc3273e09843b70389f6d291bfc5683eb3"
+      "sha256": "sha256:913327446f3ca6f15c3a61069bdcf23d9c3a25ee3e593f6ac3587d8d0f2e64ce"
     },
     {
       "operation_id": "ak.open.service.read.resolution.v1",
@@ -300,11 +300,11 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:e39f3cb2bb30b5cb33ed31795329ad7dbcd28c779a6e3758a9e66f567a115010"
+      "sha256": "sha256:99a05e686e934f156f4d048d120c55b992a18c6cda21c0c776db09bd70fae1b9"
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:f1469758f704e0308b448f78ccff10376b0e34f8a19c2ab4859d1b00f00da29b"
+      "sha256": "sha256:cc0a3fdbd1fb3d612063d0e845ee0965b85442bf36663f136c3b91e84201a036"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -704,11 +704,11 @@
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
-      "sha256": "sha256:af6b7cc8523c502835baba89f25e990c62e84a3d8d47216f8d8764ae7efe48b3"
+      "sha256": "sha256:ef617bdd3482d5979e228bc1eed97c516c01be124a1582671fb61c97106b3f57"
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
-      "sha256": "sha256:c6f3f4a49b93fe41f225b39a85c72d71a2712697b51a29091f38532b755ccf19"
+      "sha256": "sha256:e09b217e5c8998b471e2d92f1524fcf208910ffc9f432fee7c6647ff284fa939"
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",
@@ -820,11 +820,11 @@
     },
     {
       "operation_id": "ak.self.realm_join.command.prepare.v1",
-      "sha256": "sha256:a2e2d7f20991533549b43d063e3348cafaf1737e1762580735ffa56026cc86ba"
+      "sha256": "sha256:116edfb55f05787d463c3f0c0e13011e16e521652eeb135fa7d733c00d95c0ac"
     },
     {
       "operation_id": "ak.self.realm_join.read.preview.v1",
-      "sha256": "sha256:1f03419a8e26139455bdf0292b6cf1c90c806224d04e607816bfd0963cdf7088"
+      "sha256": "sha256:85301e1ae59d2dc9305e8f1373163f3b0d0919f7ab8f5df089f57779e3389def"
     },
     {
       "operation_id": "ak.self.realm_link.read.list.v1",
