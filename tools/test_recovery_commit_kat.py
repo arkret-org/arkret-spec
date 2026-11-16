@@ -1,6 +1,7 @@
 """Adversarial cryptographic/semantic single-submit Recovery regressions."""
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -16,6 +17,13 @@ from tools import recovery_commit_kat
 class RecoveryCommitKatTests(unittest.TestCase):
     def setUp(self):
         self.receipt, self.qualified = specimen()
+
+    def test_recovery_digest_uses_utf16_property_order(self):
+        expected = '{"\U00010000":2,"\ue000":1}'.encode('utf-8')
+        self.assertEqual(
+            digest({'\ue000': 1, '\U00010000': 2}),
+            'sha256:' + hashlib.sha256(expected).hexdigest(),
+        )
 
     def test_regeneration_is_byte_exact_and_assertions_are_unique(self):
         with tempfile.TemporaryDirectory() as directory:
