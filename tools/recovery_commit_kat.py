@@ -17,6 +17,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from tools.regenerate_crypto_signature_fixture import refresh_jws_input
+from tools.reference_json import jcs_text
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json'
@@ -36,7 +37,7 @@ POLICY = 'ak:policy:019ba000-0000-7000-8000-000000000003'
 
 
 def jcs(value):
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return jcs_text(value).encode('utf-8')
 
 
 def b64u(raw):
