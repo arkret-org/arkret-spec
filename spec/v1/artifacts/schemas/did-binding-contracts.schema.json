@@ -49,7 +49,7 @@
     },
     "normalized_did_document_extension": {
       "type": "object",
-      "description": "One lossless extension property from the verified DID Document. Rows are sorted by name in unsigned UTF-8 byte order and duplicate names are rejected. A name that collides with a registered known member is invalid rather than shadowing that member.",
+      "description": "One lossless extension property from the verified DID Document. Rows are sorted by name in unsigned UTF-8 byte order and duplicate names are rejected. A name must not shadow a distinct dedicated normalized member. Registered source members explicitly mapped to an extension row, including arkret_governance, remain valid and use their owning value schema.",
       "required": [
         "name",
         "value"
@@ -221,7 +221,38 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/normalized_did_document_extension"
+            "allOf": [
+              {
+                "$ref": "#/$defs/normalized_did_document_extension"
+              },
+              {
+                "if": {
+                  "properties": {
+                    "name": {
+                      "const": "arkret_governance",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/extensions/items/allOf/1/if/properties/name",
+                        "owner": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/extensions/items/allOf/1/if/properties/name",
+                        "values": [
+                          "arkret_governance"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "value": {
+                      "$ref": "#/$defs/organization_governance"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       },
@@ -627,6 +658,75 @@
               "synchronous_refresh_or_fail_closed"
             ]
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_governance_threshold": {
+      "type": "object",
+      "required": [
+        "min_signature_count",
+        "allowed_kids"
+      ],
+      "properties": {
+        "min_signature_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allowed_kids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did_url"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_service_delegation": {
+      "type": "object",
+      "description": "An existing organization service delegation. The verified DID supplies the subject organization; bootstrap purpose permits this exact Service to select its first PCR/hosting Account, never an unstated Station allowlist or other resource scope. authorization_ref names a verified organization control/governance method, not this row. service_id must be unique in its owning array.",
+      "required": [
+        "service_id",
+        "purposes",
+        "not_before"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "purposes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_governance": {
+      "type": "object",
+      "description": "The existing arkret_governance DID Document extension. Declaration alone grants no authorization; historical method, exact executor, quorum, time and native acceptance remain independent.",
+      "properties": {
+        "threshold": {
+          "$ref": "#/$defs/organization_governance_threshold"
+        },
+        "delegations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/organization_service_delegation"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false

@@ -5100,19 +5100,54 @@
     },
     {
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
-      "success_shape_kind": "typed_response",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
       "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body",
-        "schema_kind": "object",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
+        "schema_kind": "oneOf",
         "required": [
-          "circle_id"
+          "status"
         ],
         "properties": [
-          "circle_id",
-          "mls_group_id",
-          "note"
+          "status",
+          "commit",
+          "reason_code"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "commit"
+            ],
+            "properties": [
+              "status",
+              "commit"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "reason_code"
+            ],
+            "properties": [
+              "status",
+              "reason_code"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
@@ -6119,46 +6154,27 @@
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
-          "event",
-          "approval_signatures",
-          "commit_event",
-          "welcomes",
-          "idempotency_key",
-          "recovery_source",
           "unit_kind",
+          "idempotency_key",
           "events",
           "event_submission",
           "membership_compensation_evidence"
         ],
-        "closed": true,
+        "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
-            "schema_kind": "object",
-            "required": [
-              "event"
-            ],
-            "properties": [
-              "event",
-              "approval_signatures"
-            ],
-            "closed": true
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request_body",
+            "schema_kind": null,
+            "required": [],
+            "properties": [],
+            "closed": false
           },
           {
-            "schema_ref": "schemas/mls-commit-submission.schema.json",
-            "schema_kind": "object",
-            "required": [
-              "commit_event",
-              "welcomes",
-              "idempotency_key"
-            ],
-            "properties": [
-              "commit_event",
-              "welcomes",
-              "idempotency_key",
-              "recovery_source"
-            ],
-            "closed": true
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
+            "schema_kind": null,
+            "required": [],
+            "properties": [],
+            "closed": false
           },
           {
             "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_unit_submission",

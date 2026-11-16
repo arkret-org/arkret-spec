@@ -109,6 +109,14 @@ def schema_definitions(registry: dict) -> dict:
         kind_guard = {"properties": {"kind": {"const": kind}}, "required": ["kind"]}
         branches = selected_branches(row)
         for admission, branch in branches:
+            if kind == "ak.realm.create" and admission in {"registration_anchor", "delegated_pcr_genesis"}:
+                descriptor = {"required": ["founding_device_descriptor"]}
+                guards.append({
+                    "if": {"allOf": [kind_guard, branch]},
+                    "then": {"properties": {"payload": {"properties": {"object":
+                        descriptor if admission == "registration_anchor" else {"not": descriptor}
+                    }}}},
+                })
             if admission == "realm_actor_backup":
                 guards.append({
                     "if": {"allOf": [kind_guard, branch]},

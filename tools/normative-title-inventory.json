@@ -827,6 +827,11 @@
       "fragment": "organization-principal-与-account-authority-边界normative"
     },
     {
+      "page": "identity/identity-did.md",
+      "heading": "组织 PCR 的标准原子接纳（normative）",
+      "fragment": "组织-pcr-的标准原子接纳normative"
+    },
+    {
       "page": "identity/identity-handles.md",
       "heading": "16. Agent requested-scope 私有披露（normative）",
       "fragment": "16-agent-requested-scope-私有披露normative"
@@ -1005,6 +1010,11 @@
       "page": "models/agent-interaction.md",
       "heading": "4.1 公开回复配置与有效状态（normative）",
       "fragment": "41-公开回复配置与有效状态normative"
+    },
+    {
+      "page": "models/circle.md",
+      "heading": "7.3 Circle scope rotate 的 MLS 等价入口（normative）",
+      "fragment": "73-circle-scope-rotate-的-mls-等价入口normative"
     },
     {
       "page": "models/common-fields.md",

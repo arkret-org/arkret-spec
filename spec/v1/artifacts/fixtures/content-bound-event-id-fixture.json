@@ -541,12 +541,12 @@
       "realm_purpose": "principal_control",
       "admission": "delegated_pcr_genesis",
       "note": "The same human principal, the same governance Station and the same genesis object, created under explicit organization authority instead of by the principal itself. The executor pair enters canonical Event bytes, so the two branches can never derive the same Realm: the branch choice is part of the identity and not metadata beside it.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureorgexecutor\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_encryption_backup_strategy\":\"ak.encryption_backup.epoch_content_roots.v1\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809\",\"version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:bc8ccb19894b6cf3c3c1dd59e076119be84563ab1dcdb92880d73b95535d4fbe",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureorgexecutor\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_encryption_backup_strategy\":\"ak.encryption_backup.epoch_content_roots.v1\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809\",\"version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:a1a0e4d320b3187c4c2f92f9acc4baf0c7f7578530d6c276c4f9e8937b7df47c",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "01bc8ccb19894b6cf3c3c1dd59e076119be84563ab1dcdb92880d73b95535d4fbe",
-      "derived_event_id": "ak:event:AbyMyxmJS2zzw8HdWeB2EZvoRWOrHc25KIDXO5VTXU--",
-      "derived_realm_id": "ak:realm:AbyMyxmJS2zzw8HdWeB2EZvoRWOrHc25KIDXO5VTXU--",
+      "event_id_bytes_hex": "01a1a0e4d320b3187c4c2f92f9acc4baf0c7f7578530d6c276c4f9e8937b7df47c",
+      "derived_event_id": "ak:event:AaGg5NMgsxh8TC-S-azEuvDH91eFMNbCdsT56JN7ffR8",
+      "derived_realm_id": "ak:realm:AaGg5NMgsxh8TC-S-azEuvDH91eFMNbCdsT56JN7ffR8",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -574,20 +574,6 @@
         "kind": "ak.realm.create",
         "payload": {
           "object": {
-            "founding_device_descriptor": {
-              "algorithms": [
-                "ak.hpke_x25519_aead_chacha20poly1305.v1",
-                "ak.mls.v1"
-              ],
-              "descriptor_version": 1,
-              "device_id": "ak:device:019a0000-0000-7000-8000-000000000001",
-              "device_key_algorithm": "Ed25519",
-              "device_key_purpose": "event_signing_and_mls_identity",
-              "device_public_key_did": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-              "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
-              "hpke_key": "z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc",
-              "hpke_key_algorithm": "X25519"
-            },
             "genesis_salt": "X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4",
             "governance_station_id": "ak:did_core:webvh:z6mkfixturestationexample",
             "initial_discoverability": "secret",
@@ -608,13 +594,13 @@
         "scope_ref": {
           "kind": "realm_genesis"
         },
-        "event_id": "ak:event:AbyMyxmJS2zzw8HdWeB2EZvoRWOrHc25KIDXO5VTXU--",
+        "event_id": "ak:event:AaGg5NMgsxh8TC-S-azEuvDH91eFMNbCdsT56JN7ffR8",
         "producer_proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b",
-          "event_digest": "sha256:bc8ccb19894b6cf3c3c1dd59e076119be84563ab1dcdb92880d73b95535d4fbe",
+          "event_digest": "sha256:a1a0e4d320b3187c4c2f92f9acc4baf0c7f7578530d6c276c4f9e8937b7df47c",
           "created_at": "2026-08-09T00:00:00.000Z",
-          "jws": "eyJhbGciOiJFZDI1NTE5In0..Ik2U7xHcpL4zZU9sRLiGB3s6G4oV-v8oNknaA9m9YlClyYylZejcgP1hUlsmBBbpEpvnyG8WJPqZqGdjGagXBQ"
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..vlmf3yOuphQGMJqMJcuJU6CIDq7TrpkiaCT7XuGTytxcSf_3HMaMm2SLYj6NFDWkoFcv0M8AHiBDpg1KBLThBw"
         }
       },
       "admission_evidence": {
@@ -634,12 +620,12 @@
               "kind": "account"
             },
             "created_at": "2026-08-09T00:00:00.000Z",
-            "event_digest": "sha256:bc8ccb19894b6cf3c3c1dd59e076119be84563ab1dcdb92880d73b95535d4fbe",
+            "event_digest": "sha256:a1a0e4d320b3187c4c2f92f9acc4baf0c7f7578530d6c276c4f9e8937b7df47c",
             "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b"
           },
-          "canonical_binding_payload": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"event_digest\":\"sha256:bc8ccb19894b6cf3c3c1dd59e076119be84563ab1dcdb92880d73b95535d4fbe\",\"verification_method\":\"did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b\"}",
+          "canonical_binding_payload": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"event_digest\":\"sha256:a1a0e4d320b3187c4c2f92f9acc4baf0c7f7578530d6c276c4f9e8937b7df47c\",\"verification_method\":\"did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b\"}",
           "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
-          "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjpiYzhjY2IxOTg5NGI2Y2YzYzNjMWRkNTllMDc2MTE5YmU4NDU2M2FiMWRjZGI5Mjg4MGQ3M2I5NTUzNWQ0ZmJlIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW9yZ2V4ZWN1dG9yOm9yZy5leGFtcGxlI2FrOmRldmljZTowMTlhMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGIifQ",
+          "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjphMWEwZTRkMzIwYjMxODdjNGMyZjkyZjlhY2M0YmFmMGM3Zjc1Nzg1MzBkNmMyNzZjNGY5ZTg5MzdiN2RmNDdjIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW9yZ2V4ZWN1dG9yOm9yZy5leGFtcGxlI2FrOmRldmljZTowMTlhMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGIifQ",
           "omitted_optional_members": [
             "audience",
             "domain"
@@ -657,7 +643,17 @@
           "authorization_ref",
           "executed_by.account_id.principal_id",
           "executed_by.account_id.station_id",
-          "executed_by.kind"
+          "executed_by.kind",
+          "payload.object.founding_device_descriptor.algorithms[0]",
+          "payload.object.founding_device_descriptor.algorithms[1]",
+          "payload.object.founding_device_descriptor.descriptor_version",
+          "payload.object.founding_device_descriptor.device_id",
+          "payload.object.founding_device_descriptor.device_key_algorithm",
+          "payload.object.founding_device_descriptor.device_key_purpose",
+          "payload.object.founding_device_descriptor.device_public_key_did",
+          "payload.object.founding_device_descriptor.founding_authorize_payload_digest",
+          "payload.object.founding_device_descriptor.hpke_key",
+          "payload.object.founding_device_descriptor.hpke_key_algorithm"
         ]
       },
       "expected": {

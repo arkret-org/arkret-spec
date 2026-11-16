@@ -193,6 +193,16 @@ class EventAdmissionContractTest(unittest.TestCase):
                     event[field] = "fixture"
                 if "ref_role" in when and when.get("ref_exact_count", 1):
                     event["semantic_refs"] = [{"role": when["ref_role"], "critical": when.get("ref_critical", True)}]
+                if variant["admission"] == "registration_anchor":
+                    # Use the regenerated original Human create. A principal-
+                    # control selector without its founding descriptor is not
+                    # a positive Human registration-anchor example.
+                    event = copy.deepcopy(read("fixtures/published-did-registration-fixture.json")
+                        ["request"]["published_identity"]["pcr_genesis_unit"]["events"][0])
+                    self.assertEqual(event["kind"], row["event_kind"])
+                    missing_descriptor = copy.deepcopy(event)
+                    del missing_descriptor["payload"]["object"]["founding_device_descriptor"]
+                    self.assertFalse(validator.is_valid(missing_descriptor))
                 self.assertTrue(validator.is_valid(event), (row["event_kind"], variant))
                 covered.add(variant["admission"])
         # The generic crypto verifier class currently has no active Event kind.

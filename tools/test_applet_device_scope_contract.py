@@ -31,7 +31,11 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
         rules = contract['operation_scope_rules']
         self.assertEqual([r['operation_id'] for r in rules], contract['operations'])
-        self.assertEqual(len(rules), 26)
+        self.assertEqual(len(rules), 27)
+        rotation = next(r for r in rules if r['operation_id'] == 'ak.self.circle.command.rotate_scope.v1')
+        self.assertEqual(rotation, {
+            'operation_id': 'ak.self.circle.command.rotate_scope.v1',
+            'mode': 'submitted_business_actions', 'actions': []})
         native_backups = {
             'ak.self.keys.backups.resource.replace.v1',
             'ak.self.keys.backups.read.list.v1',

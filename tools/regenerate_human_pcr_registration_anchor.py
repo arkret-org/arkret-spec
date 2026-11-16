@@ -353,6 +353,8 @@ def main() -> int:
         wire = entry.get("complete_wire_event")
         if isinstance(wire, dict):
             wire["payload"]["object"]["initial_resolution"] = dict(initial_resolution)
+            if name == DELEGATED_CASE:
+                wire["payload"]["object"].pop("founding_device_descriptor", None)
         else:
             preimage = json.loads(entry["digest_preimage_canonical_bytes_utf8"])
             preimage["payload"]["object"]["initial_resolution"] = dict(initial_resolution)
@@ -384,6 +386,19 @@ def main() -> int:
     }
 
     delegated = case(content, DELEGATED_CASE)
+    # Describe every changed preimage leaf, including removal of the Human-only
+    # descriptor, without maintaining a second hand-written digest projection.
+    def leaves(value: Any, prefix: str = "") -> dict[str, Any]:
+        if isinstance(value, dict):
+            return {key: leaf for name, child in value.items() for key, leaf in leaves(child, f"{prefix}.{name}" if prefix else name).items()}
+        if isinstance(value, list):
+            return {key: leaf for index, child in enumerate(value) for key, leaf in leaves(child, f"{prefix}[{index}]").items()}
+        return {prefix: value}
+
+    left = leaves(json.loads(self_case["digest_preimage_canonical_bytes_utf8"]))
+    right = leaves(json.loads(delegated["digest_preimage_canonical_bytes_utf8"]))
+    missing = object()
+    delegated["differs_from"]["only_in"] = sorted(key for key in set(left) | set(right) if left.get(key, missing) != right.get(key, missing))
     delegated_evidence = delegated["admission_evidence"]
     delegated_evidence["proof_binding"] = resign(
         delegated,

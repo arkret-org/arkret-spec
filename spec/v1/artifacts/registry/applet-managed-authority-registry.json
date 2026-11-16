@@ -34,6 +34,7 @@
       "ak.self.blob.resource.get.v1",
       "ak.self.blob.resource.head.v1",
       "ak.self.blob.upload.create.v1",
+      "ak.self.circle.command.rotate_scope.v1",
       "ak.self.device_messages.command.ack.v1",
       "ak.self.device_messages.read.list.v1",
       "ak.self.keys.keypackages.command.claim.v1",
@@ -141,6 +142,11 @@
         "actions": [
           "ak.self.blob.upload.create.v1"
         ]
+      },
+      {
+        "operation_id": "ak.self.circle.command.rotate_scope.v1",
+        "mode": "submitted_business_actions",
+        "actions": []
       },
       {
         "operation_id": "ak.self.device_messages.command.ack.v1",

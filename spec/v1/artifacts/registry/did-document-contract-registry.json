@@ -54,6 +54,16 @@
       "normative_consumer": "registered_arkret_service_entries",
       "reverse_binding": true,
       "owner": "registry/did-document-contract-registry.json"
+    },
+    {
+      "source_member": "arkret_governance",
+      "projection_member": "extensions[name=arkret_governance].value",
+      "subjects": [
+        "organization"
+      ],
+      "normative_consumer": "organization_pcr_bootstrap",
+      "reverse_binding": true,
+      "owner": "schemas/did-binding-contracts.schema.json#/$defs/organization_governance"
     }
   ],
   "arkret_service_types": [

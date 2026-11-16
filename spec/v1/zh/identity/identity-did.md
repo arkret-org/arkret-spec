@@ -934,13 +934,13 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
   "arkret_governance": {
     "threshold": {
       "min_signature_count": 2,
-      "allowed_verification_methods": [
+      "allowed_kids": [
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-1",
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-2",
         "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-3"
       ]
     },
-    "service_delegations": [
+    "delegations": [
       {
         "service_id": "ak:did_core:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ",
         "purposes": ["station", "space_endorsement"],
@@ -950,7 +950,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
   }
 }
 ```
-上述 `arkret_governance` 及其子成员是本节描述的 Arkret 自有治理 metadata，不是 W3C DID Core 或 VC 的逐字字段；外层 `verificationMethod`、`assertionMethod`、`publicKeyMultibase` 与 `serviceEndpoint` 继续保留外部标准拼写。`threshold.min_signature_count` 是 application-level multi-proof 要求的不同有效 verification method 签名数下界，允许的方法由 `allowed_verification_methods` 指明；它不声明 method-native FROST 的参与者或份额参数，后者由所属 method/profile 验证。委派的 `not_before` / `expires_at` 按 canonical timestamp 解释；本例省略 `expires_at` 表示未设置时间上界，出现时不得为 `null`。本例沿用本节已有的治理 extension 语义，不声明未登记的 profile，也不增加操作或授权路径。
+上述 `arkret_governance` 及其子成员是本节描述的 Arkret 自有治理 metadata，不是 W3C DID Core 或 VC 的逐字字段；外层 `verificationMethod`、`assertionMethod`、`publicKeyMultibase` 与 `serviceEndpoint` 继续保留外部标准拼写。`threshold.min_signature_count` 是 application-level multi-proof 要求的不同有效 verification method 签名数下界，允许的方法由 `allowed_kids` 指明；它不声明 method-native FROST 的参与者或份额参数，后者由所属 method/profile 验证。委派的 `not_before` / `expires_at` 按 canonical timestamp 解释；本例省略 `expires_at` 表示未设置时间上界，出现时不得为 `null`。本例沿用本节已有的治理 extension 语义，不声明未登记的 profile，也不增加操作或授权路径。
 
 规则：
 
@@ -970,6 +970,24 @@ Organization principal 是一个可控制的 DID principal，有 DID Document、
 2. 组织 DID Document / governance profile 显式委派的 Account Authority 或 `ArkretGovernanceService`，其 delegation purpose MUST 覆盖 `principal_control_realm_bootstrap`，事件 MUST 记录实际执行主体（例如 `executed_by` 或组织侧 governance decision id），且接收方必须按事件时间解析该 delegation。
 
 OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `SessionGrant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ak.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
+
+#### 组织 PCR 的标准原子接纳（normative）
+
+上述两项是同一 `delegated_pcr_genesis` 的组织授权来源，不新增组织共享 session、无 executor 的 root 登录或另一套提交面。两支的原 `ak.realm.create` 均 MUST 保持组织的完整 account ActorId、真实 `executed_by` 与 `authorization_ref`，signed `payload.object.purpose="principal_control"`、`initial_resolution` 与 event-derived PCR ID。组织创世 MUST NOT 携 Human-only `founding_device_descriptor`，也不因此创建 Human Device、session 或 Consent capability；Human 的 ordered `[ak.realm.create, ak.device.authorize]` registration-anchor unit 保持原有全部要求。
+
+标准首次接纳复用 `ak.peer.events.command.submit.v1` 的 `branch="authority_forward"` 与原 `EventAdmissionSubmission`。组织 method/controller 的单次根批准复用该提交的 `approval_signatures[]`：`approval_context.context_kind="realm_governance"`、`approval_target={target_kind:"event",event_id:<原 EventId>}`、`operation="ak.peer.events.command.submit.v1"`、`action="ak.realm.create"`；其余字段遵循原 approval 合同。`initiating_actor_id` 仍是原 Event 的 `actor_id`，完整已签 Event 的摘要同时绑定实际 executor、完整 Account、initial resolution 和原 producer proof，不增加 executor 镜像。`approver_did` 与 proof method MUST 属于独立验证的该组织控制状态；此支 `authorization_ref` 精确引用提供本次有限授权的组织 control/governance method。批准只授权此原 Event，不是该 method 对 executor 的永久 service delegation。Event 目标的摘要覆盖完整预写 Event，而 evidence 容器在 Event 外，按 approval 合同分别验证 HTTP body digest，不形成自引用。不得把本 peer operation 改用未登记的 operation-target approval。
+
+显式 delegation 支直接复用原 `authorization_ref`、`executed_by` 与真实 DID history，不增加 delegation row id 或 scope 字段。`authorization_ref` MUST 指向该组织已验证历史文档中的 control/governance verification method，表示本次权威来源，不伪称数组 row 的身份。仅当实际 executor 是 Service 时，按其完整 `service_id` 唯一选择该文档 `arkret_governance.delegations` 中的 row；同一 `service_id` 重复 MUST 拒绝。row 的 `purposes` MUST 含 `principal_control_realm_bootstrap`，`not_before`、可选 `expires_at` 与历史撤销状态 MUST 在 Event 时间有效；组织治理另有 quorum/approval 要求时仍 MUST 满足。该授权的 subject scope 只限该 DID 对应的组织，并明确授予此 Service 为该组织选择首次 PCR 及 hosting Account 的权限；它不证明未表达的 Station 白名单、其它组织或任意 resource scope。完整 Account、hosting Station、实际认证 source 与 producer 仍按本次原 Event 独立核对。需要更窄的单 Event 授权时使用上述 Event-target 根批准；Device executor 只能走该有限根批准，不能借 Service delegation 获权。原组织根签的 delegation 已完整证明授权时，不得机械要求第二张重复根批准。`ArkretGovernanceService` HTTPS endpoint 仅用于发现，不作为授权 row 的键；实际 Service DID 必须独立验证。任何实际提交的 evidence 均须验证，组织身份、DID、Account 或权限摘要不得在另一 DTO 中重复镜像。
+
+本次标准 peer 原生接纳 MUST 由组织完整 Account 的 hosting Station H（`source_service_id == account_id.station_id`）以现有 peer 身份认证承接该 Account 绑定。组织根批准或 DID delegation 只授权组织选择，不单独证明另一 Station 已同意 hosting；未提供独立既有 H accepted-binding 闭包时，不接纳 `Source != H`。Device executor 的证据 issuer/source 同时遵守既有 Account Device 门，因此本入口仅接纳 executor Account 同在 H 的 Device，不支持跨 H Device 组合。实际 Service executor S 仍按其独立 DID 历史／producer proof 验证，不能由 H 或 governor G 的身份推定 S；S、H、G 不必是同一主体。角色分别绑定不意味着允许缺少独立闭包的任意组合，不新增 hosting receipt、权限字段或接口。
+
+本段消费的既有 `arkret_governance` metadata 由 `did-binding-contracts.schema.json` 的闭合 `organization_governance` 定义统一约束；它仅含可选 `threshold` 与 `delegations`。threshold 仅含 `min_signature_count` 与唯一 `allowed_kids`；每条 service delegation 仅含 `service_id`、`purposes`、`not_before`、可选 `expires_at`，不得出现 `null`、隐含 scope 或未登记的扩权字段。缺少 delegation 与不满足 quorum 都不产生授权。metadata 继续作为原 DID Document 的同一 lossless extension 参与既有 document_digest，不能新增一个 digest 或镜像身份。
+
+批准与 delegation 均 MUST 从 inception 起无缺口的完整 method history、适用 witness 与 exact DID state 验证，按各自签名历史时点及本次新接纳的有效/撤销条件检查。quorum 取自已验证组织治理，不取调用方声称的 count，witness 不计治理票。当前 Realm 尚不存在，普通 `realm.create` capability、普通 bootstrap 的无 quorum 资格、SSO、可编辑 profile、Coauth 本地 row 或结构 `Organization` 标签均不能替代该独立组织权威。实际 Event producer 仍必须是真实 Service 或已有合法 executor Device：按其实际角色验证原签和已有 producer evidence，不把组织 root 当作 Agent producer，不放宽其它 Event 的 presence 门。
+
+接纳方 MUST 独立核对组织 Account hosting Station、认证 source Service、实际 executor、producer evidence issuer 与 generation-0 governor，不能假定它们是同一主体。同一完整组织 Account 只能绑定一个 immutable inception PCR；并发第二创世或另一来源的绑定不得覆盖既有 Human、Agent 或 Organization accepted 来源。同 principal 不同 Station 是不同 Account，不能互相冒绑。
+
+本 native unit 恰含一个上述组织 create 及其完整授权闭包；不得借此提交任意 Event batch 或自动追加 DeviceAuthorize。完整 source、组织 Account/PCR binding、原 Event/position-0 RealmCommit、初始 resolution/current/authority root、真实 producer facts、批准或 delegation 原件及其 accepted basis、nonce 消费和首次幂等 outcome MUST 在同一接纳事务中全部提交或全部回滚。canonical Event 接受而 binding/proof 尚缺失的半单元不可对外成功。exact 完整重试返回首次原件和 outcome，不重消费、不建立第二 Account；同身份异 bytes 冲突。后续交接与分离治理的 Consent MUST 消费该真正 accepted 闭包，并在完整 frozen import 中保留它，不从结构标记或 Human/Agent 改标签取得资格。
 
 #### 标准 service entry 类型
 
@@ -998,7 +1016,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 `threshold` 可以在不同层实现，但 DID Document / governance policy MUST 明确声明 profile：
 
 - **method-native threshold signature**：DID method 或底层 key type 原生支持阈值签名（例如 FROST 生成单一 verification method 签名）。验证方按 method history 验证一个签名，但必须能从 governance evidence 确认阈值参数和参与 key set。
-- **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Arkret / governance service 按 `threshold.min_signature_count`、`threshold.allowed_verification_methods`、purpose、expiry 和 history head 检查 quorum。
+- **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Arkret / governance service 按 `threshold.min_signature_count`、`threshold.allowed_kids`、purpose、expiry 和 history head 检查 quorum。
 - **governance service attestation**：组织 DID 委派的 service DID 聚合审批并签发 attestation。该 service 本身必须由 organization DID 委派，attestation 必须保留参与 signer、policy version、decision id 和 audit digest。
 
 实现不得仅因为 DID method 支持 witness（例如 `did:webvh` witness）就把 witness 当作 threshold signature。Witness 证明历史可见性或日志一致性；治理结果证明治理授权。

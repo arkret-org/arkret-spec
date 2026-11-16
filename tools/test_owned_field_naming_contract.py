@@ -150,6 +150,28 @@ class OwnedFieldNamingContractTest(unittest.TestCase):
                 legacy[old_name] = legacy.pop(name)
                 self.assertFalse(validator.is_valid(legacy))
 
+    def test_organization_governance_uses_delegation_objects_and_kid_collection(self):
+        validator = self.validator("did-binding-contracts.schema.json", "/$defs/organization_governance")
+        value = {
+            "threshold": {"min_signature_count": 1, "allowed_kids": ["did:web:organization.example#governance"]},
+            "delegations": [{"service_id": "ak:did_core:web:executor.example",
+                             "purposes": ["principal_control_realm_bootstrap"],
+                             "not_before": "2026-11-16T00:00:00.000Z"}],
+        }
+        validator.validate(value)
+        for legacy_name, canonical_name in [("service_delegations", "delegations")]:
+            legacy = copy.deepcopy(value)
+            legacy[legacy_name] = legacy.pop(canonical_name)
+            self.assertFalse(validator.is_valid(legacy))
+        legacy = copy.deepcopy(value)
+        legacy["threshold"]["allowed_verification_methods"] = legacy["threshold"].pop("allowed_kids")
+        self.assertFalse(validator.is_valid(legacy))
+        for invalid in [
+            {**value, "delegations": None},
+            {**value, "threshold": {"min_signature_count": 1, "allowed_kids": []}},
+        ]:
+            self.assertFalse(validator.is_valid(invalid))
+
     def test_quantity_fields_declare_count_roles_and_preserve_units(self):
         cases = (
             ("account-subscribe-frame.schema.json", "/$defs/account_filter/properties/max_window_event_count", 100),

@@ -682,9 +682,10 @@
         "device_revocation_pending",
         "device_generation_fenced",
         "digest_mismatch",
-        "invalid_membership_transition"
+        "invalid_membership_transition",
+        "not_found"
       ],
-      "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned. A cross-Station real Account Device producer (Human or accepted Applet-managed) is resolved only from authority_forward producer_device_evidence: a missing, surplus or malformed member is schema_violation, signature/key/Service-history or source-Station mismatch is signature_invalid, unauthorized device, out-of-window authorization or expired evidence is device_unauthorized, and revoked, revocation-pending and fenced devices use device_revoked, device_revocation_pending and device_generation_fenced. A forwarded ak.mls.genesis or ak.mls.commit whose mls_group_state_material bytes do not hash to the original Event group_info_ref or ratchet_tree_ref is digest_mismatch with zero writes; a missing or surplus mls_group_state_material is schema_violation. A carried Welcome that fails the destination's claim-ledger re-verification is not queued and does not reject the replicated Commit.",
+      "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned. A cross-Station real Account Device producer (Human or accepted Applet-managed) is resolved only from authority_forward producer_device_evidence: a missing, surplus or malformed member is schema_violation, signature/key/Service-history or source-Station mismatch is signature_invalid, unauthorized device, out-of-window authorization or expired evidence is device_unauthorized, and revoked, revocation-pending and fenced devices use device_revoked, device_revocation_pending and device_generation_fenced. A forwarded ak.mls.genesis or ak.mls.commit whose mls_group_state_material bytes do not hash to the original Event group_info_ref or ratchet_tree_ref is digest_mismatch with zero writes; a missing or surplus mls_group_state_material is schema_violation. A carried Welcome that fails the destination's claim-ledger re-verification is not queued and does not reject the replicated Commit. A complete ordinary Account MLS original-result-only probe whose exact complete unit has no terminal result returns not_found with zero admission writes; an Event already terminal under another key remains duplicate_conflict.",
       "codes": []
     },
     {
@@ -1414,8 +1415,20 @@
     {
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "duplicate_conflict",
+        "epoch_mismatch",
+        "failed_precondition",
+        "realm_frozen",
+        "snapshot_capacity_exceeded",
+        "approval_carrier_unregistered",
+        "device_unauthorized",
+        "device_revoked",
+        "device_revocation_pending",
+        "device_generation_fenced",
+        "dependency_missing"
+      ],
+      "description": "The exact Circle path and public member Commit with UpdatePath are request restrictions. Ordinary MLS producer, current scope, native Device and complete atomic Commit/Welcome failure semantics remain unchanged; no separate Circle-specific error code is allocated.",
       "codes": []
     },
     {

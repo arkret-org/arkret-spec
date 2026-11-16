@@ -1186,6 +1186,7 @@
           "ak.peer.committed_event.read.scan.v1",
           "ak.peer.events.command.submit.v1",
           "ak.peer.realm_authority.command.handoff.v1",
+          "ak.self.circle.command.rotate_scope.v1",
           "ak.self.committed_event.read.scan.v1",
           "ak.self.events.command.submit.v1"
         ],
@@ -1397,7 +1398,6 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.self.circle.command.create.v1",
-          "ak.self.circle.command.rotate_scope.v1",
           "ak.self.circle.member.command.add.v1",
           "ak.self.circle.member.resource.delete.v1",
           "ak.self.circle.read.list.v1",
@@ -4623,6 +4623,7 @@
           "ak.schema.device_pairing_bootstrap.v1",
           "ak.schema.device_pairing_operations.v1",
           "ak.schema.device_revocation_state.v1",
+          "ak.schema.did_binding_contracts.v1",
           "ak.schema.did_webvh_witness_receipt.v1",
           "ak.schema.directory_operations.v1",
           "ak.schema.draft_sync.v1",

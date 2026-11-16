@@ -118,6 +118,21 @@ class HumanPcrAdmissionSelectorTest(unittest.TestCase):
                     [error.message for error in envelope.iter_errors(event)], []
                 )
 
+    def test_descriptor_belongs_to_human_unit_not_organization_genesis(self) -> None:
+        import copy
+
+        envelope = Draft202012Validator(self.envelope, registry=schema_registry())
+        human = copy.deepcopy(self.case(SELF_CASE)["complete_wire_event"])
+        organization = copy.deepcopy(self.case(DELEGATED_CASE)["complete_wire_event"])
+        self.assertTrue(envelope.is_valid(human))
+        self.assertTrue(envelope.is_valid(organization))
+        self.assertNotIn("founding_device_descriptor", organization["payload"]["object"])
+        missing = copy.deepcopy(human)
+        del missing["payload"]["object"]["founding_device_descriptor"]
+        self.assertFalse(envelope.is_valid(missing))
+        organization["payload"]["object"]["founding_device_descriptor"] = human["payload"]["object"]["founding_device_descriptor"]
+        self.assertFalse(envelope.is_valid(organization))
+
     def test_each_complete_event_selects_exactly_its_declared_branch(self) -> None:
         for name in (SELF_CASE, DELEGATED_CASE):
             with self.subTest(case=name):

@@ -381,7 +381,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{43}$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 22,
+      "occurrences": 21,
       "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
       "reason": "RFC 9420 MLS group_id, derived from the effective scope by the fixed v1 digest and never an Arkret typed ID. Every occurrence now refs the one terminal in common-ids.schema.json, so the three earlier signatures collapsed into this one."
     },

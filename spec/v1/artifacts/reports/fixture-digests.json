@@ -154,7 +154,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "dd8fa1414495c40f201d7c5307cad98e60c8dc3a7f7f626426bea90fa906b179"
+      "sha256": "f15894db728bd4dc4371ae1aff6bdfc093dd1f707b1e931b6633cafce14a5f1d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-history-fixture.json",

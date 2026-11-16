@@ -382,6 +382,37 @@ state_digest绑定完整冻结配置／review ledger、原intent／候选、来�
 同一冻结cut还必须完整纳入[原生内容根保管](../crypto-media/content-history.md#324-完整保管管理转交与治理交接)的
 RealmActor root namespace：全部首次PUT（含无业务Event、CAS loser及丢ACK）、原签密文／原准入来源、recipient／scope-series原件与指针、coverage／充分替代义务、challenge／nonce／去重／固定结果／未决意图及原archive_revision。此全集使用同一management_private_state.state_digest绑定并实际完整导入／重新导出比较，缺项或未知域不得签acceptance或激活；不能仅从业务引用、当前series或成员可读历史重建。manager的archive私钥、秘密交接challenge与成员private MLS state不进入Station私态导出。
 同一 `management_private_state` opaque operational export MUST 包含本 Realm 每条已 accepted `ak.realm.owner.transfer` 的实际 successor W1 完整 evidence 及其 exact Event／RealmCommit 关联；从 W1 完整原像重算并核对本次 wrapper ref，B proof／intent 则从 exact 原 Event 重建核验，不要求再存冗余镜像。该有限稳定投影属于同一个 state_digest 全集，不能误放入只覆盖实际作者 A 的 historical_signer_facts，也不能仅按 realm_control 的收集范围漏掉它；不要求导出／比较数据库全行、本地 PK 或本地接收元数据。完整导出／导入／重新导出比较必须拒绝缺项、多项、冲突或来源不明。目标先经 Full 原件装入 Event 时，仅能在 exact Event／Commit 相同时填原 null evidence，或对完全相等 W1 作 no-op；非空不同必须失败关闭，不能因原件已存在而忽略证据，也不得覆盖为后来的 W2。缺集不得签 handoff acceptance／激活；备份恢复遵守同一原件绑定。此载体不公开 PCR 正文、B 证据或新 snapshot 字段，不提供新的成员历史 key 查询，也不新增 authority ledger。
+同一完整私有导出还 MUST 有限覆盖本 Realm 中实际首次接纳／终局拒绝的完整普通 MLS submission 的最小原重试记录：
+完整实际 producer namespace、operation、原 retry key、完整原件 canonical hash、原 status／outcome 及原时间。
+来源 MUST 绑定 exact 原 Event；拒绝没有 RealmCommit 时仍保留其原 Event／终态依赖，不能因只 join accepted Commit 而漏集。
+接收方 MUST 按本 Realm 的不可变 source identity 验证和重映射本地坐标，实际完整导入／重新导出比较；
+缺项、跨 Realm、冲突或无法证明终局的 queued 输入保持不可激活。不得按整个 actor 导出其它 Realm／普通私有缓存，
+也不得为旧 Event-only 原件伪造从未存在的 retry key。这里不复制专用 content recovery 的独立原生 episode／inventory ledger。
+
+最小 canonical 重试结果的保留 MUST 随其实际 source：共享 canonical Event 仍按原 Realm retention 保留时，
+不得因通用短期缓存 GC 或仅因作者账号终态而删除配套的最小去重／原结果事实；这不授权保留额外私密请求材料。
+真正属于账号的未共享私有 source、origin journal 与普通镜像缓存，仍按既有 Account 终态／retention 的明确所有权删除；
+source 被合法删除时其依赖结果可一并删除。本条不创造删除权限、永久保留义务或账号跨站迁移例外。
+
+origin hosting Station 的 forward journal 只保存其实际冻结的完整原 submission 与收到并验证的治理终局 outcome，
+不成为第二个 governance ledger，也不把接纳凭证当成 replica／current／read-ready。
+精确原件及当前 producer／recovery 身份门通过后，journal 中的实际 terminal outcome 可原样恢复；
+不得合成 duplicate、用本地 Err／暂态 forwarding status 伪造 G 终局，或因今日 epoch、业务权限与旧 Blob 缺失重算已完成结果。
+若治理响应丢失且 journal 尚无 terminal outcome，普通完整 MLS（无 `recovery_source`、actual producer 为完整 Account）
+MUST 在当前 transport 认证／授权下，以实际冻结的完整 peer 原件去除两种动态 producer evidence，执行同一 carrier 的纯原结果查询。
+G MUST 先核闭合静态 shape／inner unit／真实 public material 与 authenticated source 精确等于原 Account Station，再查完整原 key／hash／outcome。
+命中只返回原终局；不存在完整终局时 MUST 返回既有 `not_found` 且零新写，绝不能落入首次接纳。
+已终局 Event 换 key 或完整原件冲突仍为 `duplicate_conflict`，不能以 Event-only 结果替代完整 unit。
+两种动态 evidence 的缺失只允许上述结果查询；正常首次接纳仍必须逐项通过原 presence、freshness、当前 producer 与 business／UOW 门。
+H 只有收到该明确 `not_found` 后，才可重跑原 Self producer／session-key 与 live current 门，并只刷新既有动态 evidence，
+复用原真实 material、原 Commit／Welcomes／retry key 及其不变 canonical business body 后提交。
+不同合法 holder 可读取同 Account 原已完成结果，不因此获得首次提交另一已撤销 Device 原件的许可；原 Decision 0107 允许携同 Account 仍有效 Device 的真实原签提交，不新增 session Device 与 Event Device 相等的限制。
+H 已知撤销后，旧证据即使未过期也不能当作 current 门；网络、认证、shape、hash 冲突或数据库错误不得触发通用 second-send。
+不得用 Event／Commit scan 单独推导完整 MLS 接纳；专用 content recovery source 不适用此普通查询用途。
+所有 MLS 首发前必须耐久冻结实际 peer material；未终局继续原 current admission 门，不造占位 material 或延期证明。
+实际 terminal outcome 已冻结后，不再需要继续发送的大 transport material 可按原保留规则清理；保留原请求身份与原结果即可。
+第一次成功路径仍履行原 replica materialization 合同；恢复 authority outcome 不宣称本地可读，未完成的 replica 安装须独立继续或报告不可用。
+
 公开authority bundle只携加盐承诺，无manifest、私态或下载面。该增补不是PCR资格例外，不允许Human／用户管理Agent PCR handoff。
 旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§5](../extensions/applet-management-source.md#5-交接与完整性)。
 

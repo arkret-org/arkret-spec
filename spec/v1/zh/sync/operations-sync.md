@@ -54,7 +54,11 @@ Account Station先验证session、Event canonical ID和producer proof，再定�
 
 ## 5. MLS 原子提交
 
-每个普通 Event 单独获得结果。MLS 使用专用原子请求：一个 `ak.mls.commit` 与全部新增 recipient Welcome deliveries 全成或全败。
+每个普通 Event 单独获得结果。所有首次 MLS Commit 使用同一个专用完整原子请求：一个 `ak.mls.commit`、全部新增 recipient Welcome deliveries（可为空）与原 retry key 全成或全败。
+Self／peer 普通 Event 子分支均排除裸 `ak.mls.commit`，不按 Actor 种类开例外；Genesis 保留原普通 Event 入口。
+client 的 `NoRecoverySource` 与 owning Station 的 peer recovery specialization 复用同一载体，后者仍走其独立原生恢复门。
+完整 unit 的实际 source、终局原结果、handoff、cache GC 与 origin transport 恢复以 encryption-and-audit §2.2／authority-commit-log §10 为准，
+Event-only 查询或本地 queued／transport 状态不代替完整 unit 的接纳。
 
 ## 6. Receipt 与完整性证明
 

@@ -476,8 +476,6 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_response_body
     CircleReadView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_read_view
-    CircleScopeRotateResponseBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body
     CircleView:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
     CommittedEventView:
@@ -4193,14 +4191,24 @@ paths:
       security:
       - SessionGrantAuth: []
         DpopProof: []
+      - HttpMessageSignature: []
+        ManagedDeviceMetadata: []
+        DestinationServiceId: []
+        ContentDigest: []
       summary: Rotate the Circle's bound MLS group.
-      description: 'MUST NOT acknowledge a rotation without actually changing the
-
-        cryptographic scope. Returns unsupported_feature until the MLS
-
-        genesis/commit/welcome cascade is wired end-to-end.
-
-        '
+      description: Narrow Circle-path convenience binding of the existing complete MlsCommitSubmission. commit_event
+        must name exactly this Circle and its parent Realm in scope_ref, and contain one member-sent RFC 9420 public
+        Commit with an UpdatePath for the scope's already accepted current MLS group. The current base, epoch, key-access
+        revision, effective parent/Circle membership, producer, capability, native Device scope and installation,
+        policy, approvals and every Welcome remain the ordinary MLS accepting transaction's independent gates. The
+        service never creates Genesis, signs for the caller or partially submits Events. CircleManage grants no
+        MLS permission and is not an extra requirement of this binding. One Commit and all Welcomes are accepted
+        atomically; return the actual AuthoritySubmitResponseBody. The complete unchanged retry unit returns its
+        original accepted or rejected outcome after the existing producer/recovery identity check, before today's
+        epoch or business authorization is rejudged; the same retry key with changed complete body is duplicate_conflict.
+        Standard MLS forwarding preserves this exact original without a new origin-operation carrier. Public RFC
+        verification establishes UpdatePath structure, not honest producer entropy or secret-dependent confirmation;
+        those remain member responsibilities.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4221,19 +4229,18 @@ paths:
         schema:
           $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission
       responses:
         '200':
-          description: Circle MLS scope rotated.
+          description: Original atomic MLS authority outcome.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CircleScopeRotateResponseBody'
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_response_body
   /_arkret/self/invite-receive-policy:
     get:
       operationId: ak.self.invite_receive_policy.resource.get

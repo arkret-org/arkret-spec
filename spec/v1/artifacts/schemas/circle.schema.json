@@ -119,7 +119,7 @@
     },
     "mls_group_id": {
       "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
-      "description": "Reducer-derived from this Circle's circle-branch effective scope; both realm_id and circle_id enter the scope key bytes. Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
+      "description": "Reducer-derived from this Circle's circle-branch effective scope; the canonical scope key bytes are UTF8(circle_id), while the parent Realm binding is validated independently. Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
     },
     "state": {
       "type": "string",

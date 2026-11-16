@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:1c337c8ef093a69ff5f9c64aa5b311fa22595d2888dedef3b16293b87b774e0c",
+  "contract_digest": "sha256:d905e3abb5ad1fc1257f46c23d83112052f97b2e3fb41dfd2dc649c05f99123d",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -20227,10 +20227,35 @@
             "description": "One ordinary producer Event with the approval signatures its two approval layers require for the Event action or for this registered submit operation, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventAdmissionSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
             "oneOf": [
               {
-                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                "allOf": [
+                  {
+                    "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                  },
+                  {
+                    "properties": {
+                      "event": {
+                        "properties": {
+                          "kind": {
+                            "not": {
+                              "const": "ak.mls.commit",
+                              "x-arkret-value-ownership": {
+                                "class": "namespaced_symbol",
+                                "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                                "owner": "authority-commit-operations.schema.json#/$defs/submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind/not",
+                                "values": [
+                                  "ak.mls.commit"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
               },
               {
-                "$ref": "./mls-commit-submission.schema.json"
+                "$ref": "#/$defs/client_mls_commit_submission"
               }
             ],
             "x-arkret-name-role": "request_body"
@@ -20298,13 +20323,38 @@
             "x-arkret-name-role": "response_body"
           },
           "self_submit_request_body": {
-            "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true.",
+            "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true. Every first ak.mls.commit uses the complete client MLS branch, including no-Add Commit with welcomes=[]; the single-Event branch excludes that kind for every Actor. Client recovery_source is forbidden; only the independent peer recovery specialization may carry it.",
             "oneOf": [
               {
-                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                "allOf": [
+                  {
+                    "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                  },
+                  {
+                    "properties": {
+                      "event": {
+                        "properties": {
+                          "kind": {
+                            "not": {
+                              "const": "ak.mls.commit",
+                              "x-arkret-value-ownership": {
+                                "class": "namespaced_symbol",
+                                "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                                "owner": "authority-commit-operations.schema.json#/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind/not",
+                                "values": [
+                                  "ak.mls.commit"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
               },
               {
-                "$ref": "./mls-commit-submission.schema.json"
+                "$ref": "#/$defs/client_mls_commit_submission"
               },
               {
                 "$ref": "#/$defs/direct_conversation_founding_unit_submission"
@@ -20344,7 +20394,7 @@
           },
           "peer_submit_request_body": {
             "type": "object",
-            "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier.",
+            "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier. An ordinary complete MLS submission with an actual Account producer, no recovery_source and neither dynamic producer evidence object is an original-result-only probe: exact source identity and complete unit binding are mandatory; a missing terminal result returns not_found without admission or writes. Producer evidence remains mandatory for first admission.",
             "required": [
               "branch"
             ],
@@ -20367,7 +20417,33 @@
                 }
               },
               "event_submission": {
-                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                "allOf": [
+                  {
+                    "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+                  },
+                  {
+                    "properties": {
+                      "event": {
+                        "properties": {
+                          "kind": {
+                            "not": {
+                              "const": "ak.mls.commit",
+                              "x-arkret-value-ownership": {
+                                "class": "namespaced_symbol",
+                                "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                                "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event/properties/kind/not",
+                                "values": [
+                                  "ak.mls.commit"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "description": "Organization delegated_pcr_genesis uses this same single Event and registered approval_signatures for finite independent root authorization, or its exact historical DID bootstrap delegation. No Human descriptor/device, extra Event slots or generic non-device producer authority follows. The native acceptance transaction also fixes the full Account/PCR/source/current/proof/nonce/original-outcome closure."
               },
               "mls_submission": {
                 "$ref": "./mls-commit-submission.schema.json"
@@ -20388,10 +20464,11 @@
               },
               "producer_device_evidence": {
                 "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
-                "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
+                "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every first-admission forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated. Ordinary complete MLS original-result probes omit both producer evidence objects; they cannot perform first admission, even when an earlier frozen attestation remains unexpired."
               },
               "producer_agent_evidence": {
-                "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
+                "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence",
+                "description": "Existing Agent producer evidence for first admission. The ordinary Account complete-MLS original-result-only probe omits both dynamic producer evidence objects; a miss cannot admit a new Event."
               },
               "replications": {
                 "type": "array",
@@ -23482,7 +23559,7 @@
               },
               "state_digest": {
                 "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-                "description": "SHA256 of the complete canonical private management-state export at the exact frozen Realm governance handoff cut, including every native RealmActor root namespace. Native domains include all first-PUT packets and immutable author/admission/governance sources even without an Event or with failed first use, losing CAS or lost ACK; complete scoped series/current pointers and original recipient declarations; persisted archive_revision, all root/coverage/replacement/last-sufficient retention obligations, original idempotency/fixed outcomes and challenge/nonce ledgers. Export and freeze share the native namespace locks and final_stream_heads cut. New authority independently verifies originals, physically imports and re-exports the complete retained state, comparing this digest before activation; a matching manifest/summary/file alone is insufficient. Preserve archive_revision and exact originals/results; never reconstruct only from successful business Event references. Format/domain unsupported or missing native state rejects activation. Manager archive private keys, ordinary Service signing keys and member private MLS state are excluded. Existing management_private_state_digest salted commitment and both handoff signature formulas are unchanged; no new public carrier or API."
+                "description": "SHA256 of the complete canonical private management-state export at the exact frozen Realm governance handoff cut, including every native RealmActor root namespace. Native domains include all first-PUT packets and immutable author/admission/governance sources even without an Event or with failed first use, losing CAS or lost ACK; complete scoped series/current pointers and original recipient declarations; persisted archive_revision, all root/coverage/replacement/last-sufficient retention obligations, original idempotency/fixed outcomes and challenge/nonce ledgers. Export and freeze share the native namespace locks and final_stream_heads cut. New authority independently verifies originals, physically imports and re-exports the complete retained state, comparing this digest before activation; a matching manifest/summary/file alone is insufficient. Preserve archive_revision and exact originals/results; never reconstruct only from successful business Event references. Format/domain unsupported or missing native state rejects activation. Manager archive private keys, ordinary Service signing keys and member private MLS state are excluded. Existing management_private_state_digest salted commitment and both handoff signature formulas are unchanged; no new public carrier or API. The finite Realm-owned inventory also includes each retained terminal complete ordinary/client MLS submission result, its original retry namespace/key/hash/status/body/times and exact source Event/terminal-state dependency; a no-Commit refusal must not be omitted by joining only through RealmCommits. Normalize local surrogate identities to immutable source Event identity, verify and remap inside the exact Realm, and reject missing/cross-Realm/conflicting state. This includes only actual source-owned records, not every cache row for an actor or invented keys for older Event-only originals. Source-retained minimal canonical outcomes survive generic short-lived cache GC and eligible handoff; private source/journal deletion follows its separately authorized retention/Account-terminal scope. The origin's transport journal and optional mirror cache are not governance authority, replica state or a new shared ledger. No manifest field, public inventory, digest formula, protocol version or private member MLS secret is added."
               }
             },
             "additionalProperties": false
@@ -23727,6 +23804,21 @@
             },
             "additionalProperties": false,
             "description": "Minimal immutable Agent runtime signer fact derived only after native authority verification at original admission. The fact includes original producer Event ref but no target Commit coordinate. Its SHA256(JCS) is committed as producer_signer_fact_digest. Native private Agent scope stays at its Account Station; recovery uses the separately signed exact origin recovery source."
+          },
+          "client_mls_commit_submission": {
+            "description": "Client specialization of the existing MlsCommitSubmission<NoRecoverySource>: identical Commit/Welcome/key members, with no Station-issued recovery_source. This allOf view adds no DTO, wrapper, field or separate wire identity. The peer specialization retains its independent ContentRecoverySource and dedicated native recovery contract.",
+            "allOf": [
+              {
+                "$ref": "./mls-commit-submission.schema.json"
+              },
+              {
+                "not": {
+                  "required": [
+                    "recovery_source"
+                  ]
+                }
+              }
+            ]
           }
         }
       }
@@ -26526,7 +26618,7 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/circle-operations.schema.json",
-        "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through authority Event submission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md. Read-receipt policy has only the ak.scope.read_receipt_policy writer and scope_read_receipt_policy current carrier; it is not a Circle object or metadata patch member.",
+        "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Circle object and membership writes carry the caller-signed ak.circle.* Event and the service submits those exact bytes through authority Event submission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md. Read-receipt policy has only the ak.scope.read_receipt_policy writer and scope_read_receipt_policy current carrier; it is not a Circle object or metadata patch member. Circle scope rotation directly reuses mls-commit-submission.schema.json and authority-commit-operations.schema.json#/$defs/submit_response_body; no Circle-specific alias is defined.",
         "anyOf": [
           {
             "$ref": "#/$defs/circle_create_request_body"
@@ -26548,9 +26640,6 @@
           },
           {
             "$ref": "#/$defs/circle_membership_response_body"
-          },
-          {
-            "$ref": "#/$defs/circle_scope_rotate_response_body"
           }
         ],
         "$defs": {
@@ -26665,7 +26754,7 @@
               },
               "mls_group_id": {
                 "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
-                "description": "Reducer-derived from this Circle's circle-branch effective scope; both realm_id and circle_id enter the scope key bytes."
+                "description": "Reducer-derived from this Circle's circle-branch effective scope; the canonical scope key bytes are UTF8(circle_id), while the parent Realm binding is validated independently."
               },
               "state": {
                 "$ref": "#/$defs/circle_state"
@@ -27004,26 +27093,6 @@
             },
             "additionalProperties": false,
             "x-arkret-name-role": "response_body"
-          },
-          "circle_scope_rotate_response_body": {
-            "type": "object",
-            "required": [
-              "circle_id"
-            ],
-            "properties": {
-              "circle_id": {
-                "$ref": "./common-ids.schema.json#/$defs/circle_id"
-              },
-              "mls_group_id": {
-                "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
-              },
-              "note": {
-                "type": "string",
-                "description": "Reducer-emitted reason code on Ignored / Rejected, or unsupported-feature note while MLS scope rotation is not wired end-to-end."
-              }
-            },
-            "additionalProperties": false,
-            "x-arkret-name-role": "response_body"
           }
         }
       }
@@ -27147,7 +27216,7 @@
           },
           "mls_group_id": {
             "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
-            "description": "Reducer-derived from this Circle's circle-branch effective scope; both realm_id and circle_id enter the scope key bytes. Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
+            "description": "Reducer-derived from this Circle's circle-branch effective scope; the canonical scope key bytes are UTF8(circle_id), while the parent Realm binding is validated independently. Present only on the materialized MLS-backed Circle and forbidden in the actor-supplied create payload."
           },
           "state": {
             "type": "string",
@@ -45174,7 +45243,7 @@
           },
           "normalized_did_document_extension": {
             "type": "object",
-            "description": "One lossless extension property from the verified DID Document. Rows are sorted by name in unsigned UTF-8 byte order and duplicate names are rejected. A name that collides with a registered known member is invalid rather than shadowing that member.",
+            "description": "One lossless extension property from the verified DID Document. Rows are sorted by name in unsigned UTF-8 byte order and duplicate names are rejected. A name must not shadow a distinct dedicated normalized member. Registered source members explicitly mapped to an extension row, including arkret_governance, remain valid and use their owning value schema.",
             "required": [
               "name",
               "value"
@@ -45346,7 +45415,38 @@
                 "type": "array",
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/normalized_did_document_extension"
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/normalized_did_document_extension"
+                    },
+                    {
+                      "if": {
+                        "properties": {
+                          "name": {
+                            "const": "arkret_governance",
+                            "x-arkret-value-ownership": {
+                              "class": "owned_symbol",
+                              "authority": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/extensions/items/allOf/1/if/properties/name",
+                              "owner": "did-binding-contracts.schema.json#/$defs/normalized_did_document/properties/extensions/items/allOf/1/if/properties/name",
+                              "values": [
+                                "arkret_governance"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "value": {
+                            "$ref": "#/$defs/organization_governance"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             },
@@ -45752,6 +45852,75 @@
                     "synchronous_refresh_or_fail_closed"
                   ]
                 }
+              }
+            },
+            "additionalProperties": false
+          },
+          "organization_governance_threshold": {
+            "type": "object",
+            "required": [
+              "min_signature_count",
+              "allowed_kids"
+            ],
+            "properties": {
+              "min_signature_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "allowed_kids": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "./common-ids.schema.json#/$defs/did_url"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "organization_service_delegation": {
+            "type": "object",
+            "description": "An existing organization service delegation. The verified DID supplies the subject organization; bootstrap purpose permits this exact Service to select its first PCR/hosting Account, never an unstated Station allowlist or other resource scope. authorization_ref names a verified organization control/governance method, not this row. service_id must be unique in its owning array.",
+            "required": [
+              "service_id",
+              "purposes",
+              "not_before"
+            ],
+            "properties": {
+              "service_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "purposes": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "not_before": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "expires_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          "organization_governance": {
+            "type": "object",
+            "description": "The existing arkret_governance DID Document extension. Declaration alone grants no authorization; historical method, exact executor, quorum, time and native acceptance remain independent.",
+            "properties": {
+              "threshold": {
+                "$ref": "#/$defs/organization_governance_threshold"
+              },
+              "delegations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/organization_service_delegation"
+                },
+                "uniqueItems": true
               }
             },
             "additionalProperties": false
@@ -55037,25 +55206,25 @@
               },
               {
                 "if": {
-                  "properties": {
-                    "kind": {
-                      "const": "ak.realm.create",
-                      "x-arkret-value-ownership": {
-                        "class": "namespaced_symbol",
-                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/properties/kind",
-                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/properties/kind",
-                        "values": [
-                          "ak.realm.create"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "kind"
-                  ]
-                },
-                "then": {
-                  "anyOf": [
+                  "allOf": [
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.realm.create",
+                          "x-arkret-value-ownership": {
+                            "class": "namespaced_symbol",
+                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/0/properties/kind",
+                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/0/properties/kind",
+                            "values": [
+                              "ak.realm.create"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
+                    },
                     {
                       "allOf": [
                         {
@@ -55070,8 +55239,8 @@
                                           "const": "principal_control",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "principal_control"
                                             ]
@@ -55123,8 +55292,8 @@
                                                 "const": "agent_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "agent_control"
                                                   ]
@@ -55165,8 +55334,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -55207,8 +55376,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55238,8 +55407,8 @@
                                               "const": "direct_conversation_contact_round",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_contact_round"
                                                 ]
@@ -55249,8 +55418,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -55284,8 +55453,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55315,8 +55484,8 @@
                                               "const": "direct_conversation_agent_provision",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_agent_provision"
                                                 ]
@@ -55326,8 +55495,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -55361,8 +55530,8 @@
                                                 "const": "collaboration",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/0/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "collaboration"
                                                   ]
@@ -55389,6 +55558,43 @@
                           }
                         }
                       ]
+                    }
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "object": {
+                          "required": [
+                            "founding_device_descriptor"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.realm.create",
+                          "x-arkret-value-ownership": {
+                            "class": "namespaced_symbol",
+                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/0/properties/kind",
+                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/0/properties/kind",
+                            "values": [
+                              "ak.realm.create"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
                     },
                     {
                       "allOf": [
@@ -55404,8 +55610,8 @@
                                           "const": "agent_control",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "agent_control"
                                             ]
@@ -55449,8 +55655,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -55499,8 +55705,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -55541,8 +55747,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55572,8 +55778,8 @@
                                               "const": "direct_conversation_contact_round",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_contact_round"
                                                 ]
@@ -55583,8 +55789,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -55618,8 +55824,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55649,8 +55855,8 @@
                                               "const": "direct_conversation_agent_provision",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_agent_provision"
                                                 ]
@@ -55660,8 +55866,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -55695,8 +55901,8 @@
                                                 "const": "collaboration",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "collaboration"
                                                   ]
@@ -55723,6 +55929,45 @@
                           }
                         }
                       ]
+                    }
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "object": {
+                          "not": {
+                            "required": [
+                              "founding_device_descriptor"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "allOf": [
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.realm.create",
+                          "x-arkret-value-ownership": {
+                            "class": "namespaced_symbol",
+                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/0/properties/kind",
+                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/0/properties/kind",
+                            "values": [
+                              "ak.realm.create"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind"
+                      ]
                     },
                     {
                       "allOf": [
@@ -55738,8 +55983,8 @@
                                           "const": "principal_control",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "principal_control"
                                             ]
@@ -55783,8 +56028,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -55833,8 +56078,8 @@
                                                 "const": "agent_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "agent_control"
                                                   ]
@@ -55875,8 +56120,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55906,8 +56151,8 @@
                                               "const": "direct_conversation_contact_round",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_contact_round"
                                                 ]
@@ -55917,8 +56162,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -55952,8 +56197,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -55983,8 +56228,8 @@
                                               "const": "direct_conversation_agent_provision",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_agent_provision"
                                                 ]
@@ -55994,8 +56239,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -56029,8 +56274,1049 @@
                                                 "const": "collaboration",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/2/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/allOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "collaboration"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "payload": {
+                      "properties": {
+                        "object": {
+                          "not": {
+                            "required": [
+                              "founding_device_descriptor"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.create",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/if/properties/kind",
+                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/if/properties/kind",
+                        "values": [
+                          "ak.realm.create"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "properties": {
+                                "payload": {
+                                  "properties": {
+                                    "object": {
+                                      "properties": {
+                                        "purpose": {
+                                          "const": "principal_control",
+                                          "x-arkret-value-ownership": {
+                                            "class": "owned_symbol",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "values": [
+                                              "principal_control"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "purpose"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "object"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "payload"
+                              ]
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "executed_by"
+                                ]
+                              }
+                            },
+                            {
+                              "not": {
+                                "required": [
+                                  "authorization_ref"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "agent_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "agent_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "required": [
+                                      "executed_by",
+                                      "authorization_ref"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "principal_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "principal_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "required": [
+                                      "executed_by",
+                                      "authorization_ref"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_contact_round",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_contact_round"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_agent_provision",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_agent_provision"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "collaboration",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/0/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "collaboration"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "properties": {
+                                "payload": {
+                                  "properties": {
+                                    "object": {
+                                      "properties": {
+                                        "purpose": {
+                                          "const": "agent_control",
+                                          "x-arkret-value-ownership": {
+                                            "class": "owned_symbol",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "values": [
+                                              "agent_control"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "purpose"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "object"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "payload"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "executed_by",
+                                "authorization_ref"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "principal_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "principal_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "not": {
+                                      "required": [
+                                        "executed_by"
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "required": [
+                                        "authorization_ref"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "principal_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "principal_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "required": [
+                                      "executed_by",
+                                      "authorization_ref"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_contact_round",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_contact_round"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_agent_provision",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_agent_provision"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "collaboration",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/1/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "collaboration"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "properties": {
+                                "payload": {
+                                  "properties": {
+                                    "object": {
+                                      "properties": {
+                                        "purpose": {
+                                          "const": "principal_control",
+                                          "x-arkret-value-ownership": {
+                                            "class": "owned_symbol",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "values": [
+                                              "principal_control"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "purpose"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "object"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "payload"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "executed_by",
+                                "authorization_ref"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "not": {
+                            "anyOf": [
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "principal_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "principal_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "not": {
+                                      "required": [
+                                        "executed_by"
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "required": [
+                                        "authorization_ref"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "agent_control",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "agent_control"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "required": [
+                                      "executed_by",
+                                      "authorization_ref"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_contact_round",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_contact_round"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/2/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "direct_conversation",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "values": [
+                                                    "direct_conversation"
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "purpose"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "object"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "payload"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "semantic_refs": {
+                                        "contains": {
+                                          "properties": {
+                                            "role": {
+                                              "const": "direct_conversation_agent_provision",
+                                              "x-arkret-value-ownership": {
+                                                "class": "owned_symbol",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "values": [
+                                                  "direct_conversation_agent_provision"
+                                                ]
+                                              }
+                                            },
+                                            "critical": {
+                                              "const": true,
+                                              "x-arkret-value-ownership": {
+                                                "class": "numeric",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "values": [
+                                                  true
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "role",
+                                            "critical"
+                                          ]
+                                        },
+                                        "minContains": 1,
+                                        "maxContains": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "semantic_refs"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "allOf": [
+                                  {
+                                    "properties": {
+                                      "payload": {
+                                        "properties": {
+                                          "object": {
+                                            "properties": {
+                                              "purpose": {
+                                                "const": "collaboration",
+                                                "x-arkret-value-ownership": {
+                                                  "class": "owned_symbol",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/2/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "collaboration"
                                                   ]
@@ -56072,8 +57358,8 @@
                                           "const": "direct_conversation",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "direct_conversation"
                                             ]
@@ -56103,8 +57389,8 @@
                                         "const": "direct_conversation_contact_round",
                                         "x-arkret-value-ownership": {
                                           "class": "owned_symbol",
-                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
-                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
+                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
+                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
                                           "values": [
                                             "direct_conversation_contact_round"
                                           ]
@@ -56114,8 +57400,8 @@
                                         "const": true,
                                         "x-arkret-value-ownership": {
                                           "class": "numeric",
-                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
                                           "values": [
                                             true
                                           ]
@@ -56152,8 +57438,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56202,8 +57488,8 @@
                                                 "const": "agent_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "agent_control"
                                                   ]
@@ -56244,8 +57530,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56286,8 +57572,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -56317,8 +57603,8 @@
                                               "const": "direct_conversation_agent_provision",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_agent_provision"
                                                 ]
@@ -56328,8 +57614,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -56363,8 +57649,8 @@
                                                 "const": "collaboration",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/3/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/3/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "collaboration"
                                                   ]
@@ -56406,8 +57692,8 @@
                                           "const": "direct_conversation",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "direct_conversation"
                                             ]
@@ -56437,8 +57723,8 @@
                                         "const": "direct_conversation_agent_provision",
                                         "x-arkret-value-ownership": {
                                           "class": "owned_symbol",
-                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
-                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
+                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
+                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/role",
                                           "values": [
                                             "direct_conversation_agent_provision"
                                           ]
@@ -56448,8 +57734,8 @@
                                         "const": true,
                                         "x-arkret-value-ownership": {
                                           "class": "numeric",
-                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                          "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                          "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/0/allOf/1/properties/semantic_refs/contains/properties/critical",
                                           "values": [
                                             true
                                           ]
@@ -56486,8 +57772,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56536,8 +57822,8 @@
                                                 "const": "agent_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "agent_control"
                                                   ]
@@ -56578,8 +57864,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56620,8 +57906,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -56651,8 +57937,8 @@
                                               "const": "direct_conversation_contact_round",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_contact_round"
                                                 ]
@@ -56662,8 +57948,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -56697,8 +57983,8 @@
                                                 "const": "collaboration",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/4/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/4/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "collaboration"
                                                   ]
@@ -56740,8 +58026,8 @@
                                           "const": "collaboration",
                                           "x-arkret-value-ownership": {
                                             "class": "owned_symbol",
-                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                            "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                             "values": [
                                               "collaboration"
                                             ]
@@ -56779,8 +58065,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/0/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56829,8 +58115,8 @@
                                                 "const": "agent_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/1/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "agent_control"
                                                   ]
@@ -56871,8 +58157,8 @@
                                                 "const": "principal_control",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/2/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "principal_control"
                                                   ]
@@ -56913,8 +58199,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -56944,8 +58230,8 @@
                                               "const": "direct_conversation_contact_round",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_contact_round"
                                                 ]
@@ -56955,8 +58241,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/3/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -56990,8 +58276,8 @@
                                                 "const": "direct_conversation",
                                                 "x-arkret-value-ownership": {
                                                   "class": "owned_symbol",
-                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
-                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
+                                                  "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/0/properties/payload/properties/object/properties/purpose",
                                                   "values": [
                                                     "direct_conversation"
                                                   ]
@@ -57021,8 +58307,8 @@
                                               "const": "direct_conversation_agent_provision",
                                               "x-arkret-value-ownership": {
                                                 "class": "owned_symbol",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/role",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/role",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/role",
                                                 "values": [
                                                   "direct_conversation_agent_provision"
                                                 ]
@@ -57032,8 +58318,8 @@
                                               "const": true,
                                               "x-arkret-value-ownership": {
                                                 "class": "numeric",
-                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/critical",
-                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/10/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/critical",
+                                                "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/then/anyOf/5/allOf/1/not/anyOf/4/allOf/1/properties/semantic_refs/contains/properties/critical",
                                                 "values": [
                                                   true
                                                 ]
@@ -57070,8 +58356,8 @@
                       "const": "ak.self.agent.deactivate",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/properties/kind",
-                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/11/if/properties/kind",
+                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/14/if/properties/kind",
+                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/14/if/properties/kind",
                         "values": [
                           "ak.self.agent.deactivate"
                         ]
@@ -57104,8 +58390,8 @@
                       "const": "ak.self.agent.pause",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/properties/kind",
-                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/12/if/properties/kind",
+                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/15/if/properties/kind",
+                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/15/if/properties/kind",
                         "values": [
                           "ak.self.agent.pause"
                         ]
@@ -57138,8 +58424,8 @@
                       "const": "ak.self.agent.resume",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/if/properties/kind",
-                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/13/if/properties/kind",
+                        "authority": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/16/if/properties/kind",
+                        "owner": "event-envelope.schema.json#/$defs/registered_admission_shape/allOf/16/if/properties/kind",
                         "values": [
                           "ak.self.agent.resume"
                         ]
@@ -97928,7 +99214,7 @@
           },
           "founding_device_descriptor": {
             "$ref": "#/$defs/founding_device_descriptor",
-            "description": "Human Principal Control Realm genesis only. The identity root commits to the exact founding device material and the canonical founding authorize payload digest. The enclosing pcr_genesis_unit requires it; Agent PCR genesis MUST omit it."
+            "description": "Human Principal Control Realm genesis only. The Human pcr_genesis_unit requires it; delegated Organization, Agent and business Realm genesis MUST omit it. Payload-only validation cannot distinguish Human and Organization principal_control: the enclosing Event executor branch and native unit enforce the exact requirement."
           },
           "initial_resolution": {
             "$ref": "./identity-resolution.schema.json#/$defs/resolution_commitment",
@@ -97962,15 +99248,21 @@
             "if": {
               "properties": {
                 "purpose": {
-                  "const": "principal_control",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
                     "authority": "realm-genesis.schema.json#/allOf/0/if/properties/purpose",
                     "owner": "realm-genesis.schema.json#/allOf/0/if/properties/purpose",
                     "values": [
-                      "principal_control"
+                      "agent_control",
+                      "collaboration",
+                      "direct_conversation"
                     ]
-                  }
+                  },
+                  "enum": [
+                    "agent_control",
+                    "collaboration",
+                    "direct_conversation"
+                  ]
                 }
               },
               "required": [
@@ -97978,18 +99270,13 @@
               ]
             },
             "then": {
-              "required": [
-                "founding_device_descriptor"
-              ]
-            },
-            "else": {
               "not": {
                 "required": [
                   "founding_device_descriptor"
                 ]
               }
             },
-            "description": "founding_device_descriptor is exclusive to human Principal Control Realm genesis. agent_control, collaboration and direct_conversation genesis MUST omit it. genesis_salt is required for every purpose since PCR genesis is event-derived like any other Realm."
+            "description": "Only a Human principal_control Event may carry the descriptor. Other purposes forbid it here; the enclosing Event requires it exactly for the Human executor-absent branch and forbids it for delegated Organization genesis."
           },
           {
             "if": {
@@ -117830,7 +119117,7 @@
     },
     {
       "file": "applet-managed-authority-registry.json",
-      "digest": "sha256:a0bb36bc9b7c6f8efd8114102be328c0110d73f9505fa5689557a607dd4d1dc4"
+      "digest": "sha256:529bba3ea8ace5d34e84bf81c3ef402ba28ed96f7b3826cb140c65503abf03fa"
     },
     {
       "file": "authority-set-policy-registry.json",
@@ -117854,7 +119141,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:7d763487579b3c479c7bc4b7d4056b73c9c52cc1e0aa0c9edede7bbd509c5f8b"
+      "digest": "sha256:2df2145bcc76d96185606e75c43515f3f1e0444ff7b43183cd5cfb92238a79bc"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117914,7 +119201,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:da304c66315adef4b616f885ee376b208ddfccb678842483d87b4c3c17297a5e"
+      "digest": "sha256:a5c1b526369c0dece03104b7f1ed284508e08bb9e320186e03fcf7c09c42a086"
     },
     {
       "file": "operation-clause-registry.json",
@@ -117922,7 +119209,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:78df565cd0d0911476dd8fbf47a272793543f1abe12fb446d513a45e48f55c35"
+      "digest": "sha256:225cbfdb4d9c4444fa823f7b33bdc1752ed26c8cde345c6d73fc59f3675553cb"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -118389,9 +119676,6 @@
         },
         "CircleReadView": {
           "$ref": "../schemas/circle-operations.schema.json#/$defs/circle_read_view"
-        },
-        "CircleScopeRotateResponseBody": {
-          "$ref": "../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body"
         },
         "CircleView": {
           "$ref": "../schemas/circle-operations.schema.json#/$defs/circle_view"
@@ -123385,10 +124669,16 @@
             {
               "SessionGrantAuth": [],
               "DpopProof": []
+            },
+            {
+              "HttpMessageSignature": [],
+              "ManagedDeviceMetadata": [],
+              "DestinationServiceId": [],
+              "ContentDigest": []
             }
           ],
           "summary": "Rotate the Circle's bound MLS group.",
-          "description": "MUST NOT acknowledge a rotation without actually changing the\ncryptographic scope. Returns unsupported_feature until the MLS\ngenesis/commit/welcome cascade is wired end-to-end.\n",
+          "description": "Narrow Circle-path convenience binding of the existing complete MlsCommitSubmission. commit_event must name exactly this Circle and its parent Realm in scope_ref, and contain one member-sent RFC 9420 public Commit with an UpdatePath for the scope's already accepted current MLS group. The current base, epoch, key-access revision, effective parent/Circle membership, producer, capability, native Device scope and installation, policy, approvals and every Welcome remain the ordinary MLS accepting transaction's independent gates. The service never creates Genesis, signs for the caller or partially submits Events. CircleManage grants no MLS permission and is not an extra requirement of this binding. One Commit and all Welcomes are accepted atomically; return the actual AuthoritySubmitResponseBody. The complete unchanged retry unit returns its original accepted or rejected outcome after the existing producer/recovery identity check, before today's epoch or business authorization is rejudged; the same retry key with changed complete body is duplicate_conflict. Standard MLS forwarding preserves this exact original without a new origin-operation carrier. Public RFC verification establishes UpdatePath structure, not honest producer entropy or secret-dependent confirmation; those remain member responsibilities.",
           "parameters": [
             {
               "name": "Arkret-Operation",
@@ -123418,23 +124708,22 @@
             }
           ],
           "requestBody": {
-            "required": false,
+            "required": true,
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": false
+                  "$ref": "../schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission"
                 }
               }
             }
           },
           "responses": {
             "200": {
-              "description": "Circle MLS scope rotated.",
+              "description": "Original atomic MLS authority outcome.",
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/CircleScopeRotateResponseBody"
+                    "$ref": "../schemas/authority-commit-operations.schema.json#/$defs/submit_response_body"
                   }
                 }
               }

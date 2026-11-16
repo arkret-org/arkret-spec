@@ -1944,14 +1944,15 @@
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_response_body",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
       "openapi_component_refs": {
-        "response": "#/components/schemas/CircleScopeRotateResponseBody"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/submit_response_body"
       },
       "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.circle.member.command.add.v1",

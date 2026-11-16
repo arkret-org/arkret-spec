@@ -1066,6 +1066,8 @@ Device HTTP 使用 Arkret-Managed-Device 的完整 realm actor 元数据，直�
 membership、Policy 与审批。允许 Circle-only 的父成员依赖不自动授父内容读取。
 Blob、MLS material、历史验签与 to-device 队列采用同一完整身份和 current 门；scope 不能互相拼接。
 Device 的具体 operation/action 配对以 applet-managed-authority-registry.json 为准。
+Circle scope rotate 直接复用已签名 MlsCommitSubmission 与 submitted_business_actions，
+只准原 Device 的同一精确 Circle scope 及 MLS action；不新增 CircleManage 权限或跨 scope 组合。
 其中仅原生备份 PUT／head-list／unlock-challenge／unlock 四个 subject-only non-Event action 可由当前 Principal
 control 原签纳入 DeviceAuthorize exact scope/actions；不要求或铸造 Service parent／terminal child 业务 grant。
 按 [device-lifecycle §16.2](../crypto-media/device-lifecycle.md#162-已登记-operation-的配对消费normative) 仍完整核实际

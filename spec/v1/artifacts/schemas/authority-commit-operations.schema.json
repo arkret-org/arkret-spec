@@ -30,10 +30,35 @@
       "description": "One ordinary producer Event with the approval signatures its two approval layers require for the Event action or for this registered submit operation, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventAdmissionSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
       "oneOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "not": {
+                        "const": "ak.mls.commit",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind/not",
+                          "values": [
+                            "ak.mls.commit"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         {
-          "$ref": "./mls-commit-submission.schema.json"
+          "$ref": "#/$defs/client_mls_commit_submission"
         }
       ],
       "x-arkret-name-role": "request_body"
@@ -101,13 +126,38 @@
       "x-arkret-name-role": "response_body"
     },
     "self_submit_request_body": {
-      "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true.",
+      "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true. Every first ak.mls.commit uses the complete client MLS branch, including no-Add Commit with welcomes=[]; the single-Event branch excludes that kind for every Actor. Client recovery_source is forbidden; only the independent peer recovery specialization may carry it.",
       "oneOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "not": {
+                        "const": "ak.mls.commit",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind/not",
+                          "values": [
+                            "ak.mls.commit"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         },
         {
-          "$ref": "./mls-commit-submission.schema.json"
+          "$ref": "#/$defs/client_mls_commit_submission"
         },
         {
           "$ref": "#/$defs/direct_conversation_founding_unit_submission"
@@ -147,7 +197,7 @@
     },
     "peer_submit_request_body": {
       "type": "object",
-      "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier.",
+      "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier. An ordinary complete MLS submission with an actual Account producer, no recovery_source and neither dynamic producer evidence object is an original-result-only probe: exact source identity and complete unit binding are mandatory; a missing terminal result returns not_found without admission or writes. Producer evidence remains mandatory for first admission.",
       "required": [
         "branch"
       ],
@@ -170,7 +220,33 @@
           }
         },
         "event_submission": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+          "allOf": [
+            {
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "not": {
+                        "const": "ak.mls.commit",
+                        "x-arkret-value-ownership": {
+                          "class": "namespaced_symbol",
+                          "authority": "mls-commit-submission.schema.json#/properties/commit_event/allOf/1/properties/kind",
+                          "owner": "authority-commit-operations.schema.json#/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event/properties/kind/not",
+                          "values": [
+                            "ak.mls.commit"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "description": "Organization delegated_pcr_genesis uses this same single Event and registered approval_signatures for finite independent root authorization, or its exact historical DID bootstrap delegation. No Human descriptor/device, extra Event slots or generic non-device producer authority follows. The native acceptance transaction also fixes the full Account/PCR/source/current/proof/nonce/original-outcome closure."
         },
         "mls_submission": {
           "$ref": "./mls-commit-submission.schema.json"
@@ -191,10 +267,11 @@
         },
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
-          "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
+          "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every first-admission forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated. Ordinary complete MLS original-result probes omit both producer evidence objects; they cannot perform first admission, even when an earlier frozen attestation remains unexpired."
         },
         "producer_agent_evidence": {
-          "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
+          "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence",
+          "description": "Existing Agent producer evidence for first admission. The ordinary Account complete-MLS original-result-only probe omits both dynamic producer evidence objects; a miss cannot admit a new Event."
         },
         "replications": {
           "type": "array",
@@ -3296,7 +3373,7 @@
         },
         "state_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-          "description": "SHA256 of the complete canonical private management-state export at the exact frozen Realm governance handoff cut, including every native RealmActor root namespace. Native domains include all first-PUT packets and immutable author/admission/governance sources even without an Event or with failed first use, losing CAS or lost ACK; complete scoped series/current pointers and original recipient declarations; persisted archive_revision, all root/coverage/replacement/last-sufficient retention obligations, original idempotency/fixed outcomes and challenge/nonce ledgers. Export and freeze share the native namespace locks and final_stream_heads cut. New authority independently verifies originals, physically imports and re-exports the complete retained state, comparing this digest before activation; a matching manifest/summary/file alone is insufficient. Preserve archive_revision and exact originals/results; never reconstruct only from successful business Event references. Format/domain unsupported or missing native state rejects activation. Manager archive private keys, ordinary Service signing keys and member private MLS state are excluded. Existing management_private_state_digest salted commitment and both handoff signature formulas are unchanged; no new public carrier or API."
+          "description": "SHA256 of the complete canonical private management-state export at the exact frozen Realm governance handoff cut, including every native RealmActor root namespace. Native domains include all first-PUT packets and immutable author/admission/governance sources even without an Event or with failed first use, losing CAS or lost ACK; complete scoped series/current pointers and original recipient declarations; persisted archive_revision, all root/coverage/replacement/last-sufficient retention obligations, original idempotency/fixed outcomes and challenge/nonce ledgers. Export and freeze share the native namespace locks and final_stream_heads cut. New authority independently verifies originals, physically imports and re-exports the complete retained state, comparing this digest before activation; a matching manifest/summary/file alone is insufficient. Preserve archive_revision and exact originals/results; never reconstruct only from successful business Event references. Format/domain unsupported or missing native state rejects activation. Manager archive private keys, ordinary Service signing keys and member private MLS state are excluded. Existing management_private_state_digest salted commitment and both handoff signature formulas are unchanged; no new public carrier or API. The finite Realm-owned inventory also includes each retained terminal complete ordinary/client MLS submission result, its original retry namespace/key/hash/status/body/times and exact source Event/terminal-state dependency; a no-Commit refusal must not be omitted by joining only through RealmCommits. Normalize local surrogate identities to immutable source Event identity, verify and remap inside the exact Realm, and reject missing/cross-Realm/conflicting state. This includes only actual source-owned records, not every cache row for an actor or invented keys for older Event-only originals. Source-retained minimal canonical outcomes survive generic short-lived cache GC and eligible handoff; private source/journal deletion follows its separately authorized retention/Account-terminal scope. The origin's transport journal and optional mirror cache are not governance authority, replica state or a new shared ledger. No manifest field, public inventory, digest formula, protocol version or private member MLS secret is added."
         }
       },
       "additionalProperties": false
@@ -3541,6 +3618,21 @@
       },
       "additionalProperties": false,
       "description": "Minimal immutable Agent runtime signer fact derived only after native authority verification at original admission. The fact includes original producer Event ref but no target Commit coordinate. Its SHA256(JCS) is committed as producer_signer_fact_digest. Native private Agent scope stays at its Account Station; recovery uses the separately signed exact origin recovery source."
+    },
+    "client_mls_commit_submission": {
+      "description": "Client specialization of the existing MlsCommitSubmission<NoRecoverySource>: identical Commit/Welcome/key members, with no Station-issued recovery_source. This allOf view adds no DTO, wrapper, field or separate wire identity. The peer specialization retains its independent ContentRecoverySource and dedicated native recovery contract.",
+      "allOf": [
+        {
+          "$ref": "./mls-commit-submission.schema.json"
+        },
+        {
+          "not": {
+            "required": [
+              "recovery_source"
+            ]
+          }
+        }
+      ]
     }
   }
 }

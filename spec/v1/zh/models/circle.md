@@ -235,6 +235,40 @@ F_private --confidential_discussion_of--> F_public
 
 `confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md))，关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public authority commit；非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
 
+### 7.3 Circle scope rotate 的 MLS 等价入口（normative）
+
+`ak.self.circle.command.rotate_scope.v1` 的 request MUST 直接使用既有
+`MlsCommitSubmission<NoRecoverySource>` 的既有 client specialization；response MUST 直接使用 `AuthoritySubmitResponseBody`。
+client 原件 MUST NOT 携带仅由 owning Station 产生的 `recovery_source`；peer 的独立恢复来源不因此被禁止或改由本入口接纳。
+本入口只是既有 MLS Commit 的窄便利绑定，不新增 Circle 专用 DTO、Event、权限、
+Genesis／Commit 数组、group／Circle 回显或成功 note。
+`commit_event.scope_ref` MUST 为精确 path Circle 及其父 Realm 的 Circle scope，
+`commit_event.realm_id` MUST 等于该 scope 的 Realm；其规范 MLS group id 从该 scope 唯一派生。
+Commit MUST 是已激活 group 的 member-sent RFC 9420 public Commit，并实际携带 `UpdatePath`。
+只增加 epoch 数字或没有 UpdatePath 的 Commit 不构成本入口的 scope rotation。
+Station 验证 RFC 结构、公开签名与公开状态；它不能由这些公开材料证明恶意 producer 的熵质量，
+也不替成员完成依赖 secret 的 confirmation 验证。
+
+第一次接纳 MUST 完整复用普通 MLS 的同一 authority transaction：当前 base、epoch、
+key-access revision、有效父 Realm／Circle membership、原 producer、`ak.mls.commit`
+capability、Policy／审批以及全部 Welcome 的每个门都保留，一个 Commit 与全部 Welcome
+全成或全败。`ak.circle.manage` 的既有作用仍仅为 Circle lifecycle／metadata；本入口既不从它
+推出 MLS 权限，也不额外要求该无关动作。Circle archive 期间合法的 MLS repair 继续按 §9.2
+和 encryption-and-audit 的原规则求值，不能由便利入口另立生命周期规则。
+
+原生 Bot／Ghost Device 使用已登记的 managed Device HTTP 签名，operation scope rule 复用
+`submitted_business_actions`，只准其原授权中的相同精确 Circle scope 与 MLS business action，
+不能拼接其它 scope／Device／安装的权限。普通 Account Station 的标准 MLS forwarding 逐字保留
+原 Commit 和 Welcome，不新增 origin-operation 字段。
+重试身份绑定完整 unchanged `MlsCommitSubmission`（含全部 Welcome 与 UUIDv7 retry key）。
+同 retry key 改变完整 body MUST `duplicate_conflict` 并零新增写入。
+Event 已终局时改变 retry key 不构成原完整单元重试；MUST 以 `duplicate_conflict`
+拒绝，且不得新建重试别名或重新投递 Welcome。
+完成既有 producer／recovery 身份门后，精确已接纳或已终局拒绝的原单元 MUST 返回原 authority outcome；不能用今日 epoch、
+授权或安装状态重算历史成功。完整原件及最小终局结果的来源保留、治理交接和 origin 恢复遵守
+encryption-and-audit §2.2 与 authority-commit-log §10；可选缓存过期不得把原 committed 改为合成 duplicate。
+没有 accepted MLS Genesis 时本入口拒绝，不代调用者创建 group。
+
 ## 8. Capability 与授权评估
 
 Capability actions:

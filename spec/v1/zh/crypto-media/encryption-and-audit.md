@@ -50,7 +50,14 @@ LeafNode/KeyPackage 逐字节向量见
 `ak.mls.commit` 是 producer-signed、authority-committed 共享 Event。Welcome 是
 `MlsWelcomeDelivery` recipient object，不是 Event，不进入 Realm stream，也不获得独立 finality。
 
-Add transition 使用一个 closed `MlsCommitSubmission`：
+每个首次 `ak.mls.commit` transition MUST 使用一个 closed `MlsCommitSubmission`，不因 Actor 种类、Self／peer 路径或没有 Add 而例外。
+没有新增 recipient 时 `welcomes` 为显式空数组；普通 Event 子分支 MUST 拒绝裸 Commit。
+Genesis 仍按 §5.1.2 使用其独立普通 Event 分支，不伪造 MLS submission key。
+client 使用同一泛型的 `NoRecoverySource` specialization，不得自报 `recovery_source`；只有 owning Station 的 peer specialization
+可附加正式 native recovery source，并仍受 content-history 的独立 episode／inventory／current 门约束，不能退化为普通 capability 接纳。
+新规则不改写旧已 accepted 的 Event／Commit，不为历史 Event-only 原件合成不存在的完整重试身份。
+
+完整载体为：
 
 ```text
 MlsCommitSubmission {
@@ -76,6 +83,9 @@ recipient actor 与 endpoint、`keypackage_claim_ref`、canonical ciphertext 和
 任一 delivery 缺失、重复冲突、超限或绑定错误时事务零写入。事务 durable 后才可返回 Commit accepted；
 此时 sender 立即安装 staged post-state，不等待 recipient ACK。Station 按 `welcome_id` 重试投递，recipient durable
 保存并完整验证 Welcome 后幂等 ACK。response 丢失时 caller 只能重放 byte-identical submission或按 Commit EventId 查询。
+Event 查询只证明该 Event 的 accepted 事实，不证明另一完整 MLS submission key／Welcome 集已接纳，不能据此新建重试别名或重发 Welcome。
+完整普通 MLS unit 的原 committed／rejected 结果及其来源依赖按 authority-commit-log §10 保留并交接；
+origin 镜像缓存过期不改变实际原结果，也不授予当前认证、历史披露或 read-ready 权限。
 
 **跨站 recipient（normative）**：治理 Station 对每条 delivery 以 `recipient_actor_id` 按
 [`../models/common-fields.md` §4.2](../models/common-fields.md) 的封闭规则投影 routing service。投影为其它 Station 的
