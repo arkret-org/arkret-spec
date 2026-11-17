@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:4694f2fba66b1d38f6859b403634fe93b9968e857571e68d2b0d8ba8d7298cb5",
+  "contract_digest": "sha256:95b4905fb6faf66ba683368cd819ec291ae8bc8f4b4364012e8963035ae17e3c",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -9845,11 +9845,22 @@
             "type": "object",
             "required": [
               "participant_authority_digest",
+              "authority_stream_head",
               "current_controller_device_ready"
             ],
             "properties": {
               "participant_authority_digest": {
                 "$ref": "#/$defs/digest"
+              },
+              "authority_stream_head": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/event_id"
+                },
+                "minItems": 1,
+                "maxItems": 64,
+                "uniqueItems": true,
+                "description": "UTF-8 byte-lexicographically sorted accepted Event IDs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results. Same value and bound as the signed mls_governance_binding.authority_stream_head."
               },
               "mls_group_id": {
                 "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -66020,7 +66031,7 @@
           },
           "mls_governance_binding": {
             "type": "object",
-            "description": "The single closed Arkret MLS governance binding. Five shared members; Sidecar additionally requires only the original five-member participant_authority_digest. Dynamic native scope source and G basis are transport evidence outside the immutable binding. Every other scope MUST omit participant_authority_digest. No H authority head list or foreign-Sidecar writer veto exists.",
+            "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. Five members are shared by every scope; the Sidecar scope additionally requires the signed participant authority digest and accepted authority cut, and any other scope carrying either is a schema_violation. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
             "x-arkret-deterministic-cbor": {
               "map_key_order": [
                 "next_epoch",
@@ -66028,6 +66039,7 @@
                 "effective_scope",
                 "key_access_revision",
                 "base_group_state_ref",
+                "authority_stream_head",
                 "participant_authority_digest"
               ],
               "maximum_input_bytes": 16384,
@@ -66068,6 +66080,16 @@
               },
               "participant_authority_digest": {
                 "$ref": "#/$defs/digest"
+              },
+              "authority_stream_head": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "minItems": 1,
+                "maxItems": 64,
+                "uniqueItems": true,
+                "description": "UTF-8 byte-lexicographically sorted accepted Event IDs at the exact Sidecar participant decision cut; same value as AgentSidecarView.mls_context.authority_stream_head. maxItems equals the decoder maximum_collection_items; the governance Station rejects, at acceptance time and with failed_precondition and zero writes, any authority change whose derived Sidecar cut would exceed it."
               }
             },
             "allOf": [
@@ -66099,7 +66121,8 @@
                 },
                 "then": {
                   "required": [
-                    "participant_authority_digest"
+                    "participant_authority_digest",
+                    "authority_stream_head"
                   ]
                 },
                 "else": {
@@ -66108,6 +66131,11 @@
                       {
                         "required": [
                           "participant_authority_digest"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "authority_stream_head"
                         ]
                       }
                     ]
@@ -70833,7 +70861,7 @@
           "proposal_wire_format": "mls_public_message",
           "commit_wire_format": "mls_public_message",
           "secret_mac_verification_role": "member",
-          "participant_authority_binding": "five_member_digest_and_restricted_native_scope_source",
+          "participant_authority_binding": "exact_accepted_cut",
           "consumed_proposal_provenance": "inline_signed_commit",
           "handshake_disclosure": "sidecar_authorized_only",
           "application_and_welcome_protection": "unchanged",
@@ -88950,727 +88978,6 @@
           }
         },
         "additionalProperties": false
-      }
-    },
-    {
-      "file": "mls-native-scope-source.schema.json",
-      "contract": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://arkret.org/v1/schemas/mls-native-scope-source.schema.json",
-        "description": "Finite current-G to owning-H native qualification only. Pure signature/transcript/source binding does not establish G RFC acceptance, actual private retention, disclosure authority or global H/G simultaneity.",
-        "$defs": {
-          "sidecar_member_join": {
-            "type": "object",
-            "required": [
-              "agent_actor_id",
-              "join_event_ref"
-            ],
-            "properties": {
-              "agent_actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                "description": "Must be the genuine complete Account Actor of an owned Agent, fixed at destination H; service/realm variants are semantically refused by the native-source owner."
-              },
-              "join_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              }
-            },
-            "additionalProperties": false,
-            "description": "One actual current joined Agent bound by its original join to the exact complete controller and current controller join generation. Includes native-negative candidates, never just desired positives."
-          },
-          "sidecar_membership_basis": {
-            "type": "object",
-            "required": [
-              "sidecar_id",
-              "controller_account_id",
-              "sidecar_create_event_ref",
-              "controller_join_event_ref",
-              "candidate_joins"
-            ],
-            "properties": {
-              "sidecar_id": {
-                "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-              },
-              "controller_account_id": {
-                "$ref": "./common-ids.schema.json#/$defs/account_id"
-              },
-              "sidecar_create_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
-              "controller_join_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
-              "candidate_joins": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/sidecar_member_join"
-                },
-                "uniqueItems": true
-              }
-            },
-            "additionalProperties": false,
-            "description": "Complete exact G membership input. candidate_joins is sorted by RFC8785 ActorId UTF-8; one current join per Actor. Raw complete basis is checked against native G state, not accepted merely because a supplied digest agrees."
-          },
-          "covered_authorization": {
-            "type": "object",
-            "required": [
-              "actor_id",
-              "endpoint",
-              "authorization_event_ref"
-            ],
-            "properties": {
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                "description": "Exact native subject from independently verified installed source; applicable new H qualification is limited to complete Account Actors, never a controller/RealmActor reinterpretation."
-              },
-              "endpoint": {
-                "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
-              },
-              "authorization_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              }
-            },
-            "additionalProperties": false,
-            "description": "Private permanent fence predicate identity; MLS raw leaf key is deliberately absent. Same Actor/key under another authorization Event is another native instance."
-          },
-          "fence_basis_entry": {
-            "type": "object",
-            "required": [
-              "intent_digest",
-              "covered_authorizations"
-            ],
-            "properties": {
-              "intent_digest": {
-                "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$"
-              },
-              "covered_authorizations": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/covered_authorization"
-                },
-                "uniqueItems": true
-              }
-            },
-            "additionalProperties": false,
-            "description": "Private projection of one genuinely installed permanent fence. intent_digest is recomputed using the existing SDK I formula from its canonical first_source. Covered authorizations are the complete verified permanent coverage union, JCS-byte sorted and unique. An installed empty coverage list remains present; a reservation/FailedPrecondition without a fence is absent. SQL IDs/times/challenges/source digests/leaf keys never enter this projection."
-          },
-          "g_basis_preimage": {
-            "type": "object",
-            "required": [
-              "domain",
-              "realm_id",
-              "effective_scope",
-              "governance_authority_ref",
-              "endpoint_fences"
-            ],
-            "properties": {
-              "domain": {
-                "const": "ak.mls.native_scope_basis.v1",
-                "x-arkret-value-ownership": {
-                  "class": "namespaced_symbol",
-                  "authority": "mls-native-scope-source.schema.json#/$defs/g_basis_preimage/properties/domain",
-                  "owner": "mls-native-scope-source.schema.json#/$defs/g_basis_preimage/properties/domain",
-                  "values": [
-                    "ak.mls.native_scope_basis.v1"
-                  ]
-                }
-              },
-              "realm_id": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              },
-              "effective_scope": {
-                "$ref": "./event-payload.schema.json#/$defs/effective_scope"
-              },
-              "governance_authority_ref": {
-                "$ref": "./realm-commit.schema.json#/properties/authority_ref"
-              },
-              "genesis_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
-              "sidecar_membership_basis": {
-                "$ref": "#/$defs/sidecar_membership_basis"
-              },
-              "endpoint_fences": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/fence_basis_entry"
-                },
-                "uniqueItems": true
-              }
-            },
-            "additionalProperties": false,
-            "description": "Private native preimage only, never sent to H. Exactly the actual target Realm/scope/current tenure, accepted Genesis when one exists, raw complete Sidecar membership basis iff Sidecar, and every installed permanent fence for the source-required complete Actors. Entries are sorted by intent_digest UTF-8. SHA256(JCS(this object)) is the sole g_basis_digest. Missing native originals/import or an unknown fence set is unavailable, not an empty projection. No whole-Realm head or H PCR source is included."
-          },
-          "source_purpose": {
-            "type": "string",
-            "enum": [
-              "mls_admission",
-              "sidecar_view",
-              "group_state_material",
-              "roster_authority",
-              "welcome_bootstrap",
-              "payload_delivery"
-            ],
-            "x-arkret-value-ownership": {
-              "class": "owned_symbol",
-              "authority": "mls-native-scope-source.schema.json#/$defs/source_purpose",
-              "owner": "mls-native-scope-source.schema.json#/$defs/source_purpose",
-              "values": [
-                "mls_admission",
-                "sidecar_view",
-                "group_state_material",
-                "roster_authority",
-                "welcome_bootstrap",
-                "payload_delivery"
-              ]
-            }
-          },
-          "native_scope_source_request_body": {
-            "type": "object",
-            "required": [
-              "source_id",
-              "destination_id",
-              "query_nonce_base64url",
-              "realm_id",
-              "effective_scope",
-              "governance_authority_ref",
-              "purpose",
-              "original_request_digest",
-              "g_basis_digest",
-              "endpoint_sources"
-            ],
-            "properties": {
-              "source_id": {
-                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-              },
-              "destination_id": {
-                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-              },
-              "query_nonce_base64url": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-                "x-arkret-member-role": "binary_encoding"
-              },
-              "realm_id": {
-                "$ref": "./common-ids.schema.json#/$defs/realm_id"
-              },
-              "effective_scope": {
-                "$ref": "./event-payload.schema.json#/$defs/effective_scope"
-              },
-              "governance_authority_ref": {
-                "$ref": "./realm-commit.schema.json#/properties/authority_ref"
-              },
-              "genesis_event_ref": {
-                "$ref": "./common-ids.schema.json#/$defs/event_id",
-                "x-arkret-preimage-commitment": "fixed_event"
-              },
-              "purpose": {
-                "$ref": "#/$defs/source_purpose"
-              },
-              "original_request_digest": {
-                "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$"
-              },
-              "g_basis_digest": {
-                "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$"
-              },
-              "sidecar_membership_basis": {
-                "$ref": "#/$defs/sidecar_membership_basis"
-              },
-              "endpoint_sources": {
-                "type": "array",
-                "items": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "required": [
-                        "authorization_event_ref"
-                      ],
-                      "properties": {
-                        "authorization_event_ref": {
-                          "$ref": "./common-ids.schema.json#/$defs/event_id",
-                          "x-arkret-preimage-commitment": "fixed_event"
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    {
-                      "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body"
-                    }
-                  ]
-                },
-                "uniqueItems": true,
-                "description": "Each item is either the sole authorization_event_ref of a genuine accepted native original (creator/retained), or the existing closed claim_id query body shape (first Add only). Reusing that shape does not inherit the older claim-query ACL or operation role. H derives exact Actor/endpoint only from its real accepted original; EventId alone is never authority."
-              }
-            },
-            "additionalProperties": false,
-            "description": "Current actual G to one fixed owning H. Source_id is G, destination_id is H. The complete native business hash is reused without exposing the complete unit; no user session secret, unrelated package/Welcome, prejoin roster or H private PCR is sent. Source-required Actors are determined before H positives from genuine origins plus all Sidecar candidates/controller. Network occurs outside PG locks. Dynamic source is excluded from immutable native business identity; frozen ContentRecoverySource is not excluded.",
-            "x-arkret-name-role": "request_body",
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "effective_scope": {
-                      "properties": {
-                        "kind": {
-                          "const": "sidecar",
-                          "x-arkret-value-ownership": {
-                            "class": "owned_symbol",
-                            "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/0/if/properties/effective_scope/properties/kind",
-                            "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/0/if/properties/effective_scope/properties/kind",
-                            "values": [
-                              "sidecar"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "kind"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "effective_scope"
-                  ]
-                },
-                "then": {
-                  "required": [
-                    "sidecar_membership_basis"
-                  ]
-                },
-                "else": {
-                  "not": {
-                    "required": [
-                      "sidecar_membership_basis"
-                    ]
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "not": {
-                        "const": "mls_admission",
-                        "x-arkret-value-ownership": {
-                          "class": "owned_symbol",
-                          "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/1/if/properties/purpose/not",
-                          "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/1/if/properties/purpose/not",
-                          "values": [
-                            "mls_admission"
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "effective_scope": {
-                      "properties": {
-                        "kind": {
-                          "const": "sidecar",
-                          "x-arkret-value-ownership": {
-                            "class": "owned_symbol",
-                            "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/1/then/properties/effective_scope/properties/kind",
-                            "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body/allOf/1/then/properties/effective_scope/properties/kind",
-                            "values": [
-                              "sidecar"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "kind"
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          "endpoint_qualified": {
-            "type": "object",
-            "required": [
-              "state"
-            ],
-            "properties": {
-              "state": {
-                "const": "qualified",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "mls-native-scope-source.schema.json#/$defs/endpoint_qualified/properties/state",
-                  "owner": "mls-native-scope-source.schema.json#/$defs/endpoint_qualified/properties/state",
-                  "values": [
-                    "qualified"
-                  ]
-                }
-              },
-              "endpoint": {
-                "$ref": "./content-encryption.schema.json#/$defs/endpoint"
-              },
-              "keypackage_ref": {
-                "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$",
-                "description": "Existing SHA256 over the exact selected TLS KeyPackage bytes, recomputed by the sole MLS KeyPackage owner. Not the UUID keypackage_id, a caller label, or a parallel record digest."
-              }
-            },
-            "additionalProperties": false,
-            "description": "Same input position. A claim selector requires endpoint plus keypackage_ref from the actual selected record. An authorization EventId requires exactly state=qualified; H qualifies its real accepted native original and G retains the exact historical tuple/RFC key mapping. No endpoint/common-field echo. The pair verifier enforces this distinction."
-          },
-          "endpoint_ineligible": {
-            "type": "object",
-            "required": [
-              "state"
-            ],
-            "properties": {
-              "state": {
-                "const": "ineligible",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "mls-native-scope-source.schema.json#/$defs/endpoint_ineligible/properties/state",
-                  "owner": "mls-native-scope-source.schema.json#/$defs/endpoint_ineligible/properties/state",
-                  "values": [
-                    "ineligible"
-                  ]
-                }
-              }
-            },
-            "additionalProperties": false,
-            "description": "Known native negative for this exact instance only. Missing/corrupt/unknown source returns revision_unavailable for the whole request, never a fabricated negative."
-          },
-          "qualification": {
-            "type": "object",
-            "required": [
-              "endpoint_qualifications",
-              "issued_at",
-              "expires_at"
-            ],
-            "properties": {
-              "endpoint_qualifications": {
-                "type": "array",
-                "items": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/$defs/endpoint_qualified"
-                    },
-                    {
-                      "$ref": "#/$defs/endpoint_ineligible"
-                    }
-                  ]
-                }
-              },
-              "issued_at": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
-              },
-              "expires_at": {
-                "$ref": "./time.schema.json#/$defs/timestamp"
-              },
-              "desired_qualifications": {
-                "type": "array",
-                "items": {
-                  "type": "boolean"
-                },
-                "description": "Present iff Sidecar. Exactly candidate_joins length and order. G extracts true positions from the exact signed raw B, then projects their principals into the unchanged five-member participant authority digest. false means a genuinely determined native negative; unknown fails the entire request. No copied Agent IDs."
-              }
-            },
-            "additionalProperties": false,
-            "description": "endpoint_qualifications is exactly endpoint_sources length/order. desired_qualifications exists iff Sidecar and is exactly the complete raw B candidate_joins length/order. Current controller authority is independently mandatory; an invalid controller is never represented as an empty desired set. No source field is echoed."
-          },
-          "native_scope_source_response_body": {
-            "type": "object",
-            "required": [
-              "qualification",
-              "signature"
-            ],
-            "properties": {
-              "qualification": {
-                "$ref": "#/$defs/qualification"
-              },
-              "signature": {
-                "$ref": "./keypackage-operations.schema.json#/$defs/signature"
-              }
-            },
-            "additionalProperties": false,
-            "description": "H service Ed25519 signature over UTF8(ak.mls.native_scope_source.v1 + LF) followed by JCS({request:exact query,qualification:this qualification}). The request is an external verifier input; it is neither mirrored in the response nor replaced by a same-image hash. Full owning-H method-native Service history is resolved and retained independently. No worker/recovery/ready effect is implied."
-          },
-          "native_scope_source_signature_input": {
-            "type": "object",
-            "required": [
-              "request",
-              "qualification"
-            ],
-            "properties": {
-              "request": {
-                "$ref": "#/$defs/native_scope_source_request_body"
-              },
-              "qualification": {
-                "$ref": "#/$defs/qualification"
-              }
-            },
-            "additionalProperties": false,
-            "description": "Private unsigned signing projection only; the request is the exact external verifier input, not a response mirror."
-          },
-          "native_scope_use_binding": {
-            "type": "object",
-            "required": [
-              "domain",
-              "purpose",
-              "caller_actor_id",
-              "existing_operation_request",
-              "target_originals",
-              "query_nonce_base64url"
-            ],
-            "properties": {
-              "domain": {
-                "const": "ak.mls.native_scope_use.v1",
-                "x-arkret-value-ownership": {
-                  "class": "namespaced_symbol",
-                  "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/properties/domain",
-                  "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/properties/domain",
-                  "values": [
-                    "ak.mls.native_scope_use.v1"
-                  ]
-                }
-              },
-              "purpose": {
-                "type": "string",
-                "enum": [
-                  "sidecar_view",
-                  "group_state_material",
-                  "roster_authority",
-                  "welcome_bootstrap",
-                  "payload_delivery"
-                ],
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/properties/purpose",
-                  "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/properties/purpose",
-                  "values": [
-                    "sidecar_view",
-                    "group_state_material",
-                    "roster_authority",
-                    "welcome_bootstrap",
-                    "payload_delivery"
-                  ]
-                }
-              },
-              "caller_actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/actor_id"
-              },
-              "existing_operation_request": {
-                "oneOf": [
-                  {
-                    "oneOf": [
-                      {
-                        "type": "object",
-                        "required": [
-                          "sidecar_id"
-                        ],
-                        "properties": {
-                          "sidecar_id": {
-                            "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-                          }
-                        },
-                        "additionalProperties": false
-                      },
-                      {
-                        "$ref": "./event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier"
-                      }
-                    ]
-                  },
-                  {
-                    "$ref": "./mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body"
-                  },
-                  {
-                    "$ref": "./mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body"
-                  },
-                  {
-                    "$ref": "./mls-welcome-delivery.schema.json"
-                  },
-                  {
-                    "$ref": "./authority-commit-operations.schema.json#/$defs/peer_submit_request_body"
-                  }
-                ]
-              },
-              "target_originals": {
-                "type": "array",
-                "items": {
-                  "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
-                }
-              },
-              "query_nonce_base64url": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
-                "x-arkret-member-role": "binary_encoding"
-              }
-            },
-            "additionalProperties": false,
-            "description": "Private closed source-use preimage, not a new network body or permission. Exact request comes from the original named owner. Sidecar View uses its exact path selector or original closed local proposal carrier; material/roster use the existing typed requests, Welcome its exact original delivery, and payload its complete existing peer committed-delivery request body, preserving the exact per-Sidecar committed batch in original order. target_originals are independently qualified actual accepted refs for that use (Sidecar create for pre-Genesis view/planning). No user token/header, unregistered operation, whole-Realm catalog or future current-selector lease. SHA256(JCS(this object)) supplies original_request_digest only where no existing equivalent business digest exists.",
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "const": "sidecar_view",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/0/if/properties/purpose",
-                        "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/0/if/properties/purpose",
-                        "values": [
-                          "sidecar_view"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "existing_operation_request": {
-                      "oneOf": [
-                        {
-                          "type": "object",
-                          "required": [
-                            "sidecar_id"
-                          ],
-                          "properties": {
-                            "sidecar_id": {
-                              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
-                            }
-                          },
-                          "additionalProperties": false
-                        },
-                        {
-                          "$ref": "./event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier"
-                        }
-                      ]
-                    }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "const": "group_state_material",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/1/if/properties/purpose",
-                        "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/1/if/properties/purpose",
-                        "values": [
-                          "group_state_material"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "existing_operation_request": {
-                      "$ref": "./mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body"
-                    }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "const": "roster_authority",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/2/if/properties/purpose",
-                        "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/2/if/properties/purpose",
-                        "values": [
-                          "roster_authority"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "existing_operation_request": {
-                      "$ref": "./mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body"
-                    }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "const": "welcome_bootstrap",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/3/if/properties/purpose",
-                        "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/3/if/properties/purpose",
-                        "values": [
-                          "welcome_bootstrap"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "existing_operation_request": {
-                      "$ref": "./mls-welcome-delivery.schema.json"
-                    }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "purpose": {
-                      "const": "payload_delivery",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/4/if/properties/purpose",
-                        "owner": "mls-native-scope-source.schema.json#/$defs/native_scope_use_binding/allOf/4/if/properties/purpose",
-                        "values": [
-                          "payload_delivery"
-                        ]
-                      }
-                    }
-                  },
-                  "required": [
-                    "purpose"
-                  ]
-                },
-                "then": {
-                  "properties": {
-                    "existing_operation_request": {
-                      "$ref": "./authority-commit-operations.schema.json#/$defs/peer_submit_request_body"
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
       }
     },
     {
@@ -119948,7 +119255,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:69f205978f61d767b0c4a17c9d68fee739c1ed96a61ec843c40849fbbd3ef9f2"
+      "digest": "sha256:cc7e9143d879eafe7cec959ce056230899484fab352678c89b5b00b476cb8222"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -120000,7 +119307,7 @@
     },
     {
       "file": "mls-extension-registry.json",
-      "digest": "sha256:f26696a5a6cb2835436dd248b6088aab557e46bd19f69dbdb4e8b60bdfbb984c"
+      "digest": "sha256:fd60f4cdc0195eb5f63c1024f5de8daa656c9548cff2426b78a138b6163c8d20"
     },
     {
       "file": "morph-kind-decision-table.json",
@@ -120008,7 +119315,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:24b5899fcabc0aa5e834bb64e812092895d98604a501c2342afd0e79f5f3321b"
+      "digest": "sha256:70ae90cec79b4d8fe507596741baba383fa068d6ddccdd77d6e780e1b44790b3"
     },
     {
       "file": "operation-clause-registry.json",
@@ -120016,7 +119323,7 @@
     },
     {
       "file": "operations-error-mapping.json",
-      "digest": "sha256:5ff5c03e7fe79a42339f5a7b88788cc878f568db7ba8ab2a85e48fde46e040ca"
+      "digest": "sha256:225cbfdb4d9c4444fa823f7b33bdc1752ed26c8cde345c6d73fc59f3675553cb"
     },
     {
       "file": "outward-disclosure-policy-registry.json",
@@ -120092,7 +119399,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:5c4965c2bb89d084e85f6a57203883117559045908fbd86d1c02bfc214437166"
+      "digest": "sha256:331294f0938c8bf133b9b1ff52f2e25b6f28110323a0cfaf6ea5c3bb92595a10"
     }
   ],
   "openapi": {
@@ -120866,12 +120173,6 @@
         },
         "MlsMemberRosterAuthorityReadRequestBody": {
           "$ref": "../schemas/mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body"
-        },
-        "MlsNativeScopeSourceRequestBody": {
-          "$ref": "../schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body"
-        },
-        "MlsNativeScopeSourceResponseBody": {
-          "$ref": "../schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body"
         },
         "MlsRosterAuthorityReadRequestBody": {
           "$ref": "../schemas/mls-roster-authority.schema.json#/$defs/mls_roster_authority_read_request_body"
@@ -123348,105 +122649,6 @@
             },
             "409": {
               "description": "The attestation conflicts with accepted provenance or an installed proof.",
-              "content": {
-                "application/problem+json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Problem"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/_arkret/peer/mls/native-scope-source/query": {
-        "post": {
-          "operationId": "ak.peer.mls.read.native_scope_source",
-          "parameters": [
-            {
-              "name": "Arkret-Operation",
-              "in": "header",
-              "required": true,
-              "description": "Required exact versioned operation_id selector for every canonical Arkret HTTP request.",
-              "schema": {
-                "type": "string",
-                "const": "ak.peer.mls.read.native_scope_source.v1",
-                "x-arkret-value-ownership": {
-                  "class": "namespaced_symbol",
-                  "authority": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1native-scope-source~1query/post/parameters/0/schema",
-                  "owner": "arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1native-scope-source~1query/post/parameters/0/schema",
-                  "values": [
-                    "ak.peer.mls.read.native_scope_source.v1"
-                  ]
-                }
-              }
-            }
-          ],
-          "security": [
-            {
-              "HttpMessageSignature": [],
-              "SourceServiceId": [],
-              "DestinationServiceId": [],
-              "SourceTrustDomain": [],
-              "DestinationTrustDomain": [],
-              "ContentDigest": []
-            }
-          ],
-          "summary": "Read a restricted exact-query native scope qualification from its owning Station.",
-          "description": "Only the actual current G for this exact Realm/scope may query the fixed owning H. Source is dynamic transport evidence, not a business identity or claim requester. H signs the exact finite query and qualification; G separately rechecks its actual originals, complete membership and permanent-fence basis. No prejoin roster, all-batch claim, private PCR or global recall is granted.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MlsNativeScopeSourceRequestBody"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Qualification and H signature bound to the exact external query; no common-field response mirrors.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/MlsNativeScopeSourceResponseBody"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Malformed JSON source query.",
-              "content": {
-                "application/problem+json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Problem"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Unknown or unauthorized source selector, indistinguishably not_found.",
-              "content": {
-                "application/problem+json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Problem"
-                  }
-                }
-              }
-            },
-            "422": {
-              "description": "The closed native source query violates its schema or binding shape.",
-              "content": {
-                "application/problem+json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Problem"
-                  }
-                }
-              }
-            },
-            "503": {
-              "description": "Required native source or complete keeper/import basis is unavailable (revision_unavailable).",
               "content": {
                 "application/problem+json": {
                   "schema": {

@@ -476,8 +476,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#251-固定-groupcontext-binding",
-      "section_digest": "sha256:3439237f9a37611346b41fcdc7fec67433ca9158745ccbc0db0fdd6502f4a7dd",
-      "requirement": "The fixed GroupContext binding is one closed, bounded deterministic-CBOR MlsGroupBinding of five shared members plus only the Sidecar participant_authority_digest, forbidden in every other scope; dynamic native source/G basis and the removed head field never enter the immutable binding: unknown, missing, scope-misplaced, unsorted, indefinite-length, non-minimal, duplicate, out-of-order, trailing, wrong-major-type, out-of-range, invalid-length or resource-limit inputs are rejected. Genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1. Scope, base, epoch and the monotonic unsigned 64-bit key_access_revision counter match the Station current public state and Commit payload field by field, including for otherwise-valid RFC 9420 public material. proposed_group_genesis_binding is not a second binding shape: its formal closed carrier names the ak.mls.genesis route, proposal type, complete sender and target scope, and directly references the same binding schema; any missing required carrier member is rejected as schema_violation before semantic evaluation. Historical accepted material is checked against its historical binding and grants no current send authority. The revision governs key access only and carries no authorization or membership decision of its own. Authorized recovery External Commit inherits the exact accepted-base GroupContext extensions and carries the same deterministic-CBOR binding in RFC FramedContent.authenticated_data; it cannot contain GroupContextExtensions, and the following Member cleanup resumes ordinary extension updates.",
+      "section_digest": "sha256:cbec9fc855feff3407644ddcddab135e71a66882da038cae2bccd5e876da1ebf",
+      "requirement": "The fixed GroupContext binding is one closed, bounded deterministic-CBOR MlsGroupBinding of five shared members plus participant_authority_digest and authority_stream_head, which the Sidecar scope requires and every other scope MUST omit; authority_stream_head is strictly ascending by UTF-8 bytes and holds at most 64 items: unknown, missing, scope-misplaced, unsorted, indefinite-length, non-minimal, duplicate, out-of-order, trailing, wrong-major-type, out-of-range, invalid-length or resource-limit inputs are rejected. Genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1. Scope, base, epoch and the monotonic unsigned 64-bit key_access_revision counter match the Station current public state and Commit payload field by field, including for otherwise-valid RFC 9420 public material. proposed_group_genesis_binding is not a second binding shape: its formal closed carrier names the ak.mls.genesis route, proposal type, complete sender and target scope, and directly references the same binding schema; any missing required carrier member is rejected as schema_violation before semantic evaluation. Historical accepted material is checked against its historical binding and grants no current send authority. The revision governs key access only and carries no authorization or membership decision of its own. Authorized recovery External Commit inherits the exact accepted-base GroupContext extensions and carries the same deterministic-CBOR binding in RFC FramedContent.authenticated_data; it cannot contain GroupContextExtensions, and the following Member cleanup resumes ordinary extension updates.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.governance_binding_closure.v1",
@@ -899,28 +899,6 @@
       "requirement": "Every natively accepted epoch root has sufficient recoverable retention from its first PUT, independent of Event outcome. Deletion, compaction, policy changes, expiry, unknown and CAS loss cannot remove the last sufficient root. Origin issues a backup source only from its own locked native retained material and original-event journal; the governor separately checks Blob dependencies and durably binds the source with acceptance. Service databases and authorities stay isolated.",
       "testability_grade": "audit",
       "test_plan": "Audit native first-PUT root indexes, replacement mapping and recipient/deletion lock ordering; origin source issuance must use real accepted storage and method-native owning-Station service history, never caller booleans or copied ciphertext. Confirm governor physical Blob checks and atomic Event/Commit/coverage/private-source retention. Static signature KATs cannot prove physical storage, crash recovery or cross-service transactions; those require real PG/HTTP failure, concurrent deletion, unknown-result and process-restart execution under implementation owner1156. No such production result is claimed by this clause."
-    },
-    {
-      "clause_id": "AK-NC-133",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/models/native-scope-source.md#4-唯一签名与接受截点normative",
-      "requirement": "One H service Ed25519 transcript binds the exact typed query plus qualification once, preserving immutable native business identity and exact native authorization instances. Paired endpoint qualifications and complete same-order boolean candidate qualifications, challenges, scope/current tenure, original target and bounded source/peer window are verified. Primitive bytes never establish native role, complete keeper state or RFC validity.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.mls.native_scope_source.v1"
-      ],
-      "section_digest": "sha256:c9d36b9ed9146d130dac133da0f02ba5775431e32ff6d13b945b411731af2fb5"
-    },
-    {
-      "clause_id": "AK-NC-134",
-      "status": "active",
-      "category": "security",
-      "source_anchor": "spec/v1/zh/models/native-scope-source.md#受限原生-scope-来源",
-      "requirement": "Only the exact current G queries fixed owning H through the registered finite native-source read. Complete controller-bound joined candidates include H negatives; actual native G originals determine targets and final membership/permanent-fence basis. Installed empty coverage captures first fence birth, reservation-only FP does not create a fence, old same-key authorization does not revive a leaf, and local durable negatives dominate bounded in-flight H source. Creator/claim/retained source and every read/bootstrap/delivery remain under their original roles; late Add historical/consumption duties and immutable retry results are retained. No H PCR migration, H observation ledger, global recall or private fetch is implied.",
-      "testability_grade": "audit",
-      "test_plan": "Audit the complete native-scope-source sections 1-5 against independent G/H native state and real standard signed peer requests. Cover real current role/tenure including G0 return, full candidate negatives/controller rejoin, first Add from old uninstalled claim, empty-fence birth during a blocked source, exact original source and same-key A0/A1, private source/import corruption, creator without claim/old tree, expired source after lock waits, and all actual read/Welcome/consume/batch gates. Use independent processes/stores, real accepted source originals, failure/restart and zero-effect assertions. Primitive signature/schema/model KATs alone do not satisfy this audit or prove native support. Check ensure prepares only drafts before accepted Create, proposal sources never upgrade admission, and full raw B fits the original Q/8MiB byte budget under natural same-basis finite queries. Never treat boolean false as unknown or omit negative candidates; independently recompute the unchanged five-member participant digest.",
-      "section_digest": "sha256:2c5658a1c6df46dcd41b9f20ddbe74533d5f1bc84eea445d993bce593f498626"
     }
   ]
 }

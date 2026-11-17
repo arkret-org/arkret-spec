@@ -1086,48 +1086,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/covered_authorization/properties/authorization_event_ref",
-      "field": "authorization_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/g_basis_preimage/properties/genesis_event_ref",
-      "field": "genesis_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/native_scope_source_request_body/properties/endpoint_sources/items/oneOf/0/properties/authorization_event_ref",
-      "field": "authorization_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/native_scope_source_request_body/properties/genesis_event_ref",
-      "field": "genesis_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/sidecar_member_join/properties/join_event_ref",
-      "field": "join_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/sidecar_membership_basis/properties/controller_join_event_ref",
-      "field": "controller_join_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mls-native-scope-source.schema.json",
-      "json_pointer": "/$defs/sidecar_membership_basis/properties/sidecar_create_event_ref",
-      "field": "sidecar_create_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
       "schema": "mls-roster-authority.schema.json",
       "json_pointer": "/$defs/mls_add_authority_attestation/properties/authorization_event_ref",
       "field": "authorization_event_ref",

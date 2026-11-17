@@ -1112,31 +1112,6 @@
       "fragment": "51-facet-与标准-relation--schema-约束冲突时的仲裁normative"
     },
     {
-      "page": "models/native-scope-source.md",
-      "heading": "1. 角色与唯一运输（normative）",
-      "fragment": "1-角色与唯一运输normative"
-    },
-    {
-      "page": "models/native-scope-source.md",
-      "heading": "2. 完整成员与永久fence basis（normative）",
-      "fragment": "2-完整成员与永久fence-basisnormative"
-    },
-    {
-      "page": "models/native-scope-source.md",
-      "heading": "3. 原件与endpoint实例（normative）",
-      "fragment": "3-原件与endpoint实例normative"
-    },
-    {
-      "page": "models/native-scope-source.md",
-      "heading": "4. 唯一签名与接受截点（normative）",
-      "fragment": "4-唯一签名与接受截点normative"
-    },
-    {
-      "page": "models/native-scope-source.md",
-      "heading": "5. 消费、历史与交接（normative）",
-      "fragment": "5-消费历史与交接normative"
-    },
-    {
       "page": "models/pins.md",
       "heading": "4.1 收敛（normative）",
       "fragment": "41-收敛normative"

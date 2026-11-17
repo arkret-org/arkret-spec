@@ -172,7 +172,6 @@ grpc:
       GroupStateMaterial: ak.peer.mls.read.group_state_material.v1
       AttestAdd: ak.peer.mls.command.attest_add.v1
       RosterAuthority: ak.peer.mls.read.roster_authority.v1
-      NativeScopeSource: ak.peer.mls.read.native_scope_source.v1
     PeerInvites:
       Submit: ak.peer.invites.command.submit.v1
     PeerContacts:
@@ -365,7 +364,6 @@ mq:
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
     peer.mls.command.attest_add: ak.peer.mls.command.attest_add.v1
     peer.mls.query.roster_authority: ak.peer.mls.read.roster_authority.v1
-    peer.mls.query.native_scope_source: ak.peer.mls.read.native_scope_source.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
     peer.contacts.command.submit: ak.peer.contacts.command.submit.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1

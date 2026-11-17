@@ -147,10 +147,6 @@
       "sha256": "sha256:581a9f0fe381e946634e82cc2fa30f75695d5e4e3b941dac295f9e994bfea071"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.station.native_scope_source.v1",
-      "sha256": "sha256:b3718b72d8080d0264f678db210518048fd3b8762112902d0d1db8869e9562bc"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.station.push.v1",
       "sha256": "sha256:29639d6a3b821da1a2dc01b8474c71c63bf5ea416686af0bc07d92ba38ab15f1"
     },

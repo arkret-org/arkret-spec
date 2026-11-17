@@ -5599,7 +5599,10 @@ BINDING_MEMBERS = (
     "next_epoch",
     "key_access_revision",
 )
-SIDECAR_BINDING_MEMBERS = ("participant_authority_digest",)
+SIDECAR_BINDING_MEMBERS = (
+    "participant_authority_digest",
+    "authority_stream_head",
+)
 MLS_BINDING_MAX_INPUT_BYTES = 16384
 MLS_BINDING_MAX_NESTING_DEPTH = 8
 MLS_BINDING_MAX_COLLECTION_ITEMS = 64
@@ -5623,17 +5626,14 @@ def _deterministic_member_order() -> list[str]:
 def _binding_member_violation(value: Any) -> str | None:
     """Scope-bound member set of a decoded binding.
 
-    Five shared members and one Sidecar-only digest. Dynamic source and the
-    removed H head field never enter this immutable binding.
+    Five members are shared by every scope; the two Sidecar members are
+    required for the Sidecar scope and forbidden for every other scope, and
+    authority_stream_head is strictly ascending by UTF-8 bytes.
     """
 
     if not isinstance(value, dict):
         return "unsupported_major_type"
     members = set(value)
-    if "authority_stream_head" in members:
-        return "authority_stream_head_forbidden"
-    if "g_basis_digest" in members:
-        return "g_basis_digest_forbidden"
     if members - set(BINDING_MEMBERS) - set(SIDECAR_BINDING_MEMBERS):
         return "unknown_member"
     if set(BINDING_MEMBERS) - members:
@@ -5645,6 +5645,15 @@ def _binding_member_violation(value: Any) -> str | None:
         return "sidecar_member_missing"
     if not is_sidecar and present:
         return "non_sidecar_carries_sidecar_member"
+    head = value.get("authority_stream_head")
+    if is_sidecar:
+        if not isinstance(head, list) or not head or not all(isinstance(item, str) for item in head):
+            return "sidecar_member_missing"
+        encoded = [item.encode("utf-8") for item in head]
+        if len(set(encoded)) != len(encoded):
+            return "authority_stream_head_duplicate"
+        if encoded != sorted(encoded):
+            return "authority_stream_head_unsorted"
     return None
 
 
@@ -5760,7 +5769,6 @@ def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
 
 
 def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
-    check_mls_native_scope_source_vector(lint)
     """Close the one scope-bound MLS binding across bytes, schema and carriers."""
 
     path = ARTIFACTS / "fixtures" / "mls-governance-binding-closure-fixture.json"
@@ -5862,10 +5870,11 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         "missing_member",
         "sidecar_member_missing",
         "non_sidecar_carries_sidecar_member",
-        "authority_stream_head_forbidden",
-        "g_basis_digest_forbidden",
+        "authority_stream_head_unsorted",
+        "authority_stream_head_duplicate",
     }
-    schema_expressible_violations = member_set_violations
+    # authority_stream_head order is the one member-set rule JSON Schema cannot express.
+    schema_expressible_violations = member_set_violations - {"authority_stream_head_unsorted"}
     seen: set[str] = set()
     for index, sample in enumerate(samples):
         if not isinstance(sample, dict):
@@ -5919,8 +5928,8 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         "missing_member",
         "sidecar_member_missing",
         "non_sidecar_carries_sidecar_member",
-        "authority_stream_head_forbidden",
-        "g_basis_digest_forbidden",
+        "authority_stream_head_unsorted",
+        "authority_stream_head_duplicate",
         "indefinite_length_map",
         "non_minimal_integer",
         "duplicate_map_key",
@@ -5996,7 +6005,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         "proposal_wire_format": "mls_public_message",
         "commit_wire_format": "mls_public_message",
         "secret_mac_verification_role": "member",
-        "participant_authority_binding": "five_member_digest_and_restricted_native_scope_source",
+        "participant_authority_binding": "exact_accepted_cut",
         "consumed_proposal_provenance": "inline_signed_commit",
         "handshake_disclosure": "sidecar_authorized_only",
         "application_and_welcome_protection": "unchanged",
@@ -6022,10 +6031,13 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             shape = binding_schema.get("properties", {}).get(field, {})
             if shape.get("$ref") != "./decimal-integers.schema.json#/$defs/uint64_decimal":
                 lint.fail(schema_path, f"mls_governance_binding.{field} must be uint64")
-        if "authority_stream_head" in binding_schema.get("properties", {}):
-            lint.fail(schema_path, "removed authority_stream_head must not be a schema member")
-        if "g_basis_digest" in binding_schema.get("properties", {}):
-            lint.fail(schema_path, "dynamic g_basis_digest must not be a schema member")
+        head_shape = binding_schema.get("properties", {}).get("authority_stream_head", {})
+        if head_shape.get("maxItems") != MLS_BINDING_MAX_COLLECTION_ITEMS or head_shape.get("uniqueItems") is not True:
+            lint.fail(
+                schema_path,
+                "mls_governance_binding.authority_stream_head must be unique with maxItems equal to "
+                "the decoder maximum_collection_items",
+            )
         sidecar_rule = next(
             (
                 rule for rule in binding_schema.get("allOf", [])
@@ -6041,7 +6053,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         ) != {"not": {"anyOf": [{"required": [member]} for member in SIDECAR_BINDING_MEMBERS]}}:
             lint.fail(
                 schema_path,
-                "mls_governance_binding must require the one Sidecar digest for the sidecar scope "
+                "mls_governance_binding must require both Sidecar members for the sidecar scope "
                 "and forbid them for every other scope",
             )
 
@@ -8725,38 +8737,3 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
         invariants = case.get("invariants")
         if not isinstance(invariants, list) or not invariants:
             lint.fail(fixture_path, f"{label}.invariants must be a non-empty array")
-
-
-def check_mls_native_scope_source_vector(lint: Lint) -> None:
-    """Primitive source closure only; native current/DB/RFC premises remain explicit."""
-    from tools.regenerate_mls_native_scope_source_fixture import build_fixture
-    from tools.mls_native_scope_source import verify_source_bytes
-    path = ARTIFACTS / "fixtures/mls-native-scope-source-fixture.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        lint.fail(path, "native scope source fixture missing")
-        return
-    expected = build_fixture()
-    if data != expected:
-        lint.fail(path, "native scope source canonical/signature/projection fixture drift")
-        return
-    case = data["case"]
-    try:
-        verify_source_bytes(case["request"], case["response"], case["owning_method"], case["evaluated_at"], case["request"], case["peer_deadline"])
-    except Exception as error:
-        lint.fail(path, f"native scope source primitive failed: {error}")
-    for sample in data["schema_validation_cases"]:
-        check_json_instance_against_schema(lint, path, sample["name"], sample["schema_ref"], sample["instance"], expect_valid=sample["expect_valid"])
-    registry = load_json(lint, ARTIFACTS / "registry/contract-registry.json") or {}
-    contract = registry.get("did_evidence_boundary_registry", {}).get("mls_native_scope_source_contract", {})
-    projection = contract.get("g_basis_fence_projection", {})
-    if (projection.get("fields") != ["intent_digest", "covered_authorizations"]
-            or projection.get("covered_authorization_fields") != ["actor_id", "endpoint", "authorization_event_ref"]
-            or projection.get("include_installed_empty_coverage") is not True
-            or projection.get("include_reservation_only") is not False
-            or contract.get("h_global_recall") is not False
-            or contract.get("h_observation_ledger") is not False
-            or contract.get("dynamic_source_in_business_identity") is not False
-            or contract.get("response_common_field_echo") is not False
-            or contract.get("same_native_authorization_compares_leaf_key") is not False):
-        lint.fail(path, "native scope source owner/fence/identity minimum contract changed")

@@ -12371,12 +12371,6 @@
         "fragment": "#/$defs/scope_retirement_delivery_attestation",
         "status": "active",
         "description": "Fresh current-governor delivery binding an immutable historical scope proof and exact current request."
-      },
-      {
-        "schema_id": "ak.schema.mls_native_scope_source.v1",
-        "file": "schemas/mls-native-scope-source.schema.json",
-        "status": "active",
-        "description": "Closed current-G/owning-H native scope qualification, exact query signature, relevant membership/permanent-fence basis and original native endpoint instances."
       }
     ]
   },
@@ -13510,8 +13504,7 @@
           "ak.peer.applet.configuration.command.submit.v1",
           "ak.self.keys.backups.read.list.v1",
           "ak.self.keys.backups.command.issue_unlock_challenge.v1",
-          "ak.self.keys.backups.command.unlock.v1",
-          "ak.peer.mls.read.native_scope_source.v1"
+          "ak.self.keys.backups.command.unlock.v1"
         ],
         "vectors": [],
         "error_codes": [
@@ -14184,8 +14177,7 @@
           "ak.peer.signal.command.relay.v1",
           "ak.peer.strand.watch.read.current.v1",
           "ak.peer.strand.watch.command.audit_read.v1",
-          "ak.peer.mls.command.reconcile_recovery_scope.v1",
-          "ak.peer.mls.read.native_scope_source.v1"
+          "ak.peer.mls.command.reconcile_recovery_scope.v1"
         ],
         "surface_class": "extension"
       },
@@ -18603,25 +18595,6 @@
           ],
           "irreversibility_note": "An accepted native displaced-endpoint fence remains monotone even if the self response is lost; reconcile the same nonce intent without rollback or rejoin."
         }
-      },
-      {
-        "operation_id": "ak.peer.mls.read.native_scope_source.v1",
-        "http": "POST /_arkret/peer/mls/native-scope-source/query",
-        "grpc": "PeerMls/NativeScopeSource",
-        "mq": "peer.mls.query.native_scope_source",
-        "notes": "Restricted fresh current-G to owning-H native source. Bind exact typed query plus qualification once. Full actual native business hash is reused, while dynamic source stays outside immutable identity. No full-unit/prejoin roster/all-batch claim disclosure. Recompute complete relevant membership and installed permanent-fence basis at G final cut. Explicit bounded in-flight semantics, no global H recall or H observation ledger. Every new original/read/delivery batch uses a fresh challenge; exact accepted outcome replay remains historical. Original native creator, selected claim and retained exact authorization instances are distinct. H signs only its native qualification; G independently verifies original RFC/whole-unit/caller/source/fence/disclosure. See zh/models/native-scope-source.md.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body",
-        "response_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body",
-        "auth_requirements": {
-          "service_signature": {
-            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
-            "standard": "RFC 9421 HTTP Message Signature",
-            "bearer_only_allowed": false,
-            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
-          }
-        }
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -20271,19 +20244,6 @@
           },
           {
             "operation_id": "ak.self.strand.watch.command.audit_read.v1",
-            "binding_kind": "http_json"
-          }
-        ]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.station.native_scope_source.v1",
-        "service_kind": "station",
-        "deployment_evidence": [
-          "normative:zh/models/native-scope-source.md#1-角色与唯一运输normative"
-        ],
-        "members": [
-          {
-            "operation_id": "ak.peer.mls.read.native_scope_source.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -23409,47 +23369,6 @@
         "private_selection_disclosed_to_third_party": false,
         "cold_setup_and_retained_restart_require_live_reply": true
       }
-    },
-    "mls_native_scope_source_contract": {
-      "operation_id": "ak.peer.mls.read.native_scope_source.v1",
-      "normative_ref": "zh/models/native-scope-source.md",
-      "request_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body",
-      "response_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body",
-      "query_source_role": "current_exact_governor",
-      "qualification_issuer_role": "fixed_owning_station",
-      "signing_domain": "ak.mls.native_scope_source.v1",
-      "signing_projection": "exact_request_and_qualification",
-      "native_business_identity": "unchanged_existing_complete_original_binding",
-      "dynamic_source_in_business_identity": false,
-      "h_global_recall": false,
-      "h_observation_ledger": false,
-      "g_basis_projection_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/g_basis_preimage",
-      "covered_authorization_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/covered_authorization",
-      "same_native_authorization_compares_leaf_key": false,
-      "late_add_attestation": "unchanged_post_accept_historical_and_durability_roles",
-      "g_basis_fence_projection": {
-        "fields": [
-          "intent_digest",
-          "covered_authorizations"
-        ],
-        "covered_authorization_fields": [
-          "actor_id",
-          "endpoint",
-          "authorization_event_ref"
-        ],
-        "intent_formula": "existing_recovery_scope_cleanup_I",
-        "intent_sort": "UTF8",
-        "coverage_sort": "RFC8785_JCS_UTF8",
-        "include_installed_empty_coverage": true,
-        "include_reservation_only": false,
-        "target_actor_source": "actual_original_origins_and_complete_sidecar_candidates_before_H_positives"
-      },
-      "response_common_field_echo": false,
-      "endpoint_result_correlation": "same_length_same_order_as_endpoint_sources",
-      "g_local_durable_denials_override_source": true,
-      "first_add_retains_source_with_consumed_provenance": true,
-      "source_use_preimage_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_use_binding",
-      "signing_projection_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_signature_input"
     }
   },
   "did_authority_verifier_actions": [

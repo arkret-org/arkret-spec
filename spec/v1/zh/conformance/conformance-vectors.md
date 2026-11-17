@@ -614,13 +614,15 @@ create 收敛到唯一 Sidecar；`sidecar_id` 等于胜出 create Event 的 `eve
 `desired_agent_ids` 但不属于 effective access，ensure 返回 `access_readiness=key_material_pending`，
 Sidecar 不存在明文分支；该 Agent 经 Sidecar MLS Welcome 加入后只获得加入后的未来 epoch 密钥，
 完整 readiness 证据成立才进入 effective access；Agent 被停用或离开当前 Realm 后派生的 desired 集合自动移除它，
-G本次cut确认失权后服务端立即停止寻址与投递并产生 durable MLS removal obligation，随后由合格 committer 提交真实 remove；
+服务端立即停止寻址与投递并产生 durable MLS removal obligation，随后由合格 committer 提交真实 remove；
 此后该 Agent 的 proof、写入与查询 MUST fail closed。
 
 `ak.vector.sidecar.mls_bootstrap_binding.v1` MUST 证明：participant 集合精确等于 controller 加当前 Realm 作用域的
 `desired_agent_ids`，排序去重后的 authority transcript digest 与 `participant_authority_digest` 一致；
 Sidecar Genesis 提案、签名 Event 与 MLS GroupContext extension 的唯一 governance binding 都带相同
-`participant_authority_digest`；后续Add/Remove/Update按受限H来源与实际G membership/fence cut核五成员摘要，dynamic source不改原完整业务identity。缺digest、摘要变异、非Sidecar携digest、旧authority-head字段、G-basis/raw候选/fence变化或错误endpoint实例均零效果拒绝；读取投影不能代签名binding。H后续变化不全球召回已签exact在途原件，但每个新original/read/batch必须fresh challenge；G已耐久本地否定事实不可被旧H源覆盖。
+`participant_authority_digest` 和已排序去重的 `authority_stream_head`，且后续 Add／Remove／Update Commit
+在各自 accepted authority cut 重算并签署这两个字段；缺少任一字段、旧 cut、摘要或 refs 变异、
+非 Sidecar binding 私带这些字段均零写入拒绝，读取投影不能替代签名 binding；
 只有一个 genesis 通过标准 Event 准入与 CAS 成为 canonical 胜者，服务端不得生成 MLS 私有状态、伪造
 GroupInfo 或 ratchet-tree 摘要、也不得提供绕过 Event proof 的 bootstrap 端点；全部 binding 变异 MUST fail closed，
 native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 或 Circle 携带该字段，都必须拒绝；
@@ -633,7 +635,7 @@ creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_me
 `ak.vector.sidecar.mls_effective_access.v1` MUST 证明：desired 成员资格、已投递 Welcome 或已认领 KeyPackage
 单独都不是 effective 证据，任何不完整组合保持 pending；已接纳的 Add Commit、引用该 Commit 且绑定匹配的
 已接纳 Welcome，与该设备已认证会话对同一 claim 的消费三者齐备后，该设备才生效，同 principal 的其它设备
-不会自动获得密钥；Agent 被停用或离开当前 Realm 后G本次cut确认失权后服务端立即停止寻址与投递并移除 effective access，
+不会自动获得密钥；Agent 被停用或离开当前 Realm 后服务端立即停止寻址与投递并移除 effective access，
 只产生 durable removal obligation，不持有 MLS 私有状态的 Station 不得伪造 Commit，新发送保持 fail closed；
 真实 Remove Commit 推进 epoch 后，旧 Welcome 与消费记录不能使已移除设备复活。
 
@@ -793,6 +795,3 @@ fixture签名／schema及显式native模型输入不冒称真实RFC、原生事�
 显式不同候选记录仍冲突。terminated原来源继续永久写禁，不能支持终止后的新rekeyed；合法的更早历史与相同目标cut的派生终态不被回溯否定，不能跨stream比position。
 前序自身先完成正例使用两个独立winning Commit与一致的native basis；反例覆盖同Commit ID改Event／scope／position、
 重复ID指向矛盾原件，以及候选和局部native镜像同时篡改但与独立已验证引用索引不一致。该索引是native模型输入，不宣称真实content-ID、RFC或authority验证已执行。
-
-
-`ak.vector.mls.native_scope_source.v1`验证[受限原生来源](../models/native-scope-source.md)的真实Ed25519 query/qualification唯一前像、H key与endpoint key分离、同key不同授权实例拒绝、fresh challenge不改原business hash、raw负候选缺项、first fence birth和已签response公共字段镜像拒绝。向量只承诺字节/形状/有限投影，不证明native角色/DB全集/真实RFC或物理import；当前H/G源、并发fence、creator以及所有read/delivery实际门必须由实现owner另行验证。

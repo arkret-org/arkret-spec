@@ -27,8 +27,8 @@
       "messages": [
         "GC"
       ],
-      "carries": "Closed deterministic-CBOR map of five shared members; Sidecar alone additionally requires participant_authority_digest. Dynamic native scope source and G-basis token never enter GroupContext or immutable business identity.",
-      "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths; key order equals schema x-arkret-deterministic-cbor.map_key_order of all six registered members",
+      "carries": "Closed deterministic-CBOR map of five shared members {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}; the Sidecar scope additionally requires participant_authority_digest and authority_stream_head, which every other scope MUST omit.",
+      "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths; key order equals the schema x-arkret-deterministic-cbor.map_key_order of all seven registered members",
       "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
       "proposal_carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
       "key_access_revision_contract": "Monotonic unsigned 64-bit integer counter; it is never encoded or compared as a digest.",
