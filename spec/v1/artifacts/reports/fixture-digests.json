@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-history-fixture.json",
-      "sha256": "089df4cfaa8ade177a32580618881324733fdb25deddfd83b09086b122b3a885"
+      "sha256": "b0cf1bf0cc59a479efedd52baef770521868a2caa88f684103b9b1e38348b89a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",
-      "sha256": "e374a7472f0e0ba4cd6c9cd2b6de969da6f37959e08e69839debfd7322210225"
+      "sha256": "540d3799edb936150e35cd05fca94a72b2e0430bbabc97682e4c3a74273f3452"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
@@ -355,6 +355,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
       "sha256": "24082070d16591d653f736da99e91b7e9f70840f26d6ae07708c74e7b1d18b3d"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mls-native-scope-source-fixture.json",
+      "sha256": "abf50d237b18a279c4b6c6563b27b45078e8de4b095092f5caf081213b273871"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",

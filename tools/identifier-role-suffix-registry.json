@@ -682,14 +682,6 @@
   ],
   "exact_exceptions": [
     {
-      "file": "agent-operations.schema.json",
-      "pointer": "/$defs/agent_sidecar_mls_context/properties/authority_stream_head",
-      "terminal_categories": [
-        "typed_object_id"
-      ],
-      "reason": "Existing Sidecar authority-cut field denotes the accepted stream-head evidence as one semantic value, serialized as an ordered EventId array; its established signed/read wire name remains authority_stream_head."
-    },
-    {
       "file": "capability-grant.schema.json",
       "pointer": "/properties/subject",
       "terminal_categories": [
@@ -704,14 +696,6 @@
         "mixed[did_url,typed_object_id]"
       ],
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
-    },
-    {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/mls_governance_binding/properties/authority_stream_head",
-      "terminal_categories": [
-        "typed_object_id"
-      ],
-      "reason": "Sidecar signed MLS binding must byte-match the existing AgentSidecarView authority_stream_head field and its semantic authority-cut value; the EventId array is not a newly named generic ID collection."
     },
     {
       "file": "account-blocklist.schema.json",

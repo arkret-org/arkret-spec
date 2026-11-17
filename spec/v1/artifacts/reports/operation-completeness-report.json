@@ -15,10 +15,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 221,
+    "total_operations": 222,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 219
+      "typed_schema": 220
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -29,7 +29,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 137
+        "typed_schema": 138
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1027,6 +1027,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsGroupStateMaterialRequestBody",
         "response": "#/components/schemas/MlsGroupStateMaterialResponseBody"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.mls.read.native_scope_source.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/mls/native-scope-source/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body",
+      "response_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsNativeScopeSourceRequestBody",
+        "response": "#/components/schemas/MlsNativeScopeSourceResponseBody"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

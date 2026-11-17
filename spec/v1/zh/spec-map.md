@@ -154,6 +154,7 @@ see_also:
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision checkpoint、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle 独立 MLS 激活与历史策略、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
+| `models/native-scope-source.md` | 当前治理方到固定H的受限原生资格来源、完整负候选/永久fence basis、独立历史映射、原始请求签名与截点、资源界和读取/交付角色。 |
 | `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、关系记录与应用规则边界、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |

@@ -91,13 +91,13 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
         self.assertTrue(any("resource_limit_exceeded" in error for error in self._run(FIXTURE, mutate)))
 
-    def test_sidecar_acceptance_kat_must_carry_both_sidecar_members(self) -> None:
+    def test_sidecar_acceptance_kat_must_carry_original_participant_digest(self) -> None:
         def mutate(value):
             sample = next(
                 item for item in value["cases"][0]["accepted"]
                 if item["name"] == "sidecar_scope_commit"
             )
-            del sample["binding"]["authority_stream_head"]
+            del sample["binding"]["participant_authority_digest"]
 
         self.assertTrue(any("sidecar_member_missing" in error for error in self._run(FIXTURE, mutate)))
 
@@ -105,8 +105,8 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
         for name in (
             "sidecar_member_missing",
             "non_sidecar_carries_sidecar_member",
-            "authority_stream_head_unsorted",
-            "authority_stream_head_duplicate",
+            "authority_stream_head_forbidden",
+            "g_basis_digest_forbidden",
         ):
             with self.subTest(name=name):
                 def mutate(value, name=name):
@@ -124,16 +124,15 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
                 item for item in value["cases"][0]["accepted"]
                 if item["name"] == "sidecar_scope_commit"
             )
-            unsorted = next(item for item in samples if item["name"] == "authority_stream_head_unsorted")
+            unsorted = next(item for item in samples if item["name"] == "authority_stream_head_forbidden")
             unsorted["encoded_map_hex"] = accepted["encoded_map_hex"]
 
-        self.assertTrue(any("authority_stream_head_unsorted" in error for error in self._run(FIXTURE, mutate)))
+        self.assertTrue(any("authority_stream_head_forbidden" in error for error in self._run(FIXTURE, mutate)))
 
-    def test_schema_must_bound_authority_stream_head(self) -> None:
+    def test_schema_must_forbid_removed_authority_stream_head(self) -> None:
         def mutate(value):
-            del value["$defs"]["mls_governance_binding"]["properties"]["authority_stream_head"]["maxItems"]
-
-        self.assertTrue(any("maxItems" in error for error in self._run(SCHEMA, mutate)))
+            value["$defs"]["mls_governance_binding"]["properties"]["authority_stream_head"] = {"type": "array"}
+        self.assertTrue(any("authority_stream_head" in error for error in self._run(SCHEMA, mutate)))
 
     def test_schema_must_forbid_sidecar_members_outside_sidecar(self) -> None:
         def mutate(value):

@@ -5317,6 +5317,19 @@
         "spec/v1/zh/crypto-media/content-history.md",
         "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.mls.native_scope_source.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-native-scope-source-fixture.json"
+      ],
+      "description": "Real H/endpoint-distinct Ed25519 exact-query qualification and canonical G membership/permanent-fence source binding primitives, with mutation/schema negatives. Native issuer role, full membership/census, RFC transition and actual retention/import/disclosure require separate implementation evidence; the fixture does not synthesize those facts.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-native-scope-source-fixture.json",
+        "spec/v1/zh/models/native-scope-source.md"
+      ]
     }
   ]
 }

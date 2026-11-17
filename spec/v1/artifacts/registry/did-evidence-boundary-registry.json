@@ -456,5 +456,46 @@
       "private_selection_disclosed_to_third_party": false,
       "cold_setup_and_retained_restart_require_live_reply": true
     }
+  },
+  "mls_native_scope_source_contract": {
+    "operation_id": "ak.peer.mls.read.native_scope_source.v1",
+    "normative_ref": "zh/models/native-scope-source.md",
+    "request_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body",
+    "response_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body",
+    "query_source_role": "current_exact_governor",
+    "qualification_issuer_role": "fixed_owning_station",
+    "signing_domain": "ak.mls.native_scope_source.v1",
+    "signing_projection": "exact_request_and_qualification",
+    "native_business_identity": "unchanged_existing_complete_original_binding",
+    "dynamic_source_in_business_identity": false,
+    "h_global_recall": false,
+    "h_observation_ledger": false,
+    "g_basis_projection_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/g_basis_preimage",
+    "covered_authorization_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/covered_authorization",
+    "same_native_authorization_compares_leaf_key": false,
+    "late_add_attestation": "unchanged_post_accept_historical_and_durability_roles",
+    "g_basis_fence_projection": {
+      "fields": [
+        "intent_digest",
+        "covered_authorizations"
+      ],
+      "covered_authorization_fields": [
+        "actor_id",
+        "endpoint",
+        "authorization_event_ref"
+      ],
+      "intent_formula": "existing_recovery_scope_cleanup_I",
+      "intent_sort": "UTF8",
+      "coverage_sort": "RFC8785_JCS_UTF8",
+      "include_installed_empty_coverage": true,
+      "include_reservation_only": false,
+      "target_actor_source": "actual_original_origins_and_complete_sidecar_candidates_before_H_positives"
+    },
+    "response_common_field_echo": false,
+    "endpoint_result_correlation": "same_length_same_order_as_endpoint_sources",
+    "g_local_durable_denials_override_source": true,
+    "first_add_retains_source_with_consumed_provenance": true,
+    "source_use_preimage_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_use_binding",
+    "signing_projection_schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_signature_input"
   }
 }

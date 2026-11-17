@@ -449,7 +449,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 42,
+      "occurrences": 43,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -917,7 +917,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 42,
+      "occurrences": 43,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },
@@ -952,7 +952,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 42,
+      "occurrences": 43,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

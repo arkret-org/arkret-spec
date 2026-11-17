@@ -732,6 +732,10 @@ components:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/mls_member_group_state_material_read_request_body
     MlsMemberRosterAuthorityReadRequestBody:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/mls_member_roster_authority_read_request_body
+    MlsNativeScopeSourceRequestBody:
+      $ref: ../schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body
+    MlsNativeScopeSourceResponseBody:
+      $ref: ../schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body
     MlsRosterAuthorityReadRequestBody:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/mls_roster_authority_read_request_body
     MlsRosterAuthorityReadResponseBody:
@@ -2387,6 +2391,73 @@ paths:
                 $ref: '#/components/schemas/MlsAddAuthorityAttestResponseBody'
         '409':
           description: The attestation conflicts with accepted provenance or an installed proof.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /_arkret/peer/mls/native-scope-source/query:
+    post:
+      operationId: ak.peer.mls.read.native_scope_source
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.mls.read.native_scope_source.v1
+          x-arkret-value-ownership:
+            class: namespaced_symbol
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1native-scope-source~1query/post/parameters/0/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1peer~1mls~1native-scope-source~1query/post/parameters/0/schema
+            values:
+            - ak.peer.mls.read.native_scope_source.v1
+      security:
+      - HttpMessageSignature: []
+        SourceServiceId: []
+        DestinationServiceId: []
+        SourceTrustDomain: []
+        DestinationTrustDomain: []
+        ContentDigest: []
+      summary: Read a restricted exact-query native scope qualification from its owning Station.
+      description: Only the actual current G for this exact Realm/scope may query the fixed owning H. Source is
+        dynamic transport evidence, not a business identity or claim requester. H signs the exact finite query and
+        qualification; G separately rechecks its actual originals, complete membership and permanent-fence basis.
+        No prejoin roster, all-batch claim, private PCR or global recall is granted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsNativeScopeSourceRequestBody'
+      responses:
+        '200':
+          description: Qualification and H signature bound to the exact external query; no common-field response
+            mirrors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsNativeScopeSourceResponseBody'
+        '400':
+          description: Malformed JSON source query.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Unknown or unauthorized source selector, indistinguishably not_found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: The closed native source query violates its schema or binding shape.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Required native source or complete keeper/import basis is unavailable (revision_unavailable).
           content:
             application/problem+json:
               schema:

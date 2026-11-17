@@ -9887,6 +9887,54 @@
         ],
         "closed": true
       }
+    },
+    {
+      "operation_id": "ak.peer.mls.read.native_scope_source.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_request_body",
+        "schema_kind": "object",
+        "required": [
+          "source_id",
+          "destination_id",
+          "query_nonce_base64url",
+          "realm_id",
+          "effective_scope",
+          "governance_authority_ref",
+          "purpose",
+          "original_request_digest",
+          "g_basis_digest",
+          "endpoint_sources"
+        ],
+        "properties": [
+          "source_id",
+          "destination_id",
+          "query_nonce_base64url",
+          "realm_id",
+          "effective_scope",
+          "governance_authority_ref",
+          "genesis_event_ref",
+          "purpose",
+          "original_request_digest",
+          "g_basis_digest",
+          "sidecar_membership_basis",
+          "endpoint_sources"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-native-scope-source.schema.json#/$defs/native_scope_source_response_body",
+        "schema_kind": "object",
+        "required": [
+          "qualification",
+          "signature"
+        ],
+        "properties": [
+          "qualification",
+          "signature"
+        ],
+        "closed": true
+      }
     }
   ]
 }

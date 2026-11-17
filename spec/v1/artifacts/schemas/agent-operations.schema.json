@@ -1766,22 +1766,11 @@
       "type": "object",
       "required": [
         "participant_authority_digest",
-        "authority_stream_head",
         "current_controller_device_ready"
       ],
       "properties": {
         "participant_authority_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "authority_stream_head": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_id"
-          },
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "description": "UTF-8 byte-lexicographically sorted accepted Event IDs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results. Same value and bound as the signed mls_governance_binding.authority_stream_head."
         },
         "mls_group_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"

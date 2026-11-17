@@ -3314,6 +3314,16 @@
           "direction": "consume",
           "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.mls.read.native_scope_source.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.mls.read.native_scope_source.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -3344,7 +3354,8 @@
         "ak.schema.grant_constraint.v1",
         "ak.schema.device_revocation_state.v1",
         "ak.schema.account_status_record.v1",
-        "ak.schema.handle_claim.v1"
+        "ak.schema.handle_claim.v1",
+        "ak.schema.mls_native_scope_source.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3353,14 +3364,16 @@
         "mls-roster-client-roles-fixture.json",
         "governance-result-consumption-roles-fixture.json",
         "strand-watch-current-read-fixture.json",
-        "registered-atomic-unit-and-watch-audit-fixture.json"
+        "registered-atomic-unit-and-watch-audit-fixture.json",
+        "mls-native-scope-source-fixture.json"
       ],
       "required_vectors": [
         "ak.vector.authority_commit_projection.result_consumption_roles.v1",
         "ak.vector.mls.roster_client_roles.v1",
         "ak.vector.state.strand_watch_current_read.v1",
         "ak.vector.state.registered_atomic_units.v1",
-        "ak.vector.state.watch_audit_operations.v1"
+        "ak.vector.state.watch_audit_operations.v1",
+        "ak.vector.mls.native_scope_source.v1"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -4704,7 +4717,7 @@
           "existence_privacy_invariants",
           "single_executed_by_on_publish",
           "first_ensure_exact_create_then_context_attach",
-          "sidecar_context_excluded_from_authority_stream_head",
+          "sidecar_context_excluded_from_native_source_membership_basis",
           "ownership_lifecycle_expected_revision"
         ],
         "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_account_id)"

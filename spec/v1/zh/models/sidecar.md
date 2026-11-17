@@ -136,7 +136,7 @@ context attach 只控制 private view 放置位置。它不得：
 
 ## 5. 参与者与有效访问
 
-Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 Sidecar stream 当前 committed head 上的纯派生集合：
+Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 本次受限原生来源与 G 接纳 cut 上的纯派生集合：
 
 ```text
 desired_agent_ids(S, F) =
@@ -144,7 +144,7 @@ desired_agent_ids(S, F) =
   ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
-其中 `F` 是读取或 admission 使用的 accepted authority-committed current state。`active_authorized_owned_agents` 来自 canonical
+其中 `F` 精确为[受限原生 scope 来源](native-scope-source.md)的 H native source cut 与 G 实际接受/读取 cut 的相关 membership、永久 fence及本地 durable 否定事实，不表示 H/G 全球同时 current。`active_authorized_owned_agents` 来自 canonical
 Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
 participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
 truth。完整 MLS 目标 roster 是 `S.controller_account_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
@@ -222,30 +222,14 @@ transaction；独立 group、stream、epoch 和下面的参与者签名绑定不
 }
 ```
 `desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 恰为上方五个成员，不包含 `effective_agent_ids`：
-effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`authority_stream_head` 同样**不是** transcript
-成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
-[`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 的 `AgentSidecarView`），承载派生 `desired_agent_ids`
-所依据的 accepted EventId refs。它只能包含 Sidecar genesis、
-ownership、Agent lifecycle/runtime-key authorization 与 exact Realm membership 的 accepted refs；不得包含 Circle membership、
-Sidecar selection Event、action participation selection 或 MLS/key-readiness 结果。
+effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。五字段摘要的原像不变，不添加native source或G-basis字段。
 
-Sidecar 的 `ak.mls.genesis`、每次 MLS Commit Event、pre-Genesis proposal 与 MLS GroupContext extension
-都 MUST 在唯一 `mls_governance_binding` 中同时携带已签名的 `participant_authority_digest` 和
-`authority_stream_head`；两字段的格式与 `AgentSidecarView.mls_context` 对应字段相同，后者只是读取投影，
-不能代替签名载体。Realm／Circle scope MUST NOT 携带这两个字段。签名前应在同一 accepted authority cut
-由上述允许的 refs 派生 `desired_agent_ids`、五成员 transcript 和摘要，并以 UTF-8 字节序排列、去重
-`authority_stream_head`。Station 接受 Genesis／Commit 时 MUST 以其明确承诺的 cut 重算 roster 和摘要，
-逐字段比对 Event payload binding、MLS GroupContext extension 与 accepted refs；遗漏、过期 cut、摘要不符、
-额外或未排序 refs 均 MUST fail closed，零 Event／RealmCommit／MLS epoch／Welcome 副作用。并发 authority
-变更先于该 MLS Event 接受时，旧 cut 不可继续获准；应以新 cut 重新生成并签名，而不能由服务器改写签名 binding。
+Sidecar的MLS Genesis、Commit、原pre-Genesis proposal及GroupContext只在原五公共binding成员之外携带participant_authority_digest；Realm/Circle禁止携带它。G按本次受限native source完整候选求值，并在原接纳cut独立核当前membership/source/fence、实际RFC与原五成员摘要。来源与basis是可重新取得的transport evidence，不进入不可变业务hash或GroupContext。不存在H authority head数组或按远端Sidecar refs数量否决H写入的门；原通用decoder资源上限保持。
 
-`authority_stream_head` 最多 64 项，等于 binding decoder 的 `maximum_collection_items`（见
-[`../crypto-media/encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)）。任何 authority 变更若会使某个
-Sidecar 的派生 cut 超过 64 项，治理 Station MUST 在**接受该变更时**以既有 `failed_precondition` 零写入拒绝，
-不得拖到 MLS Genesis／Commit 时失败；不另设 reason，也不调高 decoder 上限。
+完整current资格、selected claim/creator/retained实例、负候选完整性、fresh challenge、短窗在途、实际G fence因果basis及所有敏感读取/投递consumer唯一按[native-scope-source](native-scope-source.md)。G已耐久的本地否定事实始终优先；新original/read/batch不能用旧来源续租。H后续变更不被描述成全球瞬时召回已经真实获准的exact在途原件。
 
 新 desired Agent 在 Welcome、KeyPackage consume 与设备 readiness 全部完成前不得接收 Sidecar payload。
-Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
+G本次实际cut已确认Agent失去desired资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
 key、旧 session 或本地缓存不能继续授权新写。
 
 ## 7. 生命周期
@@ -262,7 +246,7 @@ Sidecar archive/restore/member Event：
 `tombstoned` 不可逆。Sidecar terminal 只终止 native Sidecar scope、MLS 与 private projection，不触发或
 修改任何 Circle lifecycle。
 
-**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 Sidecar stream 当前 committed head 的纯函数，
+**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是本节accepted Sidecar来源、实际上游生命周期与受限native source/G当前cut的纯派生结果，
 v1 **没有**注册任何 Sidecar erase / tombstone Event 或 operation；tombstone 只由上表右列的上游 terminal
 派生。§1 的「每个 `(realm_id, controller_account_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
 一旦某个 `(realm_id, controller_account_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的

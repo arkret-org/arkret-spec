@@ -1864,6 +1864,12 @@
       "fragment": "#/$defs/scope_retirement_delivery_attestation",
       "status": "active",
       "description": "Fresh current-governor delivery binding an immutable historical scope proof and exact current request."
+    },
+    {
+      "schema_id": "ak.schema.mls_native_scope_source.v1",
+      "file": "schemas/mls-native-scope-source.schema.json",
+      "status": "active",
+      "description": "Closed current-G/owning-H native scope qualification, exact query signature, relevant membership/permanent-fence basis and original native endpoint instances."
     }
   ]
 }
