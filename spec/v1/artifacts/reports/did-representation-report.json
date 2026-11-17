@@ -1266,6 +1266,26 @@
       ]
     },
     {
+      "schema_path": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/desired_agents/items/properties/agent_id",
+      "property_name": "agent_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "agent-provision.schema.json#/properties/agent_id",
       "property_name": "agent_id",
       "semantic_category": "responsibility_identity_material",
@@ -8904,6 +8924,18 @@
     {
       "source": "json_schema",
       "schema_path": "agent-operations.schema.json#/$defs/key_state/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/controller_account_id",
       "property_name": "controller_account_id",
       "resolved_carrier": "account_id",
       "required_subject_class": "account",

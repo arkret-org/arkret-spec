@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-history-fixture.json",
-      "sha256": "089df4cfaa8ade177a32580618881324733fdb25deddfd83b09086b122b3a885"
+      "sha256": "71d8d675cf71aa74103cb46d39aee37538ff480ae80210e7d22aa1e976ee8c36"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",
-      "sha256": "e374a7472f0e0ba4cd6c9cd2b6de969da6f37959e08e69839debfd7322210225"
+      "sha256": "08a978c29164000e07395185f769338b2dd0faea4675650ebdee456862621eb2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",

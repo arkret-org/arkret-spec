@@ -208,6 +208,22 @@ verification method，不授予当前服务路由。已冻结 resolution 是历�
 attestation 保留至同一历史 cut 不再可读；重放同一 attestation 不得替换旧 closure，缺失、损坏、
 历史方法或任一原签名无效时整份 roster `revision_unavailable`。
 
+**职责与非目标（normative）**：以下分工不因笼统的“Station验证”“current”“fail closed”字样扩大。
+
+| 事实/结果 | 负责方及截点 | 不得推导的额外义务 |
+| --- | --- | --- |
+| 实际作者的native资格 | 作者owning Station，沿原author/forward证据和完整原body | G重放H私PCR，或把实际producer证据泛化为任意recipient census |
+| author Welcome前的selected包 | 实际requester Station按原claim/receipt及有权使用的lookup/evidence | 当前G自动取得requester或Agent查询角色 |
+| Realm/Circle MLS接纳 | G核自己的成员/policy/base/RFC与本地scope fence，提交Commit/outbox | G实时核所有外站claim或所有历史retained端的H-current |
+| 远端claim/Welcome/consume与新材料供给 | recipient H在原复制/交付及实际供给截点核本地ledger、endpoint和权限 | G已accepted意味着H必须投递，或H拒投递可回滚该Commit |
+| 历史叶来源 | 原Genesis/Add/恢复原件、历史签名与target cut | 以今日key替旧实例，或仅因历史作者今日失效否定合法历史 |
+
+Sidecar仅含同H的本人/自有Agent，H检查其native参与意图，G检查自己的成员/RFC/fence，唯一按
+[`sidecar.md` §5–§6](../models/sidecar.md)。Genesis只有controller一个leaf，不以全部desired先effective为前提。
+普通Realm/Circle的撤销至实际Remove残余窗口保持；不得把Sidecar的H端native/readiness门推广为普通全叶G-current。
+各方职责内所需来源缺失时拒绝对应新业务/供给；不能将本不负责的H私有事实未知当作G必须新增查询的理由。
+服务角色或HTTP签名不授予额外lookup/内容披露权限。已披露secret无法追溯召回，恶意获权成员主动泄密也不在本合同保证内。
+
 `ak.self.mls.read.roster_authority.v1` 经成员的 Account Station 用
 `ak.peer.mls.read.roster_authority.v1` 向治理 Station 取得同一 accepted group／epoch cut 的完整历史
 provenance。self 使用封闭的 `mls_member_roster_authority_read_request_body`，按顺序提交 `realm_id`、
@@ -435,7 +451,7 @@ MlsGroupValue {
 #### 2.5.1 固定 GroupContext binding
 
 RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一固定的 v1
-`MlsGroupBinding`：五个公共成员，加上仅 Sidecar scope 必需的两个成员。
+`MlsGroupBinding`：五个公共成员，加上仅 Sidecar scope 必需的一个参与者摘要。
 
 ```text
 {
@@ -444,21 +460,24 @@ RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一�
   previous_epoch,
   next_epoch,
   key_access_revision,
-  participant_authority_digest,   // 仅 Sidecar
-  authority_stream_head           // 仅 Sidecar
+  participant_authority_digest    // 仅 Sidecar
 }
 ```
 
-`effective_scope.kind=sidecar` 时两个 Sidecar 成员 MUST 同时出现（语义见
-[`../models/sidecar.md` §6](../models/sidecar.md)）；Realm／Circle 携带其中任一字段即 `schema_violation`。
-`authority_stream_head` 按 UTF-8 字节序排序、去重，最多 64 项。三个整数都限于 `0..2^64-1`。外层 map 的
+`effective_scope.kind=sidecar` 时必须携带该摘要（原像及职责见
+[`../models/sidecar.md` §6](../models/sidecar.md)）；Realm／Circle 携带它即 `schema_violation`。
+不存在 authority 引用数组或其兼容分支。三个整数都限于 `0..2^64-1`。外层 map 的
 deterministic-CBOR key 编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、
-`effective_scope`、`key_access_revision`、`base_group_state_ref`、`authority_stream_head`、
+`effective_scope`、`key_access_revision`、`base_group_state_ref`、
 `participant_authority_digest`，缺席成员直接跳过；嵌套 `effective_scope` 同样按 RFC 8949 的编码后 key 字节排序。未知字段、缺字段、
 indefinite-length CBOR、非最短整数、重复或乱序 map key、trailing bytes、错误 major type、超出整数范围、
-声明长度超过剩余输入、`authority_stream_head` 未排序或重复均拒绝，接收方不得规范化后再接受。decoder 在解析前和递归中 MUST 执行共同上限：输入最多
+声明长度超过剩余输入均拒绝，接收方不得规范化后再接受。decoder 在解析前和递归中 MUST 执行共同上限：输入最多
 16384 bytes、嵌套最多 8 层、单个 map/array 最多 64 项；超过任一上限都以 `schema_violation` 拒绝，不得按声明长度
 预分配无界缓冲区。
+
+该集合上限仅限制 decoder 当前解析的 map/array，不是 Sidecar Agent 数量或原生来源数量上限，
+MUST NOT 据此否决 provision、lifecycle、key 或 membership 写入。Sidecar 摘要是 H 的参与意图与所见成员世代承诺，
+不是 G 已取得 H native 全集或全球 current 的声明；两边按各自职责验证，不把摘要相等当完整授权证明。
 
 Genesis 的 epoch transition为 `0 -> 0`；Commit 必须 `next_epoch = previous_epoch + 1`。binding 的 scope、base、epoch
 与 revision必须逐字段匹配 Station 的 current public state和 Commit payload。即使 GroupInfo 签名、ratchet tree、group id
@@ -693,8 +712,10 @@ Genesis按§5.1.1验证epoch 0；Commit先沿exact accepted base完成原RFC握�
 origin与outgoing intent耐久冻结exact物料，终局未知仅重放原件；exact重复返回原outcome，不能换物料、Event或base。
 
 **MLS 准入的其它拒绝（normative）**：Genesis roster 不是恰好创建者一个 leaf、Commit 的 Welcome 与其新增 leaf 不
-一一对应、`keypackage_claim_ref` 所指 claim 已不再 live、Welcome recipient 不是该 scope 的 current joined 成员等
-既有前置条件不成立时，治理 Station 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝；只有 §2.5.1 的
+一一对应、治理方负责核验的本地 claim 已不再 live、Welcome recipient 不是该 scope 的 current joined 成员等
+既有前置条件不成立时，治理 Station 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝。跨站 recipient 的 claim
+继续唯一按 §2.2 由其 recipient Station 在复制／交付事务核验；不能从本段泛句推导 G 的额外远端私库或查询权限，
+也不得因 H 后续拒投递或 late attestation 尚未到达回滚已接纳 Commit。只有 §2.5.1 的
 `governance_binding_mismatch` 与重复 Genesis 的 `mls_activation_irreversible` 使用专用 reason，本规范不为上列情形
 另立 reason。
 

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -11,11 +13,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import fixtures as gate
+from tools import regenerate_mls_governance_binding_fixture as generator
 
 
 FIXTURE = (gate.ARTIFACTS / "fixtures/mls-governance-binding-closure-fixture.json").resolve()
 FINAL = (gate.ARTIFACTS / "fixtures/final-conformance-closure-fixture.json").resolve()
 SCHEMA = (gate.ARTIFACTS / "schemas/event-payload.schema.json").resolve()
+AGENT_SCHEMA = (gate.ARTIFACTS / "schemas/agent-operations.schema.json").resolve()
 EXTENSIONS = (gate.ARTIFACTS / "registry/mls-extension-registry.json").resolve()
 BOOTSTRAP = (gate.ARTIFACTS / "registry/mls-creator-bootstrap-transaction-registry.json").resolve()
 
@@ -91,13 +95,13 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
         self.assertTrue(any("resource_limit_exceeded" in error for error in self._run(FIXTURE, mutate)))
 
-    def test_sidecar_acceptance_kat_must_carry_both_sidecar_members(self) -> None:
+    def test_sidecar_acceptance_kat_must_carry_its_digest(self) -> None:
         def mutate(value):
             sample = next(
                 item for item in value["cases"][0]["accepted"]
                 if item["name"] == "sidecar_scope_commit"
             )
-            del sample["binding"]["authority_stream_head"]
+            del sample["binding"]["participant_authority_digest"]
 
         self.assertTrue(any("sidecar_member_missing" in error for error in self._run(FIXTURE, mutate)))
 
@@ -105,8 +109,7 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
         for name in (
             "sidecar_member_missing",
             "non_sidecar_carries_sidecar_member",
-            "authority_stream_head_unsorted",
-            "authority_stream_head_duplicate",
+            "authority_stream_head_forbidden",
         ):
             with self.subTest(name=name):
                 def mutate(value, name=name):
@@ -124,16 +127,73 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
                 item for item in value["cases"][0]["accepted"]
                 if item["name"] == "sidecar_scope_commit"
             )
-            unsorted = next(item for item in samples if item["name"] == "authority_stream_head_unsorted")
-            unsorted["encoded_map_hex"] = accepted["encoded_map_hex"]
+            removed = next(item for item in samples if item["name"] == "authority_stream_head_forbidden")
+            removed["encoded_map_hex"] = accepted["encoded_map_hex"]
 
-        self.assertTrue(any("authority_stream_head_unsorted" in error for error in self._run(FIXTURE, mutate)))
+        self.assertTrue(any("authority_stream_head_forbidden" in error for error in self._run(FIXTURE, mutate)))
 
-    def test_schema_must_bound_authority_stream_head(self) -> None:
+    def test_schema_cannot_restore_the_retired_head(self) -> None:
         def mutate(value):
-            del value["$defs"]["mls_governance_binding"]["properties"]["authority_stream_head"]["maxItems"]
+            value["$defs"]["mls_governance_binding"]["properties"]["authority_stream_head"] = {"type": "array"}
 
-        self.assertTrue(any("maxItems" in error for error in self._run(SCHEMA, mutate)))
+        self.assertTrue(any("removed reference" in error for error in self._run(SCHEMA, mutate)))
+
+    def test_governance_cannot_acquire_own_station_native_responsibilities(self) -> None:
+        for field, replacement in (
+            ("native_authority_role", "scope_governance_station"),
+            ("remote_native_recomputation", "required"),
+            ("membership_cut", "global_current"),
+            ("native_gate_carrier", "new_qualification_operation"),
+        ):
+            with self.subTest(field=field):
+                def mutate(value, field=field, replacement=replacement):
+                    value["x-arkret-sidecar-handshake-contract"][field] = replacement
+                self.assertTrue(any("Sidecar handshake" in error for error in self._run(SCHEMA, mutate)))
+
+    def test_sidecar_preimage_cannot_drop_incarnation_or_add_a_business_cap(self) -> None:
+        def drop_agents(value):
+            value["$defs"]["sidecar_participant_authority_preimage"]["required"].remove("desired_agents")
+        def drop_join(value):
+            value["$defs"]["sidecar_participant_authority_preimage"]["properties"]["desired_agents"]["items"]["required"].remove("join_event_ref")
+        def mirror_controller_join(value):
+            value["$defs"]["sidecar_participant_authority_preimage"]["properties"]["controller_join_event_ref"] = {"$ref": "#/$defs/event_id"}
+        for mutate in (drop_agents, drop_join, mirror_controller_join):
+            with self.subTest(mutation=mutate.__name__):
+                self.assertTrue(any("five incarnation" in error for error in self._run(AGENT_SCHEMA, mutate)))
+        def cap(value):
+            value["$defs"]["sidecar_participant_authority_preimage"]["properties"]["desired_agents"]["maxItems"] = 64
+        self.assertTrue(any("business count cap" in error for error in self._run(AGENT_SCHEMA, cap)))
+
+    def test_same_participants_cannot_hide_a_rejoin(self) -> None:
+        def mutate(value):
+            samples = value["participant_authority"]["samples"]
+            baseline = next(item for item in samples if item["name"] == "baseline")
+            target = next(item for item in samples if item["name"] == "agent_rejoin")
+            target.update({key: baseline[key] for key in ("preimage_utf8", "expected")})
+        self.assertTrue(any("incarnation change" in error for error in self._run(FIXTURE, mutate)))
+
+    def test_same_agent_cannot_appear_with_two_join_incarnations(self) -> None:
+        def mutate(value):
+            sample = value["participant_authority"]["samples"][0]
+            preimage = json.loads(sample["preimage_utf8"])
+            preimage["desired_agents"][1]["agent_id"] = preimage["desired_agents"][0]["agent_id"]
+            sample["preimage_utf8"] = gate.canonical_json(preimage)
+            sample["expected"] = "sha256:" + hashlib.sha256(sample["preimage_utf8"].encode()).hexdigest()
+        self.assertTrue(any("unique across incarnations" in error for error in self._run(FIXTURE, mutate)))
+
+    def test_more_than_sixty_four_desired_agents_is_not_a_decoder_input_array(self) -> None:
+        fixture = gate.load_json(gate.Lint(), FIXTURE)
+        preimage = json.loads(fixture["participant_authority"]["samples"][0]["preimage_utf8"])
+        preimage["desired_agents"] = [{"agent_id": f"ak:did_core:web:agent-{index:03}.example", "join_event_ref": generator._fixture_event_ref(f"large-preimage/agent-{index:03}/join")} for index in range(65)]
+        lint = gate.Lint()
+        gate.check_json_instance_against_schema(lint, FIXTURE, "large desired preimage", fixture["participant_authority"]["schema_ref"], preimage)
+        self.assertEqual(lint.errors, [])
+        binding = generator.binding(generator.sidecar_scope())
+        binding["participant_authority_digest"] = generator.participant_sample("large", preimage)["expected"]
+        decoded, error = gate._decode_binding(generator.encode(binding).hex())
+        self.assertIsNone(error)
+        self.assertEqual(decoded, binding)
+        self.assertEqual(len(decoded), 6)
 
     def test_schema_must_forbid_sidecar_members_outside_sidecar(self) -> None:
         def mutate(value):

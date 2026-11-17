@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:95b4905fb6faf66ba683368cd819ec291ae8bc8f4b4364012e8963035ae17e3c",
+  "contract_digest": "sha256:4b5aa5cef2bcd63189162b0b75462ab62a2e96199ff59787dd064089371e3b9e",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -9845,22 +9845,12 @@
             "type": "object",
             "required": [
               "participant_authority_digest",
-              "authority_stream_head",
               "current_controller_device_ready"
             ],
             "properties": {
               "participant_authority_digest": {
-                "$ref": "#/$defs/digest"
-              },
-              "authority_stream_head": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/event_id"
-                },
-                "minItems": 1,
-                "maxItems": 64,
-                "uniqueItems": true,
-                "description": "UTF-8 byte-lexicographically sorted accepted Event IDs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results. Same value and bound as the signed mls_governance_binding.authority_stream_head."
+                "$ref": "#/$defs/digest",
+                "description": "Expected own-Station digest of the closed Sidecar participant preimage, including desired-Agent join EventIds that transitively bind their controller generations, without an explicit controller-join mirror. It is not proof of native endpoint eligibility, effective readiness or a global H/G current cut."
               },
               "mls_group_id": {
                 "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -10078,6 +10068,60 @@
             },
             "additionalProperties": false,
             "x-arkret-name-role": "response_body"
+          },
+          "sidecar_participant_authority_preimage": {
+            "type": "object",
+            "description": "Sole local canonical preimage of participant_authority_digest = sha256(JCS(preimage)). Not a network carrier or native eligibility proof. The own Station uses accepted desired-Agent join EventIds from its lawful governance membership view. Each join EventId already commits its controller membership generation binding; no duplicate controller join member is carried. desired_agents is ordered by agent_id UTF-8 bytes with unique agent_id; object uniqueness alone is insufficient. No provision/status/key versions, effective/readiness, action grants or participation selections enter this preimage.",
+            "required": [
+              "domain",
+              "sidecar_id",
+              "realm_id",
+              "controller_account_id",
+              "desired_agents"
+            ],
+            "properties": {
+              "domain": {
+                "const": "ak.sidecar.participant_authority.v1",
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/domain",
+                  "owner": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/domain",
+                  "values": [
+                    "ak.sidecar.participant_authority.v1"
+                  ]
+                }
+              },
+              "sidecar_id": {
+                "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+              },
+              "realm_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              },
+              "controller_account_id": {
+                "$ref": "./common-ids.schema.json#/$defs/account_id"
+              },
+              "desired_agents": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "agent_id",
+                    "join_event_ref"
+                  ],
+                  "properties": {
+                    "agent_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+                    },
+                    "join_event_ref": {
+                      "$ref": "#/$defs/event_id"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
           }
         }
       }
@@ -66031,7 +66075,7 @@
           },
           "mls_governance_binding": {
             "type": "object",
-            "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. Five members are shared by every scope; the Sidecar scope additionally requires the signed participant authority digest and accepted authority cut, and any other scope carrying either is a schema_violation. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
+            "description": "Single closed MLS binding shared by signed Event payload, GroupContext extension and pre-Genesis proposal. Five shared members plus one Sidecar-only participant_authority_digest. The digest is the own Station's participant/incarnation intent, not a global current or endpoint-readiness proof. No authority-stream reference array is carried.",
             "x-arkret-deterministic-cbor": {
               "map_key_order": [
                 "next_epoch",
@@ -66039,7 +66083,6 @@
                 "effective_scope",
                 "key_access_revision",
                 "base_group_state_ref",
-                "authority_stream_head",
                 "participant_authority_digest"
               ],
               "maximum_input_bytes": 16384,
@@ -66080,16 +66123,6 @@
               },
               "participant_authority_digest": {
                 "$ref": "#/$defs/digest"
-              },
-              "authority_stream_head": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/event_ref"
-                },
-                "minItems": 1,
-                "maxItems": 64,
-                "uniqueItems": true,
-                "description": "UTF-8 byte-lexicographically sorted accepted Event IDs at the exact Sidecar participant decision cut; same value as AgentSidecarView.mls_context.authority_stream_head. maxItems equals the decoder maximum_collection_items; the governance Station rejects, at acceptance time and with failed_precondition and zero writes, any authority change whose derived Sidecar cut would exceed it."
               }
             },
             "allOf": [
@@ -66121,8 +66154,7 @@
                 },
                 "then": {
                   "required": [
-                    "participant_authority_digest",
-                    "authority_stream_head"
+                    "participant_authority_digest"
                   ]
                 },
                 "else": {
@@ -66131,11 +66163,6 @@
                       {
                         "required": [
                           "participant_authority_digest"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "authority_stream_head"
                         ]
                       }
                     ]
@@ -70861,11 +70888,18 @@
           "proposal_wire_format": "mls_public_message",
           "commit_wire_format": "mls_public_message",
           "secret_mac_verification_role": "member",
-          "participant_authority_binding": "exact_accepted_cut",
+          "participant_authority_binding": "own_station_digest_with_membership_incarnations",
           "consumed_proposal_provenance": "inline_signed_commit",
           "handshake_disclosure": "sidecar_authorized_only",
           "application_and_welcome_protection": "unchanged",
-          "creator_bootstrap_transaction": "excluded"
+          "creator_bootstrap_transaction": "excluded",
+          "native_authority_role": "controller_owning_station",
+          "native_gate_carrier": "local_or_existing_authority_forward",
+          "membership_and_rfc_role": "scope_governance_station",
+          "membership_cut": "governance_acceptance",
+          "remote_native_recomputation": "forbidden",
+          "private_pcr_disclosure": "forbidden",
+          "membership_history_source": "original_mls_acceptance_provenance"
         }
       }
     },
@@ -119307,7 +119341,7 @@
     },
     {
       "file": "mls-extension-registry.json",
-      "digest": "sha256:fd60f4cdc0195eb5f63c1024f5de8daa656c9548cff2426b78a138b6163c8d20"
+      "digest": "sha256:f2ac380a68d844ea786afd8e4b3cbc5fee627468e006761961cc24eab9587a43"
     },
     {
       "file": "morph-kind-decision-table.json",
@@ -119315,7 +119349,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:70ae90cec79b4d8fe507596741baba383fa068d6ddccdd77d6e780e1b44790b3"
+      "digest": "sha256:30297279d8544fd0911231ed79ff3cf5439fbb65d1663b0346f238bbc6cf160a"
     },
     {
       "file": "operation-clause-registry.json",

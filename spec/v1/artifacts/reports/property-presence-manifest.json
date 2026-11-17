@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11021,
+    "total_properties": 11026,
     "total_schema_documents": 177,
     "by_presence_class": {
-      "optional": 2539,
+      "optional": 2538,
       "optional_defaulted": 46,
-      "required": 7821,
+      "required": 7827,
       "required_nullable": 375,
       "tristate": 240
     },
@@ -3315,7 +3315,6 @@
         "/$defs/agent_runtime_public_key/properties/key": "required",
         "/$defs/agent_runtime_public_key/properties/kid": "required",
         "/$defs/agent_runtime_public_key/properties/kty": "required",
-        "/$defs/agent_sidecar_mls_context/properties/authority_stream_head": "required",
         "/$defs/agent_sidecar_mls_context/properties/current_controller_device_ready": "required",
         "/$defs/agent_sidecar_mls_context/properties/epoch": "optional",
         "/$defs/agent_sidecar_mls_context/properties/genesis_event_ref": "optional",
@@ -3356,7 +3355,14 @@
         "/$defs/key_state/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/operation_status_view/properties/status": "required",
         "/$defs/pending_sidecar_access_reconciliation/properties/agent_id": "required",
-        "/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase": "required"
+        "/$defs/pending_sidecar_access_reconciliation/properties/provisioning_phase": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/controller_account_id": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/desired_agents": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/desired_agents/items/properties/agent_id": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/desired_agents/items/properties/join_event_ref": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/domain": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/realm_id": "required",
+        "/$defs/sidecar_participant_authority_preimage/properties/sidecar_id": "required"
       },
       "conditionally_required": [
         "/$defs/agent_participation_view/properties/next_replace_input",
@@ -8930,7 +8936,6 @@
         "/$defs/mls_genesis_payload/properties/ratchet_tree_ref": "required",
         "/$defs/mls_governance_binding/allOf/0/if/properties/effective_scope": "required_nullable",
         "/$defs/mls_governance_binding/allOf/0/if/properties/effective_scope/properties/kind": "required",
-        "/$defs/mls_governance_binding/properties/authority_stream_head": "optional",
         "/$defs/mls_governance_binding/properties/base_group_state_ref": "required_nullable",
         "/$defs/mls_governance_binding/properties/effective_scope": "required",
         "/$defs/mls_governance_binding/properties/key_access_revision": "required",
@@ -9351,7 +9356,6 @@
         "/$defs/message_create_payload/properties/encrypted_content",
         "/$defs/message_revise_payload/properties/content",
         "/$defs/message_revise_payload/properties/encrypted_content",
-        "/$defs/mls_governance_binding/properties/authority_stream_head",
         "/$defs/mls_governance_binding/properties/participant_authority_digest",
         "/$defs/policy_action_state_payload/properties/action_id",
         "/$defs/policy_action_state_payload/properties/policy_id",

@@ -618,11 +618,13 @@ Sidecar 不存在明文分支；该 Agent 经 Sidecar MLS Welcome 加入后只�
 此后该 Agent 的 proof、写入与查询 MUST fail closed。
 
 `ak.vector.sidecar.mls_bootstrap_binding.v1` MUST 证明：participant 集合精确等于 controller 加当前 Realm 作用域的
-`desired_agent_ids`，排序去重后的 authority transcript digest 与 `participant_authority_digest` 一致；
+`desired_agent_ids`，同 own H 的用户及自有 Agent 按 sidecar §6 唯一原像得到 `participant_authority_digest`；
 Sidecar Genesis 提案、签名 Event 与 MLS GroupContext extension 的唯一 governance binding 都带相同
-`participant_authority_digest` 和已排序去重的 `authority_stream_head`，且后续 Add／Remove／Update Commit
-在各自 accepted authority cut 重算并签署这两个字段；缺少任一字段、旧 cut、摘要或 refs 变异、
-非 Sidecar binding 私带这些字段均零写入拒绝，读取投影不能替代签名 binding；
+`participant_authority_digest`；后续 Add／Remove／Update 沿 H 供材/新forward 的 native gate 和 G 的实际接纳职责分别验证。
+五成员原像通过 desired-Agent join EventId 绑定其成员世代及原 controller-generation binding，不重复镜像 controller join；同 Agent ID rejoin 必须改变 expected digest，无关 key/provision 版本不改变。空 desired 不因本人 rejoin 单独要求新 epoch，也不跳过实际残留叶及 Remove/rotate/fence 门。
+缺少摘要、携带已删除 head、原像世代变异、非 Sidecar binding 私带摘要均拒绝，读取投影不能替代签名 binding；
+H expected 与旧组不匹配只使当前 reconciliation pending，不追改历史；正常 Update 可确认新世代，不强制 fresh Add。
+G 原接纳最小成员来源必须能支持 floor、冷启动和合法 handoff，不能从 digest 反解或用今日 join 贴旧 Commit；
 只有一个 genesis 通过标准 Event 准入与 CAS 成为 canonical 胜者，服务端不得生成 MLS 私有状态、伪造
 GroupInfo 或 ratchet-tree 摘要、也不得提供绕过 Event proof 的 bootstrap 端点；全部 binding 变异 MUST fail closed，
 native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 或 Circle 携带该字段，都必须拒绝；

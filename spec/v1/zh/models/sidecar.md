@@ -3,7 +3,7 @@ title: Agent Sidecar
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-05
+updated: 2026-11-17
 ---
 
 ## 0. 规范语言
@@ -16,6 +16,11 @@ updated: 2026-10-05
 Agent Sidecar（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_account_id)` 的个人 AI 私有工作区。
 它是一等协议对象和原生安全 scope，不是 Circle、Circle profile、Direct Conversation、Strand Track，
 也不是某个 Agent 的 1:1 会话。
+
+**个人归属（normative）**：参与者只有该用户与其自己的用户管理 Agent；他们的完整 AccountId 均属于
+controller 的 owning Station H。父 Realm 的治理 Station G 可以不同，但这不引入其它 Station 的参与账号，
+不迁移用户／Agent PCR，也不把 H 的私有 native/current 职责交给 G。以下 H/G 是安全职责，不要求进程或
+数据库合并；同 Station 也不得越过既有 Coland／Coauth 数据库、配置、私钥与业务隔离。
 
 与 Realm / Circle / Space / Strand 的设置关系见
 [`scope-settings.md`](../governance/scope-settings.md)。Sidecar 的固定私有／MLS 合同不从 source
@@ -53,7 +58,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `id` | yes | `id:sidecar` | Event-derived 44 字符 token；`retype(create_event.event_id,"sidecar")` |
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
-| `controller_account_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
+| `controller_account_id` | yes | `AccountId` | create actor 的完整 AccountId，create-locked |
 | `state` | yes | enum | `active \| suspended \| tombstoned`，reducer-derived |
 | `state_changed_at` | conditional | timestamp | 非 active 时必填 |
 | `created_at` | yes | timestamp | 等于 accepted create Event `created_at` |
@@ -136,7 +141,7 @@ context attach 只控制 private view 放置位置。它不得：
 
 ## 5. 参与者与有效访问
 
-Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者是 Sidecar stream 当前 committed head 上的纯派生集合：
+Sidecar 没有独立的 membership 管理面。其 MLS 目标参与者由职责内的已验证来源派生：
 
 ```text
 desired_agent_ids(S, F) =
@@ -144,11 +149,18 @@ desired_agent_ids(S, F) =
   ∩ active_realm_member_ids(S.realm_id, F)
 ```
 
-其中 `F` 是读取或 admission 使用的 accepted authority-committed current state。`active_authorized_owned_agents` 来自 canonical
-Agent ownership/provisioning、lifecycle 与 Agent runtime-key authorization truth；它不包含 target action grant、
-participation selection 或 MLS readiness。`active_realm_member_ids` 来自 `S.realm_id` 自己的 Realm membership
-truth。完整 MLS 目标 roster 是 `S.controller_account_id` 加上这个 Agent 集合；无需再维护第二个 participant 字段或
-派生函数。controller 自身也必须是该 Realm 的 active member，否则 Sidecar 进入 suspended/readiness blocked，
+`F` 表示 H 在本地 native 检查截点及其合法取得的 G accepted membership view，**不是 H/G 全球同一时刻的 current**。
+H 负责本账号的 canonical ownership/provisioning、lifecycle、runtime-key authorization 与实际 endpoint/current；
+G 负责本 Realm 的 membership、policy、治理任期、历史 floor 与自己已受理的 scope fence。
+H 使用现有合法 member/current/replication 来源，先选择 exact Realm 中 controller binding 合法的 joined Agent，
+再在 H 本地判 native 条件；binding 的完整 controller AccountId 和 controller membership generation 必须匹配。
+没有当前合法 controller join 时不能编造原像或把最后一次 join 冒充当前；沿既有权限返回不可见，
+已授权但所需来源未知则 unavailable，不用空 desired 或旧 digest 伪装成可用状态。
+相关候选的未知、损坏或缺失来源必须失败关闭，不能当作 false；未加入本 Realm 的其它自有 Agent 不进入依赖。
+这两项集合求交不包含 target action grant、participation selection 或 MLS readiness。
+完整目标 roster 是 `S.controller_account_id` 加上 desired 集合；Genesis 和逐次 Add 可仍有 pending/effective 差异，
+不要求尚未取得 Welcome 的全部 desired Agent 已在初始 tree，否则会形成引导循环。
+controller 自身也必须是该 Realm 的 active member，否则 Sidecar 进入 suspended/readiness blocked，
 不得继续分发新 epoch 内容。caller、controller、Realm admin、Agent 或 service 均不得在 Sidecar 内设置、
 替换、追加、邀请、移除或转让 participant。
 
@@ -217,32 +229,72 @@ transaction；独立 group、stream、epoch 和下面的参与者签名绑定不
   "domain": "ak.sidecar.participant_authority.v1",
   "sidecar_id": "ak:sidecar:...",
   "realm_id": "ak:realm:...",
-  "controller_account_id": "ak:did_core:webvh:zExampleControllerScid",
-  "desired_agent_ids": ["ak:did_core:webvh:zExampleDesiredAgentScid"]
+  "controller_account_id": {
+    "principal_id": "ak:did_core:webvh:zExampleControllerScid",
+    "station_id": "ak:did_core:webvh:zExampleStationScid"
+  },
+  "desired_agents": [
+    {
+      "agent_id": "ak:did_core:webvh:zExampleDesiredAgentScid",
+      "join_event_ref": "ak:event:..."
+    }
+  ]
 }
 ```
-`desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 恰为上方五个成员，不包含 `effective_agent_ids`：
-effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`authority_stream_head` 同样**不是** transcript
-成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
-[`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 的 `AgentSidecarView`），承载派生 `desired_agent_ids`
-所依据的 accepted EventId refs。它只能包含 Sidecar genesis、
-ownership、Agent lifecycle/runtime-key authorization 与 exact Realm membership 的 accepted refs；不得包含 Circle membership、
-Sidecar selection Event、action participation selection 或 MLS/key-readiness 结果。
+摘要为 `sha256(JCS(preimage))`，唯一 closed 原像见
+[`agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage`](../../artifacts/schemas/agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage)。
+五个成员恰如上，Agent join ref 是该 view 中实际 accepted `ak.member.state` 的当前 join EventId。
+每个 Agent join 的原 payload 已绑定完整 controller 及其成员世代，EventId 对原件的承诺因而同时绑定该世代，
+不在原像重复镜像 controller join。H 仍 MUST 核该 binding 指向当前有效的 controller join；本人 rejoin 后，
+旧 Agent join 不得随之复活，合法重新加入必须使用新的 Agent join EventId。
+`desired_agents` 按 `agent_id` UTF-8 字节序排列且 agent_id 唯一；不能保留同 Agent 的两个世代再靠对象去重。
+view 的 `desired_agent_ids` 只是该数组的 ID 投影，不另存 roster。原像不是新增网络 carrier，H 不向 G 公开私有 PCR，
+客户端可直接消费经认证 own-H view 的 expected digest；不得要求它越权读取原像来签名。
+不加入 provision/status/key 的版本 refs、effective/readiness、action grant、participation selection 或第二摘要。
 
-Sidecar 的 `ak.mls.genesis`、每次 MLS Commit Event、pre-Genesis proposal 与 MLS GroupContext extension
-都 MUST 在唯一 `mls_governance_binding` 中同时携带已签名的 `participant_authority_digest` 和
-`authority_stream_head`；两字段的格式与 `AgentSidecarView.mls_context` 对应字段相同，后者只是读取投影，
-不能代替签名载体。Realm／Circle scope MUST NOT 携带这两个字段。签名前应在同一 accepted authority cut
-由上述允许的 refs 派生 `desired_agent_ids`、五成员 transcript 和摘要，并以 UTF-8 字节序排列、去重
-`authority_stream_head`。Station 接受 Genesis／Commit 时 MUST 以其明确承诺的 cut 重算 roster 和摘要，
-逐字段比对 Event payload binding、MLS GroupContext extension 与 accepted refs；遗漏、过期 cut、摘要不符、
-额外或未排序 refs 均 MUST fail closed，零 Event／RealmCommit／MLS epoch／Welcome 副作用。并发 authority
-变更先于该 MLS Event 接受时，旧 cut 不可继续获准；应以新 cut 重新生成并签名，而不能由服务器改写签名 binding。
+**同一载体与职责（normative）**：Sidecar Genesis、Commit、pre-Genesis proposal 和 GroupContext
+在原五公共 binding 成员之外只携 `participant_authority_digest`；Realm／Circle 禁止携带它。
+不存在 `authority_stream_head` 成员或兼容拼写。H 在供材及每次新 author/first forward 前，以本地 native 和合法
+membership view 重算 expected digest，并检查实际 resulting Actors 不超出本人及 desired（允许 Genesis 单本人及部分 roster）；
+native endpoint current 门按原职责核实际 producer、所选 Add/Welcome 和实际领取/供给端。
+保留叶仍验原历史 provenance 与 RFC 关系，不把其历史 authorization ref 必须等于今日 current 当作额外全叶准入门；
+已知撤销端的新授权/供给仍立即停止并保留原移除义务。H 复用原 Blob refs、
+public tree/GroupInfo、claim/Welcome 原件，不新增第二套完整 RFC transition verifier。
+H 不匹配时不改写原 Event/GroupContext/Welcome 签名，不发送新的业务授权。
+H≠G 时 Sidecar forward 的已认证 source 必须是 controller 的 own H；沿既有 `authority_forward` 的完整 body、
+service HTTP 签名及实际 producer proof/evidence。H=G 时同样执行本地 H 职责，无需自发 peer 请求。
+G 仅在此个人 Sidecar 的角色内依赖 H 完成本地 native gate；该有限信任不扩展到 H 声称的 G 本地事实、其它账号
+或任意权限。草稿可计算 planning digest，但不能据此声称 Sidecar 已创建、首次准入或 ready；真正接纳仍核已 accepted create。
 
-`authority_stream_head` 最多 64 项，等于 binding decoder 的 `maximum_collection_items`（见
-[`../crypto-media/encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)）。任何 authority 变更若会使某个
-Sidecar 的派生 cut 超过 64 项，治理 Station MUST 在**接受该变更时**以既有 `failed_precondition` 零写入拒绝，
-不得拖到 MLS Genesis／Commit 时失败；不另设 reason，也不调高 decoder 上限。
+G 独立核当前 parent/member/controller binding、policy、任期、base/epoch/revision、真实 RFC transition、
+实际 resulting leaf 的本 Realm 资格、自己已知的 scope fence，以及 payload 与 GroupContext 的 digest 字节一致。
+G 不重算看不到的 H native desired 原像，不把 transport 身份认证当 producer/权限证明，也不因此取得 H 私库读取权。
+H 的 native gate 不替代 G 的 RFC/member/fence；G 接受不证明 endpoint 已收到 Welcome、consume 或 effective。
+Remove 只要求真正 resulting tree 合格，不能先要求被移除的失权旧端 current，阻塞合法 repair。
+
+**世代、历史与重试（normative）**：同一 desired Agent leave/rejoin 后 expected digest 改变；仅旧 group/consume 不能宣称 ready。
+desired 为空时不因本人 rejoin 单独强制新 epoch；本人当前资格仍需验证，其既有合法私有历史不因此重置。
+空 desired 也不代表实际 tree 已无 Agent 残留叶；实际叶资格、Remove/rotate、scope fence 与当前供给门仍全部适用。
+正常新 Update/Commit 可确认新世代，不强制 fresh Add，不重写原 leaf authorization/Genesis/Add provenance。
+G 在原 MLS 接纳事务保存每个 accepted state 的最小 G-only membership 来源关联：当时 controller join，以及实际
+resulting Agent 的 join 与其 controller-generation binding。scope/Actor/target Commit 从原 MLS 原件绑定，不镜像
+H desired 或 H native ledger。该关联随既有 MLS accepted-original/provenance 保管和合法 Realm handoff，不是第二权威。
+其中 controller join 只记录 G 当时的实际成员截点并校验 Agent binding，不形成 H 除上述摘要和现有实际资格门之外
+还要对齐的 readiness 条件；controller 自身合法 rejoin 也不得把其个人历史 floor 重置为新父 Realm join。
+新历史读取 floor 由目标已接受 state 与当前合法成员世代的该关联求出，不能由 hash 反解、拿今日 join 重贴旧 Commit，
+或跨 stream 的时间戳／position 猜先后；原来源缺失时 unavailable。controller 仍保其既有合法私有历史，不能因 Agent
+世代变化追溯清除已获权历史。pending Agent 的 public handshake 仍仅按 exact Add/Welcome/claim lineage 引导，不提前要求 effective。
+
+H 的 expected digest 与 accepted group 不同只使当前 reconciliation/readiness pending，不追溯否定合法历史。
+文中“立即停止”约束负责方自己的已知事实与实际 author/接受/供给截点，不承诺跨站全球原子、追溯召回或新增逐端 native lease。
+无关自有 Agent 或未使用 key 变化不改变本摘要；实际 key/revoke/expiry/session 和 consume/readiness 门仍由 H 独立核。
+摘要相等不是授权充分条件。H 发出后 native 改变不保证召回旧在途原件；H 一旦已知端点失权即停止该端新授权/供给，G 自己在最终
+cut 已知的 membership loss/fence 仍优先。H 观察 cut 与 G 接纳 cut 不强制相等；H 后续看到不一致时保持 pending 并重新协调。
+终局 unknown 的已发送 exact original 先沿原冻结 body/原窗口取原 outcome，不能因 expected digest 变了就丢候选、
+另签或刷新证据给旧意图续租；窗口耗尽仍未知就保留 unknown。已接受结果不回滚，新的实际供给仍走当前门。
+
+删除引用数组后，不得把 CBOR decoder 的 collection 64 转成 Agent 数量、source ref 数量或 authority 写入否决；
+通用 decoder 资源上限保持，原消息/响应字节预算保持。不新增资格查询、attestation、roster generation 或兼容分支。
 
 新 desired Agent 在 Welcome、KeyPackage consume 与设备 readiness 全部完成前不得接收 Sidecar payload。
 Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch

@@ -1766,22 +1766,12 @@
       "type": "object",
       "required": [
         "participant_authority_digest",
-        "authority_stream_head",
         "current_controller_device_ready"
       ],
       "properties": {
         "participant_authority_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "authority_stream_head": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_id"
-          },
-          "minItems": 1,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "description": "UTF-8 byte-lexicographically sorted accepted Event IDs for Sidecar genesis, ownership, Agent lifecycle/runtime-key authorization, and exact Realm membership. It excludes action grants, participation selections, and MLS/key-readiness results. Same value and bound as the signed mls_governance_binding.authority_stream_head."
+          "$ref": "#/$defs/digest",
+          "description": "Expected own-Station digest of the closed Sidecar participant preimage, including desired-Agent join EventIds that transitively bind their controller generations, without an explicit controller-join mirror. It is not proof of native endpoint eligibility, effective readiness or a global H/G current cut."
         },
         "mls_group_id": {
           "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
@@ -1999,6 +1989,60 @@
       },
       "additionalProperties": false,
       "x-arkret-name-role": "response_body"
+    },
+    "sidecar_participant_authority_preimage": {
+      "type": "object",
+      "description": "Sole local canonical preimage of participant_authority_digest = sha256(JCS(preimage)). Not a network carrier or native eligibility proof. The own Station uses accepted desired-Agent join EventIds from its lawful governance membership view. Each join EventId already commits its controller membership generation binding; no duplicate controller join member is carried. desired_agents is ordered by agent_id UTF-8 bytes with unique agent_id; object uniqueness alone is insufficient. No provision/status/key versions, effective/readiness, action grants or participation selections enter this preimage.",
+      "required": [
+        "domain",
+        "sidecar_id",
+        "realm_id",
+        "controller_account_id",
+        "desired_agents"
+      ],
+      "properties": {
+        "domain": {
+          "const": "ak.sidecar.participant_authority.v1",
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/domain",
+            "owner": "agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage/properties/domain",
+            "values": [
+              "ak.sidecar.participant_authority.v1"
+            ]
+          }
+        },
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "desired_agents": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "agent_id",
+              "join_event_ref"
+            ],
+            "properties": {
+              "agent_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+              },
+              "join_event_ref": {
+                "$ref": "#/$defs/event_id"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

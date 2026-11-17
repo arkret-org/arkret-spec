@@ -337,13 +337,13 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 | --- | --- | --- |
 | 同一 Station 的机器、机房、数据库、endpoint、方法原生 key 更新 | 可按原服务身份运维搬迁；不属于治理交接 | Station DID core 不变，所有原权威与唯一 writer 连续；不推进 governance generation，不生成 Realm handoff |
 | 完整 AccountId 与账号认证、设备／session／recovery | 不可迁到另一 Station 并继承原账号 | 相同 principal 在另一 Station 是新 Account；不继承原 PCR、membership、grant、owner、recovery 或历史作者身份 |
-| 账号／Agent 参与其它 Station 治理的 Realm，或联邦转发／复制 | 只按既有已登记的准入、授权和联邦合同执行；不属于账号／PCR 迁移 | 原 Account Station、controller 与 PCR 不变；目标治理方只接纳获权 scope 的 Event，不接管来源账号。缺少已登记的跨站 current／selection 输入时仍拒绝，不因本表新增远端自治能力；portable producer evidence 只证明原来源签名与授权 |
+| 账号／Agent 参与其它 Station 治理的 Realm，或联邦转发／复制 | 只按既有已登记的准入、授权和联邦合同执行；不属于账号／PCR 迁移 | 原 Account Station、controller 与 PCR 不变；目标治理方只接纳获权 scope 的 Event，不接管来源账号。原职责内确需的current／selection来源缺失时拒绝对应业务，不因本表新增远端自治能力或G读取H私PCR的义务；portable producer evidence只证明原来源签名与授权，不变为任意recipient census |
 | Human PCR | 不可独立交接 | accepted 注册来源、Account Station、genesis governor 与 current governor 一致；generation0；公开 bundle 仍按 Human 专有禁止规则 |
 | 用户管理的 Agent PCR | 不可独立交接 | 原 accepted provision、Agent／controller 完整 Account pair 与 PCR 同站；generation0；换 runtime／controller 委派不改变治理站 |
 | 独立组织权威创建的 Organization PCR | 仅在 §8.1 验证独立 accepted 组织来源后可计划交接 | PCR governor 可改变，hosting AccountId 不变；组织管理登录／普通 SSO／用户 Agent 不产生资格；全部 native 私态与原件必须完整导入 |
 | 普通 Collaboration Realm | 可按 §8 计划交接 | 旧方在线、current controller、generation／head CAS、全状态冻结导入、双签；原 Realm ID、stream、成员授权和 MLS group 不变 |
 | Direct Conversation Realm（全部创建／materialization／bound 阶段） | 不可交接 | accepted genesis governor 固定、generation0；participant／root／双站签名不能解锁 |
-| Circle／Sidecar 与其中的 Space／Strand 内容 | 不可独立更换治理站；随所属 Realm 的合法交接迁入 | 保留各自 stream、final head、访问 floor、current、历史原件、public MLS／claim／Welcome；不从别的 Realm 或父级授权扩大可见性 |
+| Circle／Sidecar 与其中的 Space／Strand 内容 | 不可独立更换治理站；随所属 Realm 的合法交接迁入 | 保留各自 stream、final head、访问 floor、current、历史原件、public MLS／claim／Welcome及原MLS接纳的最小成员来源关联；不从别的 Realm 或父级授权扩大可见性 |
 | Realm Bot／Ghost 及 realm_control | 无独立 Account／PCR 可迁；随所属 Realm 的合法交接延续治理 | 完整 Realm ActorId、原 Applet／DID／Device 归属不变；控制流、原签事实、current、审批／恢复 ledger 完整迁入；Applet 私钥与成员 MLS 私态不随治理交接搬运 |
 | Agent runtime 换进程／设备／主机及重新配对 | 可按 current controller 与 key／pairing 合同重新接入；不迁 Agent PCR | 不改变 Agent Account、controller Station 或 PCR governor；旧授权不能复活；新端仍需当前授权及原能力边界 |
 | 客户端本地密钥／MLS 状态备份与恢复 | 仅按对应密钥／备份合同转移本端已合法持有的状态 | 不转移服务端写权；仅按content-history.md恢复获权专用内容根，不克隆原始MLS私态，不授予membership／Device／Agent权限；Realm handoff 永不携成员 private MLS state |

@@ -150,6 +150,12 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "agent-operations.schema.json",
+      "json_pointer": "/$defs/sidecar_participant_authority_preimage/properties/desired_agents/items/properties/join_event_ref",
+      "field": "join_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "agent-sidecar-event-exchange-binding.schema.json",
       "json_pointer": "/properties/coordinator_assignment_event_id",
       "field": "coordinator_assignment_event_id",

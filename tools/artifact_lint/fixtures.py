@@ -5599,10 +5599,7 @@ BINDING_MEMBERS = (
     "next_epoch",
     "key_access_revision",
 )
-SIDECAR_BINDING_MEMBERS = (
-    "participant_authority_digest",
-    "authority_stream_head",
-)
+SIDECAR_BINDING_MEMBERS = ("participant_authority_digest",)
 MLS_BINDING_MAX_INPUT_BYTES = 16384
 MLS_BINDING_MAX_NESTING_DEPTH = 8
 MLS_BINDING_MAX_COLLECTION_ITEMS = 64
@@ -5626,14 +5623,15 @@ def _deterministic_member_order() -> list[str]:
 def _binding_member_violation(value: Any) -> str | None:
     """Scope-bound member set of a decoded binding.
 
-    Five members are shared by every scope; the two Sidecar members are
-    required for the Sidecar scope and forbidden for every other scope, and
-    authority_stream_head is strictly ascending by UTF-8 bytes.
+    Five members are shared by every scope; only the participant digest is
+    Sidecar-specific. The removed reference array is never accepted.
     """
 
     if not isinstance(value, dict):
         return "unsupported_major_type"
     members = set(value)
+    if "authority_stream_head" in members:
+        return "authority_stream_head_forbidden"
     if members - set(BINDING_MEMBERS) - set(SIDECAR_BINDING_MEMBERS):
         return "unknown_member"
     if set(BINDING_MEMBERS) - members:
@@ -5645,15 +5643,6 @@ def _binding_member_violation(value: Any) -> str | None:
         return "sidecar_member_missing"
     if not is_sidecar and present:
         return "non_sidecar_carries_sidecar_member"
-    head = value.get("authority_stream_head")
-    if is_sidecar:
-        if not isinstance(head, list) or not head or not all(isinstance(item, str) for item in head):
-            return "sidecar_member_missing"
-        encoded = [item.encode("utf-8") for item in head]
-        if len(set(encoded)) != len(encoded):
-            return "authority_stream_head_duplicate"
-        if encoded != sorted(encoded):
-            return "authority_stream_head_unsorted"
     return None
 
 
@@ -5768,6 +5757,75 @@ def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
     return value, None
 
 
+def _check_sidecar_participant_authority(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    """Check the sole local digest projection, never native authorization."""
+    reference = "schemas/agent-operations.schema.json#/$defs/sidecar_participant_authority_preimage"
+    schema_path = ARTIFACTS / "schemas/agent-operations.schema.json"
+    document = load_json(lint, schema_path)
+    schema = (document or {}).get("$defs", {}).get("sidecar_participant_authority_preimage", {})
+    members = ["domain", "sidecar_id", "realm_id", "controller_account_id", "desired_agents"]
+    properties = schema.get("properties", {})
+    agents = properties.get("desired_agents", {})
+    item = agents.get("items", {})
+    if (schema.get("required") != members or list(properties) != members
+            or schema.get("additionalProperties") is not False
+            or properties.get("domain", {}).get("const") != "ak.sidecar.participant_authority.v1"
+            or properties.get("controller_account_id", {}).get("$ref") != "./common-ids.schema.json#/$defs/account_id"
+            or "maxItems" in agents
+            or item.get("required") != ["agent_id", "join_event_ref"]
+            or list(item.get("properties", {})) != ["agent_id", "join_event_ref"]
+            or item.get("additionalProperties") is not False):
+        lint.fail(schema_path, "Sidecar participant preimage must retain only its five incarnation-bound members, without a business count cap")
+    context = (document or {}).get("$defs", {}).get("agent_sidecar_mls_context", {})
+    if "authority_stream_head" in context.get("properties", {}):
+        lint.fail(schema_path, "Sidecar view must not retain the removed authority reference array")
+    vectors = data.get("participant_authority", {})
+    if vectors.get("schema_ref") != reference:
+        lint.fail(path, "Sidecar participant preimage must name its sole schema owner")
+    samples = vectors.get("samples", [])
+    if not isinstance(samples, list):
+        lint.fail(path, "Sidecar participant samples must be a list")
+        return
+    decoded = {}
+    for index, sample in enumerate(samples):
+        try:
+            raw = sample["preimage_utf8"]
+            preimage = json.loads(raw)
+            encoded = canonical_json(preimage).encode("utf-8")
+            if raw.encode("utf-8") != encoded:
+                raise ValueError("preimage is not canonical JSON")
+            digest = "sha256:" + hashlib.sha256(encoded).hexdigest()
+            if sample["expected"] != digest:
+                raise ValueError("stale participant digest")
+            ids = [entry["agent_id"] for entry in preimage["desired_agents"]]
+            if ids != sorted(set(ids), key=lambda value: value.encode("utf-8")):
+                raise ValueError("desired agent IDs must be sorted and unique across incarnations")
+            decoded[sample["name"]] = (preimage, digest)
+        except (KeyError, TypeError, ValueError) as error:
+            lint.fail(path, f"Sidecar participant sample[{index}]: {error}")
+            continue
+        check_json_instance_against_schema(lint, path, f"participant sample[{index}]", reference, preimage)
+    names = {"baseline", "agent_rejoin", "empty_desired"}
+    if set(decoded) != names or len(samples) != len(names):
+        lint.fail(path, "Sidecar participant vectors must cover baseline, Agent rejoin and empty desired")
+        return
+    baseline, digest = decoded["baseline"]
+    for name in ("agent_rejoin",):
+        changed, changed_digest = decoded[name]
+        if changed_digest == digest:
+            lint.fail(path, "Sidecar member incarnation change must change the participant digest")
+        restored = copy.deepcopy(changed)
+        restored["desired_agents"][0]["join_event_ref"] = baseline["desired_agents"][0]["join_event_ref"]
+        if restored != baseline:
+            lint.fail(path, "Sidecar rejoin vector must isolate a join change with unchanged participant IDs")
+    if decoded["empty_desired"][0]["desired_agents"]:
+        lint.fail(path, "Sidecar empty desired vector must permit controller-only bootstrap")
+    sidecar = next((item for item in data.get("cases", [{}])[0].get("accepted", [])
+                    if item.get("name") == "sidecar_scope_commit"), {})
+    if sidecar.get("binding", {}).get("participant_authority_digest") != digest:
+        lint.fail(path, "Sidecar binding bytes must carry the computed participant digest")
+
+
 def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     """Close the one scope-bound MLS binding across bytes, schema and carriers."""
 
@@ -5775,6 +5833,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
+    _check_sidecar_participant_authority(lint, path, data)
     vector_id = "ak.vector.mls.governance_binding_closure.v1"
     epoch_vector_id = "ak.vector.mls.governance_epoch_binding.v1"
     if data.get("covers_vectors") != [vector_id, epoch_vector_id]:
@@ -5870,11 +5929,9 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         "missing_member",
         "sidecar_member_missing",
         "non_sidecar_carries_sidecar_member",
-        "authority_stream_head_unsorted",
-        "authority_stream_head_duplicate",
+        "authority_stream_head_forbidden",
     }
-    # authority_stream_head order is the one member-set rule JSON Schema cannot express.
-    schema_expressible_violations = member_set_violations - {"authority_stream_head_unsorted"}
+    schema_expressible_violations = member_set_violations
     seen: set[str] = set()
     for index, sample in enumerate(samples):
         if not isinstance(sample, dict):
@@ -5928,8 +5985,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         "missing_member",
         "sidecar_member_missing",
         "non_sidecar_carries_sidecar_member",
-        "authority_stream_head_unsorted",
-        "authority_stream_head_duplicate",
+        "authority_stream_head_forbidden",
         "indefinite_length_map",
         "non_minimal_integer",
         "duplicate_map_key",
@@ -5999,20 +6055,25 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
     schema = load_json(lint, schema_path)
     expected_sidecar_handshake = {
-        "effective_scope_kinds": [
-            "sidecar"
-        ],
+        "effective_scope_kinds": ["sidecar"],
         "proposal_wire_format": "mls_public_message",
         "commit_wire_format": "mls_public_message",
         "secret_mac_verification_role": "member",
-        "participant_authority_binding": "exact_accepted_cut",
+        "participant_authority_binding": "own_station_digest_with_membership_incarnations",
         "consumed_proposal_provenance": "inline_signed_commit",
         "handshake_disclosure": "sidecar_authorized_only",
         "application_and_welcome_protection": "unchanged",
-        "creator_bootstrap_transaction": "excluded"
+        "creator_bootstrap_transaction": "excluded",
+        "native_authority_role": "controller_owning_station",
+        "native_gate_carrier": "local_or_existing_authority_forward",
+        "membership_and_rfc_role": "scope_governance_station",
+        "membership_cut": "governance_acceptance",
+        "remote_native_recomputation": "forbidden",
+        "private_pcr_disclosure": "forbidden",
+        "membership_history_source": "original_mls_acceptance_provenance",
     }
     if (schema or {}).get("x-arkret-sidecar-handshake-contract") != expected_sidecar_handshake:
-        lint.fail(schema_path, "Sidecar handshake must preserve its complete PublicMessage, member-MAC, exact-cut and restricted-disclosure contract")
+        lint.fail(schema_path, "Sidecar handshake must preserve its PublicMessage, member-MAC, own-Station native, governance-cut and restricted-disclosure contract")
     if ((schema or {}).get("x-arkret-public-handshake-contract") or {}).get("effective_scope_kinds") != ["realm", "circle"]:
         lint.fail(schema_path, "Sidecar handshake must remain separate from the Realm/Circle contract")
     definitions = schema.get("$defs", {}) if isinstance(schema, dict) else {}
@@ -6031,13 +6092,8 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             shape = binding_schema.get("properties", {}).get(field, {})
             if shape.get("$ref") != "./decimal-integers.schema.json#/$defs/uint64_decimal":
                 lint.fail(schema_path, f"mls_governance_binding.{field} must be uint64")
-        head_shape = binding_schema.get("properties", {}).get("authority_stream_head", {})
-        if head_shape.get("maxItems") != MLS_BINDING_MAX_COLLECTION_ITEMS or head_shape.get("uniqueItems") is not True:
-            lint.fail(
-                schema_path,
-                "mls_governance_binding.authority_stream_head must be unique with maxItems equal to "
-                "the decoder maximum_collection_items",
-            )
+        if "authority_stream_head" in binding_schema.get("properties", {}):
+            lint.fail(schema_path, "Sidecar must not reintroduce its removed reference array")
         sidecar_rule = next(
             (
                 rule for rule in binding_schema.get("allOf", [])
@@ -6053,7 +6109,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         ) != {"not": {"anyOf": [{"required": [member]} for member in SIDECAR_BINDING_MEMBERS]}}:
             lint.fail(
                 schema_path,
-                "mls_governance_binding must require both Sidecar members for the sidecar scope "
+                "mls_governance_binding must require the Sidecar digest for the sidecar scope "
                 "and forbid them for every other scope",
             )
 

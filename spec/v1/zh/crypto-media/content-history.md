@@ -886,6 +886,14 @@ peer还须通过Service HTTP认证，实际caller／来源Station／replacement.
 治理方独立核原group／scope／genesis、accepted entry basis及自己账本中的原endpoint参与事实。无此原生参与来源不得受理。
 同Station也执行相同门；各服务仅经登记网络接口调用，数据库、配置、私钥和后端函数继续隔离。
 
+**恢复职责边界（normative）**：H负责自己的native episode、完整pending admission/claim/outgoing census、旧端授权与新供给屏障；
+G负责自己已受理scope的永久fence、原结果和真实RFC Remove/新epoch验证。两项都保留，不把其中一方职责全推给另一方。
+G使用依法持有的原producer/Genesis/Add/claim/历史attestation及本地coverage判断已安装fence，不因fence获得H私PCR、
+通用current或他人claim查询权；普通外站Add的H本地claim/交付核验继续按encryption-and-audit §2.2，不能要求G为所有目标先取得全H current。
+真正职责内的原来源缺失，或H尚有未对账的潜在入群时，保持原pending/unavailable与对账，不把未知说成从未发生或签removed/ready。
+H拒绝新交付不替代移除已持群secret的旧端；已披露secret和恶意获权成员主动泄密不在召回保证内。
+Sidecar只含本人及同H自有Agent，其摘要不是本节恢复权限、fence解除或终局证明，不增加另一来源操作。
+
 **首次签发与内层CAS**：当前认证／来源／reader及原生目标门通过后，在同一原生scope／Actor锁序先保管／核对最小I预留，再查询业务终局。
 同锁先核本challenge已绑定的来源及观察：异来源为duplicate_conflict且零新增效果；已有观察按后述缓存规则返回，
 即使内层已完成，也不得把旧pending改为终局。以下结算只适用于尚无观察的新challenge，不能先执行效果再发现challenge冲突。
