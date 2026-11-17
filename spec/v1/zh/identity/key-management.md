@@ -868,7 +868,7 @@ MLS authoring state只能由已验证本地状态、新Add／Welcome或content-h
 
 ### 7.2 Backup Envelope
 
-`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。Human上传必须用当前accepted device key签署完整metadata与ciphertext digest，并携device_authorize_event_id；Agent-subject上传／原生runtime签名分支和custodian锚按content-history §8.2执行，不能伪造Device。Account Device 的 `source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
+`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。Human上传必须用当前accepted device key签署完整metadata与ciphertext digest，并携device_authorize_event_id；Agent-subject上传／原生runtime签名分支和custodian锚按content-history §8.2执行，不能伪造Device。Account Device 的 `source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。首次 PUT 接纳 MUST 从该 Account 的 accepted authorization 解析实际签名 key，拒绝当前 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。历史 envelope 的原签名与当前读取资格分别按 §7.4.1 与 §7.6／§7.8 核验；[content-history §8.1](../crypto-media/content-history.md#81-原创建资格与当前领取资格分离) 的窄历史根领取例外保持。
 
 Account Device envelope genesis／successor 的公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 signature_proof.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_sequence + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
 
@@ -947,12 +947,32 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 #### 7.4.1 备份签名的设备信任根锚定（normative）
 
+本节适用于 Human Account 为自身备份的 Device 签名分支。Agent-subject 的 controller／runtime 与 custodian
+绑定按 [content-history §8.2](../crypto-media/content-history.md#82-同一组标准api中的agent-subjectcontroller-caller)；
+Realm Bot／Ghost 按 §7.8.3，不得套用 Human Device 或 PCR 身份。
+
 `signature_proof.verification_method` 必须是 DID URL：其 bare `did` 经已登记 method adapter 投影必须等于
 `actor_id.signing_principal_id()`，fragment 必须等于 `device_id`；不得把完整 `actor_id` 或其 principal
 分量直接拼接 fragment。完整 Account/Station 身份 MUST 独立取自已接受 authorization 并与 envelope
-`actor_id` 逐字绑定；仅凭 DidUrl 不得定位账号。`device_authorize_event_id` 必须解析为该 device 在 envelope
-checkpoint 的 accepted authorization。Verifier
-KeyPackage 对外 claim 不携带 PCR/device history sidecar。账号当前所在的 source Station 在本地检查 registration、generation 与 revocation 后签发承载该 KeyPackage 的 claim；普通 Event federation receiver 独立验证 Event 的唯一 producer proof 与接纳该 Event 的 RealmCommit 所锚定的授权实例，不依赖 source 或账号原站在线。
+`actor_id` 逐字绑定；仅凭 DidUrl 不得定位账号。`signature_proof.device_authorize_event_id` MUST 解析为该
+Account 的 PCR 中已 accepted 的 exact `ak.device.authorize` 原件，MUST NOT 用当前设备目录、裸公钥或
+账号 session 替代原授权实例。普通客户端按 [server-trusted-results §2.1](../sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative)
+消费 holder 合法可读的原件及其接纳结果，独立验证原 Event 的实际 producer 原签与历史 key；不得为读取一条
+备份下载或重放完整 PCR/control stream，也不得因此扩大原件披露权限。registration-anchor genesis 与
+后继原件分别沿其既有原生接纳来源核验，不要求它们带普通业务 Event 的 public producer signer fact。
+
+Verifier MUST 核对原件的 Account／PCR、Event ID、DeviceId 与 envelope 的完整绑定，验证原 authorize
+payload 对目标 Device 的 possession proof，再取该 payload 的 `device_public_key_did` 验证 §7.2 的完整
+envelope 签名；envelope 的 `created_at` MUST 在该原授权窗口内。授权 Event 的实际 producer 与被授权
+Device 可以不同，原 Event 的 producer key 不得冒充备份作者 key。`source_commit_ref` 存在时还 MUST
+按 §7.2 核对原创建 checkpoint／generation；缺省时不得补造来源锚，也不省略原授权、签名或 series 链校验。
+创建／首次 PUT 接纳时的授权 MUST 有效、未撤销且未被 generation fence；这些原时点事实由既有合法接纳来源确认，
+不能仅凭自报 `created_at` 或一份可验的旧设备签名绕过首次 PUT 的 current 门，普通客户端不为此重放历史撤销链。
+缺失、冲突、错误 Account／Device／授权实例、无效原签或摘要不一致均 MUST fail closed，不以 current key 补历史。
+
+历史验签只确认该 envelope 的原作者及原授权，不授当前 PUT、读取或 active MLS 资格。当前 writer、reader、
+generation、policy 与 active-series 门仍按各自操作执行；content-history §8.1 的原创建资格与当前领取资格分离不把旧设备
+恢复为 current。恢复出的内容根只进入其获准的 history-only lane，不安装旧 signer 或设备身份。
 
 ### 7.5 Recipient Method Profiles
 

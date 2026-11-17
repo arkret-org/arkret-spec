@@ -959,7 +959,7 @@
     },
     {
       "rule_id": "NC-AUDIT-001",
-      "title": "Object authorship is created_by / updated_by, never creator_*",
+      "title": "Object authorship names and the two registered creator_* fields",
       "normative_anchor": {
         "file": "spec/v1/zh/models/common-fields.md",
         "section": "2.",
@@ -977,7 +977,7 @@
       "entry_points": [],
       "tests": [],
       "coverage_level": "partial",
-      "manual_review_reason": "`creator_*` stays reserved for external protocol and cryptographic transcript structures that carry their own creator tuple, so a token-level ban would fire on exactly the occurrences the clause allows. Distinguishing the two needs the surrounding transcript, which no name predicate sees. The residual risk is bounded because v1 registers no `creator_*` wire field at all, and the per-object required-field tables already pin created_by / updated_by on every canonical object.",
+      "manual_review_reason": "Review the field in its enclosing type. MLS Genesis uses creator_leaf_authority for the creator leaf. The Realm Invite Link definition projects the create Event actor_id as creator_actor_id. New object authorship metadata uses created_by / updated_by.",
       "manual_review_owner": "spec review of object metadata fields"
     },
     {

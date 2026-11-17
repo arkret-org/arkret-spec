@@ -1461,11 +1461,16 @@
     {
       "name": "reject_approved_at_before_grant_issued_at",
       "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
-      "description": "A grant-context approval signed before the grant it cites existed. The lower bound is the grant's issued_at, plus the not_before of its temporal grant-constraint when it carries one; a capability grant has no top-level not_before of its own.",
+      "description": "A grant-context approval signed before the grant it cites existed. The lower bound is max(grant.issued_at, not_before values of temporal allow constraints applicable to the signed action); a capability grant has no top-level not_before of its own.",
       "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf",
-      "grant_issued_at": "2026-08-06T00:05:00.000Z",
-      "grant_temporal_constraint_not_before": "2026-08-06T00:08:00.000Z",
-      "approved_at": "2026-08-06T00:00:00.000Z",
+      "grant_issued_at": "2026-08-06T00:11:00.000Z",
+      "grant_constraints": [
+        {
+          "constraint_kind": "temporal",
+          "effect": "allow",
+          "not_before": "2026-08-06T00:12:00.000Z"
+        }
+      ],
       "expected": {
         "decision": "reject",
         "error_code": "claim_required",

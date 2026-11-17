@@ -96,6 +96,9 @@ exact signed Event 重试先确认已有 durable admission outcome：已 accepte
 
 各实际 scope 的治理 Station 是 Event 接纳权威；Circle/Sidecar 与父 Realm 的可撤销依赖在同治理 Station 事务内重读，不制造跨 stream 总序。远端读取／delivery enforcing service 只有在其实际交付点取得治理 Station 的经认证 current 判定并把 exact request/内容动作/resource/接收者绑定于同一串行交付屏障时才能放行；缺少已登记 current 取材／交付屏障则 fail closed，可路由回治理服务，不允许有限 TTL 的旧 allow 冒充撤权即时生效。客户端消费已 accepted 历史 Commit 不要求在线证明全球最新，也不重算历史接纳。
 
+H≠G 的个人 Sidecar Agent 历史下界来源按 [Sidecar §6.1](../models/sidecar.md#61-跨站-agent-历史下界来源normative)
+执行；其窄历史原件不替代上段实际新交付屏障。
+
 每次权限收缩阻止未来服务读取/交付与未来材料领取；MLS roster/epoch 移除仍须合法 author、Commit、客户端 rotate/remove，不能宣称撤权擦除了已有 epoch secrets 或已交付密文/明文。cache 的 digest/revision 依赖必须包含 controller 权限与管理 Policy，并在未知、冷启动、重启时重建，不复用旧 allow。同站原子准入、远端新交付屏障和密码学排除是分别验收的终点。
 
 审计保留 controller 原签意图、Agent 自己签名、实际 admission basis、所用父路径/共享 quota 与管理裁决；这些是 verifier-private backing，不把父 grant/private selection 原文塞进共享 Event。独立重放须得到相同结果；第三方拒绝使用已登记通用错误，主人可看自己授权和适用失效范围，不向第三方泄露私有父来源。

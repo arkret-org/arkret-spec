@@ -976,7 +976,7 @@
         },
         "signature_transcription": {
           "algorithm": "RFC8785_JCS",
-          "projection": "envelope_without_auth_data.signature",
+          "projection": "envelope_without_signature_proof.signature",
           "present_source_commit_ref_is_authenticated": true,
           "post_signature_alias_rewrite": "forbidden"
         },

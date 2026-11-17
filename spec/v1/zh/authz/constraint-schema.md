@@ -702,8 +702,12 @@ capability 资格共同界定；本层不增一个独立 TTL。已接纳记录�
 | `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放。 |
 | `initiating_actor_id` | ActorId | 发起本次执行的 **exact** `ActorId`（完整 `principal_id` + `station_id`）。它不授权同一 principal 的另一个 Account：同 DID 不同 Station 的重放 MUST 拒绝。 |
 | `approver_did` | did | 签发该 approval 的 approver DID。 |
-| `approved_at` | timestamp | 签名时间。reducer MUST 按 [`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json) 的 `ak.time_tolerance.approval_approved_at.v1` 执行单侧 future guard；`grant` 支还 MUST 拒绝 `approved_at < grant.issued_at`；该 grant 若携带 `constraint_kind=temporal` 的约束，还 MUST 拒绝 `approved_at` 早于该约束的 `not_before`。capability grant **没有** top-level `not_before`／`expires_at`，有效期窗口由 §3 的 temporal grant-constraint 表达，实现 MUST 从那里取下界，MUST NOT 读一个 grant 上不存在的成员。approval 与 presign、temporal constraint 是三个独立场景，实现 MUST NOT 互相代入容差或方向。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 按 [`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json) 的 `ak.time_tolerance.approval_approved_at.v1` 执行单侧 future guard；`grant` 支另须满足下述逐 action 签票下界。approval 与 presign、temporal constraint 是三个独立场景，实现 MUST NOT 互相代入容差或方向。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。命名空间见 §9.2.2，消费规则见 §9.2.5。 |
+
+**Grant 支的签票下界（normative）。** 令 `a` 为该票原签且与 exact 目标匹配的 `input.action`。`approved_at` MUST ≥ `max(grant.issued_at, applicable_allow_temporal.not_before[]?)`，零容差、含等号；后者只取该 grant 中 `constraint_kind=temporal`、`effect=allow` 且 `applies_to_actions` 省略或包含 `a` 的约束。其它 action 及 `deny`／`quarantine`／`require_review` 的起点不进入本下界。grant 没有 top-level `not_before`／`expires_at`；所有约束仍须先通过正式 shape／语义支持检查，实际执行的当前约束继续按 §15／§16 求值。
+
+无单一 action 的 grant／envelope 验证 MUST NOT 跨 action 合成审批下界，须在使用该票时按其原签 action 求值；多 action 执行逐项满足授权与审批。recurrence 不生成额外签票下界，也不要求签票与接纳在同一 occurrence；只有显式适用的 `not_before` 参与本式。长期 grant 或未声明 `timeout` 不增加隐含 TTL／逐周期重签。§9.2.5 的原 timeout、目标与主体绑定、历史 key 及 nonce 规则原样适用；§9.3 同票计入治理层时仍保留原 grant 下界与 timeout，不得换层刷新或绕过。
 
 #### 9.2.5 载体、接纳审计与 nonce 消费（normative）
 

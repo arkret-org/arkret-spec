@@ -815,7 +815,7 @@
         "device_authorize_event_id": {
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-          "description": "Accepted current-generation ak.device.authorize Event anchoring the device signing this backup."
+          "description": "Exact accepted ak.device.authorize Event anchoring this envelope's Device signer at creation and first PUT. Authorization, generation and revocation/fence checks apply at that original admission. Historical verification binds the original authorization instance; later writer revocation or generation changes do not rewrite an already accepted envelope. Current reader authorization remains independently required."
         },
         "agent_authorization_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",

@@ -300,6 +300,49 @@ cut 已知的 membership loss/fence 仍优先。H 观察 cut 与 G 接纳 cut �
 Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
 key、旧 session 或本地缓存不能继续授权新写。
 
+### 6.1 跨站 Agent 历史下界来源（normative）
+
+H≠G 时，H MUST 通过既有 `ak.peer.realm_join.read.bootstrap.v1`，以 `history_stream_ref` 指定 exact
+Sidecar stream，取得 G 原签的 `purpose="stream_history"` Snapshot；不得从 H 的旧 desired 原像、digest
+或未经签名的 scan metadata 推断 G 在某次 MLS 接纳中确认的成员世代。此处登记的是该既有操作的个人
+Sidecar 窄用途，不开放普通 Agent 的完整恢复、原生资格查询或私有 PCR 读取。
+
+1. H 已经合法持有 accepted Sidecar create、目标 Agent 的当前父 Realm join 原件，以及该 endpoint 的
+   原 Add／Welcome／claim 与 consume 关系，并按 §5 验证当前 desired、完成 effective 和所有适用的
+   native endpoint、requested/key/session、主人内容上界与 read/deliver 门后，才可发出本请求；这些门
+   不包含本次待求的 Agent 历史 floor 或窄 Snapshot。
+   `member_account_id` MUST 为该 Agent 的完整 AccountId，`membership_commit_id` MUST 是其当前
+   join 的原 Commit；两者及 exact Sidecar 共同受原 S2S body 签名保护。G MUST 核 Source-Service-ID
+   等于 Agent 与 accepted Sidecar controller 的 owning H，Destination-Service-ID 为本 Realm 当前 G。
+   该经过认证的请求仅断言 H 已在本次取材截点完成上述 H 职责；G 可依赖这个有限断言，不要求取得 H
+   私库或以旧 Add 的历史证明代替 H 当前检查，也不得将它用于其它 Agent、scope 或普通授权。
+2. G MUST 在同一 durable cut 独立验证 active Sidecar/create、本人及 Agent 当前 joined 世代及完整
+   controller binding、适用 policy／管理门、任期与已知 fence，并从自己保存的原 accepted MLS state
+   及 §6 的 membership 来源关联求出该世代的历史 floor。签发直接使用这些原件与本 cut 的可披露 typed
+   rows／heads／floors；MUST NOT 依赖先成功签发或安装 `full_recovery`、H 先求出 floor，或 H 提供
+   G 私有关联的镜像。缺少实际来源仍按既有 unavailable 拒绝，不得回退到旧世代或物理 stream 起点。
+3. G 签发完整窄原件，沿 [Snapshot §4.1](../conformance/realm-state-snapshot-schema.md#41-exact-历史原件与当前披露权限)
+   的 selector 完备性与披露门裁剪，不新增 selector；signed `history_basis` 绑定 exact Agent、Sidecar、
+   target head/anchor 和必要 accepted dependencies，其中父 Realm `member_state` 必须对应请求的
+   当前 join 原 Commit。G 签名同时覆盖治理任期、全部 rows、逐流 heads 与 floor。响应仍沿原 request_id／
+   nonce-bound authority bundle 各自核对请求绑定。bundle 的 nonce 不认证 Snapshot bytes，也不使旧
+   Snapshot 成为本次 current；窄原件仍按自己的 signed cut、依赖、已知单调进度及当前披露门验证。
+4. H MUST 整体验证上述原件、完整依赖、同 cut 与当前 join 绑定，拒绝错 Agent、Sidecar、世代、任期、
+   已知 head 回退或已知撤权，不把 fresh bundle 与旧 Snapshot 拼成新的授权 cut。signed floor position 还 MUST 对应 H 依原合法复制权持有的同一 Sidecar 链上
+   原 RealmCommit，并由该 floor 原件连续衔接到 signed target head；只比 position、跨流猜先后或另接
+   一条链均不足。缺原件或依赖时 unavailable，不新增普通 Commit 查询面。窄原件只按其既有历史用途
+   归档和消费，MUST NOT 部分采用、改写后安装为完整 current，或推进未获准的 stream head/floor。
+5. pending endpoint 仍只沿 exact accepted Add／Welcome／claim 的既有公共握手材料路径完成验材、
+   durable MLS state 与 consume；它不请求本窄对象，不取得业务 rows，也不以本历史 floor 或已 effective
+   为握手前提。desired 但尚无 accepted Add 的 Agent 同样不能据此开历史。controller 本人保留既有私有
+   历史来源与 floor；本用途不使其历史随本人或 Agent 的父 Realm rejoin 重置。
+
+本原件只证明该成员世代在签发 cut 的获准历史下界，不是当前交付租约。原件已保留不表示当前仍可披露；
+rejoin、撤权、policy/fence 变化与过期上下文均按原合同重验。实际读取、排队后交付及未来材料领取继续遵守
+[owned-agent-authority §5](../authz/owned-agent-authority.md#5-current-依赖远端与审计) 的 current／串行交付屏障，
+MUST NOT 用 Snapshot 签名或有限 TTL 的旧 allow 替代；本节不声称闭合尚无登记来源的其它远端供给路径。
+未知／无权／外部账号或隐藏 Sidecar 统一沿本操作既有非枚举失败，拒绝时不释放 Snapshot、floor、私有关联或业务 rows。
+
 ## 7. 生命周期
 
 Sidecar state 是 accepted controller/Realm/ownership/Realm policy facet revision 的纯函数，不存在 actor-authored

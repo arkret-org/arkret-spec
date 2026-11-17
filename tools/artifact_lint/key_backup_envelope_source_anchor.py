@@ -133,8 +133,8 @@ def check_key_backup_envelope_source_anchor(lint: Lint) -> None:
             if forbidden != expected_forbidden:
                 _fail(lint, CONTRACT_REGISTRY, "successor builder forbidden-input set is incomplete")
             signing = authoring.get("signature_transcription", {})
-            if signing.get("projection") != "envelope_without_auth_data.signature" or signing.get("present_source_commit_ref_is_authenticated") is not True:
-                _fail(lint, CONTRACT_REGISTRY, "signature transcription must authenticate the present canonical source field")
+            if signing.get("projection") != "envelope_without_signature_proof.signature" or signing.get("present_source_commit_ref_is_authenticated") is not True:
+                _fail(lint, CONTRACT_REGISTRY, "signature transcription must exclude only signature_proof.signature and authenticate present source_commit_ref")
             if signing.get("post_signature_alias_rewrite") != "forbidden":
                 _fail(lint, CONTRACT_REGISTRY, "post-signature alias rewriting must be forbidden")
             predecessor = authoring.get("predecessor_chain", {})

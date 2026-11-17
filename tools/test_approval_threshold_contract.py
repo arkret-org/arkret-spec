@@ -1,10 +1,16 @@
 """Reject approval policies whose vote threshold cannot be interpreted."""
 
+import copy
 import json
+import sys
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from jsonschema import Draft202012Validator
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tools import check_approval_signature_kat as approval_kat
 
 
 class ApprovalThresholdContractTest(unittest.TestCase):
@@ -52,6 +58,68 @@ class ApprovalThresholdContractTest(unittest.TestCase):
         self.assertIn('inclusive and with zero tolerance', description)
         self.assertNotIn('approver_ids', properties)
         self.assertNotIn('auto_reject_on_timeout', properties)
+
+    def test_signing_lower_bound_is_per_action_and_allow_only(self):
+        issued = '2026-08-06T00:05:00.000Z'
+        constraints = [
+            {'constraint_kind': 'temporal', 'effect': 'allow',
+             'not_before': '2026-08-06T00:08:00.000Z'},
+            {'constraint_kind': 'temporal', 'effect': 'allow', 'applies_to_actions': ['ak.message.create'],
+             'not_before': '2026-08-06T00:09:00.000Z'},
+            {'constraint_kind': 'temporal', 'effect': 'allow', 'applies_to_actions': ['ak.message.revise'],
+             'not_before': '2026-08-06T00:10:00.000Z'},
+        ]
+        for effect in ['deny', 'quarantine', 'require_review']:
+            constraints.append({'constraint_kind': 'temporal', 'effect': effect,
+                                'not_before': '2026-08-06T00:11:00.000Z'})
+        for action, minute in [('ak.message.create', 9), ('ak.message.revise', 10)]:
+            with self.subTest(action=action):
+                lower = approval_kat.grant_approval_not_before(issued, constraints, action)
+                self.assertEqual(lower, datetime.fromisoformat(f'2026-08-06T00:{minute:02}:00+00:00'))
+        with self.assertRaises(ValueError):
+            approval_kat.grant_approval_not_before(issued, constraints, None)
+
+    def test_recurrence_and_long_lifetime_do_not_add_a_signing_bound(self):
+        issued = '2026-08-06T00:05:00.000Z'
+        recurrence = {'frequency': 'daily', 'window_start': '09:00:00',
+                      'window_end': '17:00:00', 'timezone': 'UTC'}
+        constraints = [{'constraint_kind': 'temporal', 'effect': 'allow',
+                        'expires_at': '2028-08-06T00:00:00.000Z', 'recurrence': recurrence}]
+        expected = datetime.fromisoformat('2026-08-06T00:05:00+00:00')
+        self.assertEqual(approval_kat.grant_approval_not_before(issued, constraints, 'ak.message.create'), expected)
+        constraints[0]['not_before'] = '2026-08-06T00:08:00.000Z'
+        self.assertEqual(approval_kat.grant_approval_not_before(issued, constraints, 'ak.message.create'),
+                         datetime.fromisoformat('2026-08-06T00:08:00+00:00'))
+
+    def test_existing_kat_executes_the_lower_bound_and_keeps_equality_inclusive(self):
+        fixture = approval_kat.load_json(approval_kat.FIXTURE_PATH)
+        case = copy.deepcopy(next(row for row in fixture['negative_cases']
+                                  if row['name'] == 'reject_approved_at_before_grant_issued_at'))
+        public_key = approval_kat.Ed25519PrivateKey.from_private_bytes(approval_kat.PUBLISHED_SEED).public_key()
+        self.assertEqual(approval_kat.check_negative(case, fixture, public_key, set()), [])
+        case['grant_issued_at'] = '2026-08-06T00:09:00.000Z'
+        case['grant_constraints'][0]['not_before'] = '2026-08-06T00:10:00.001Z'
+        self.assertEqual(approval_kat.check_negative(case, fixture, public_key, set()), [])
+        for instant in ['2026-08-06T00:10:00.000Z', '2026-08-06T00:09:59.999Z']:
+            case['grant_constraints'][0]['not_before'] = instant
+            with self.subTest(instant=instant):
+                self.assertTrue(approval_kat.check_negative(case, fixture, public_key, set()))
+        case['grant_constraints'] = []
+        case['grant_issued_at'] = '2026-08-06T00:10:00.001Z'
+        self.assertEqual(approval_kat.check_negative(case, fixture, public_key, set()), [])
+        case['grant_issued_at'] = '2026-08-06T00:10:00.000Z'
+        self.assertTrue(approval_kat.check_negative(case, fixture, public_key, set()))
+
+    def test_lower_bound_kat_cannot_substitute_unsigned_time_or_grant_identity(self):
+        fixture = approval_kat.load_json(approval_kat.FIXTURE_PATH)
+        case = copy.deepcopy(next(row for row in fixture['negative_cases']
+                                  if row['name'] == 'reject_approved_at_before_grant_issued_at'))
+        public_key = approval_kat.Ed25519PrivateKey.from_private_bytes(approval_kat.PUBLISHED_SEED).public_key()
+        case['approved_at'] = '2026-08-06T00:00:00.000Z'
+        self.assertTrue(approval_kat.check_negative(case, fixture, public_key, set()))
+        del case['approved_at']
+        case['grant_id'] = case['grant_id'][:-1] + 'A'
+        self.assertTrue(approval_kat.check_negative(case, fixture, public_key, set()))
 
     def test_rotation_uses_exact_signed_realm_control_material(self):
         root = Path(__file__).resolve().parents[1] / 'spec/v1/artifacts/schemas'

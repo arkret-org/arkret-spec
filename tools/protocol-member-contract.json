@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:7183ee23b70557952a8901897a331d3d7a8e870575a1b71e340fed293132e508",
+  "contract_digest": "sha256:86731f5919a83852a8421daebe44234bf58d08382d1713bbdd11935c33b0b422",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -19825,7 +19825,7 @@
               },
               "approved_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp",
-                "description": "The signing instant. A reducer MUST apply the future-only guard registered as ak.time_tolerance.approval_approved_at.v1 in contract-registry.json#protocol_time_tolerance_registry. For the grant context it MUST also reject approved_at earlier than that grant's issued_at, and earlier than the not_before of that grant's temporal grant-constraint when it carries one. A capability grant has no top-level not_before of its own: its validity window lives on grant-constraint.schema.json with constraint_kind temporal, so an implementation MUST read the bound from there rather than from a grant member that does not exist. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
+                "description": "The signing instant. A reducer MUST apply the future-only guard registered as ak.time_tolerance.approval_approved_at.v1 in contract-registry.json#protocol_time_tolerance_registry. For the grant context, approved_at MUST be at least max(grant.issued_at, not_before values of temporal allow constraints applicable to this signed input.action), inclusive with zero tolerance. A temporal constraint applies when applies_to_actions is absent or contains input.action; other actions and deny/quarantine/require_review constraints MUST NOT contribute to this signing lower bound. A capability grant has no top-level not_before. Validation without one exact action MUST NOT combine all action windows into an approval bound; each required action is checked separately when counting its signed vote. This bound does not require the signing instant to satisfy execution-time predicates or belong to the same recurrence occurrence, and adds no implicit TTL or per-occurrence re-signing. Current execution predicates, the original vote timeout, exact target/action/operation/ActorId/Realm binding, historical key checks and transactional nonce consumption remain independent. A grant-context vote also counted for Realm governance retains its grant lower bound and timeout. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
               },
               "nonce": {
                 "type": "string",
@@ -78723,7 +78723,7 @@
               "device_authorize_event_id": {
                 "type": "string",
                 "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-                "description": "Accepted current-generation ak.device.authorize Event anchoring the device signing this backup."
+                "description": "Exact accepted ak.device.authorize Event anchoring this envelope's Device signer at creation and first PUT. Authorization, generation and revocation/fence checks apply at that original admission. Historical verification binds the original authorization instance; later writer revocation or generation changes do not rewrite an already accepted envelope. Current reader authorization remains independently required."
               },
               "agent_authorization_event_ref": {
                 "$ref": "./common-ids.schema.json#/$defs/event_id",
@@ -100341,11 +100341,11 @@
               },
               "membership_commit_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
-                "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join} or ak.invite.accept for a directed Invite on the Realm stream, or ak.circle.member.state{join} on the Circle stream. Circle bootstrap requires current parent-Realm membership; a parent-Realm join Commit cannot replace the Circle join Commit (zh/sync/federation.md section 4.1.1)."
+                "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join} or ak.invite.accept for a directed Invite on the Realm stream, or ak.circle.member.state{join} on the Circle stream. Circle bootstrap requires current parent-Realm membership; a parent-Realm join Commit cannot replace the Circle join Commit (zh/sync/federation.md section 4.1.1). For the narrow Sidecar history_stream_ref use, this is the exact Agent current parent-Realm join Commit; it need not be the first hosted member that originally opened H's Realm replica. G verifies that original and current join generation directly."
               },
               "history_stream_ref": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
-                "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state."
+                "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state. For an effective personally controlled Sidecar Agent with distinct H and G, this same request is the narrow history-floor source under zh/models/sidecar.md section 6.1. The authenticated owning H asserts its actual native, endpoint, effective and read-ceiling checks at this request cut; G independently verifies its current controller/Agent membership generations, binding, management policy, fence and original accepted MLS membership basis. G directly signs the complete stream_history original without a successful full_recovery or an H-computed floor. Pending recipients use only their exact Add/Welcome/claim handshake path and cannot request business rows through this use. No native PCR disclosure, generic Agent bootstrap authority or current-delivery lease follows."
               }
             },
             "additionalProperties": false
@@ -100382,7 +100382,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO. The original Genesis Event and Commit are retained with their exact original producer signer fact after independent verification, without replaying the Genesis reducer or changing any stream head or history floor. Missing original material is unavailable; current keys or reconstructed facts are not substitutes.",
+            "description": "When history_stream_ref is absent, the verified current authority returns a full_recovery snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. When history_stream_ref is present, it directly issues the complete signed stream_history original for the exact Account, target and current accepted dependencies without full_recovery construction or installation; target floors follow that stream's existing profile. The personal Sidecar effective Agent use follows zh/models/sidecar.md section 6.1, including the owning H limited native assertion, G-owned original membership basis, whole-object verification and no pending business disclosure. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1). After an already accepted registered atomic unit has completed member-station materialization, a governing Snapshot refresh preserves that caller's canonical history floor proved under zh/governance/history-visibility.md section 3.1 and its complete authorized current cut. Under since_join, floor zero requires the exact current founding join and position zero to belong to the same proven accepted atomic unit, with its complete originals and continuous Commit chain; later rejoin, missing originals, Realm purpose or low position alone cannot supply this exception. Direct Conversation four-item founding is never four independent single-join bootstrap exceptions. This clarification does not change the initial ordinary single-join bootstrap prefix, Circle gates, signatures, governance tenure, exact scope, membership or continuous-prefix verification, and adds no operation or DTO. The original Genesis Event and Commit are retained with their exact original producer signer fact after independent verification, without replaying the Genesis reducer or changing any stream head or history floor. Missing original material is unavailable; current keys or reconstructed facts are not substitutes.",
             "x-arkret-name-role": "response_body",
             "allOf": [
               {
@@ -119289,7 +119289,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:95511e7c86e51910bb5240396e20f014c913c5bb0f8f90cb9c9563e1ace3b6f7"
+      "digest": "sha256:85275164e379feef7e9b3576ce64e1c7d15aabfb7a4a7b08814e7766e6059fd9"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -119349,7 +119349,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:30297279d8544fd0911231ed79ff3cf5439fbb65d1663b0346f238bbc6cf160a"
+      "digest": "sha256:0482348c67005770038655ebd89549aaa902b2b24fdc8715ecf4462c14be3bb6"
     },
     {
       "file": "operation-clause-registry.json",

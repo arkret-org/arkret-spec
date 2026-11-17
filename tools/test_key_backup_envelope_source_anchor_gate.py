@@ -114,6 +114,19 @@ class KeyBackupEnvelopeSourceAnchorGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "post-signature alias rewriting")
 
+    def test_signature_transcription_excludes_only_the_signature_value(self) -> None:
+        for projection in (
+            "envelope_without_auth_data.signature",
+            "envelope_without_signature_proof",
+            "complete_envelope",
+        ):
+            with self.subTest(projection=projection):
+                def mutate(documents: dict) -> None:
+                    signing = self.schema_row(documents)["authoring_contract"]["signature_transcription"]
+                    signing["projection"] = projection
+
+                self.assert_red(mutate, "exclude only signature_proof.signature")
+
     def test_predecessor_chain_cannot_merge_with_source(self) -> None:
         def mutate(documents: dict) -> None:
             predecessor = self.schema_row(documents)["authoring_contract"]["predecessor_chain"]

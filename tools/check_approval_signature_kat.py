@@ -25,6 +25,7 @@ import functools
 import hashlib
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -153,6 +154,21 @@ def signing_bytes(approval_input: Any) -> bytes:
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def grant_approval_not_before(issued_at: str, constraints: list[dict[str, Any]], action: str) -> datetime:
+    """Calculate only the signing bound of a schema-validated grant-context vote."""
+    if not action:
+        raise ValueError("one signed capability action is required")
+    bounds = [issued_at]
+    for constraint in constraints:
+        if constraint["constraint_kind"] != "temporal" or constraint["effect"] != "allow":
+            continue
+        if constraint.get("applies_to_actions") and action not in constraint["applies_to_actions"]:
+            continue
+        if "not_before" in constraint:
+            bounds.append(constraint["not_before"])
+    return max(datetime.fromisoformat(value.replace("Z", "+00:00")) for value in bounds)
 
 
 # --------------------------------------------------------------------------
@@ -548,6 +564,20 @@ def check_negative(
             fail(f"{code} requires a reason_code")
         if "mutated_input" in case or "proof_jws" in case:
             fail("an admission case must not carry mutated bytes: the signature itself is valid")
+        if name == "reject_approved_at_before_grant_issued_at":
+            signed_input = base["approval_signature"]["input"]
+            if signed_input["approval_context"] != {"context_kind": "grant", "grant_id": case["grant_id"]}:
+                fail("the environment grant is not the exact grant named by the signed vote")
+            if "approved_at" in case:
+                fail("the signing instant must come only from the signed input")
+            lower = grant_approval_not_before(
+                case["grant_issued_at"], case["grant_constraints"],
+                signed_input["action"],
+            )
+            if datetime.fromisoformat(signed_input["approved_at"].replace("Z", "+00:00")) >= lower:
+                fail("the signing instant satisfies its action-specific grant lower bound")
+            if expected.get("nonce_consumed") is not False:
+                fail("a vote rejected before its lower bound must not consume its nonce")
     else:
         fail(f"unexpected error_code {code!r}")
     return errors

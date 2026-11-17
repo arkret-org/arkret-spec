@@ -1182,6 +1182,11 @@
       "fragment": "45-反枚举normative"
     },
     {
+      "page": "models/sidecar.md",
+      "heading": "6.1 跨站 Agent 历史下界来源（normative）",
+      "fragment": "61-跨站-agent-历史下界来源normative"
+    },
+    {
       "page": "models/strand-and-message.md",
       "heading": "8.3.1 跨站本人精确 Watch 读取（normative）",
       "fragment": "831-跨站本人精确-watch-读取normative"
