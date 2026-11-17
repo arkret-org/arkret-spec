@@ -346,4 +346,4 @@ see_also:
 | `CI` | Continuous Integration | 指仓库门禁流水线，不表示任何 conformance 概念。 |
 
 
-Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。
+Applet业务下放按[managed-governance §4](../authz/managed-governance.md#4-applet-授权来源与持续上界)执行。

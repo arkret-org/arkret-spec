@@ -594,14 +594,7 @@ composite 规则派生 subject；transition 为 `uninitialized -> active`。`ak.
 `executed_by` 派生；lifecycle payload 不携 `agent_id` / `controller_principal_id`。非 `agent_control` 的 create MUST NOT 触发
 该写入。服务私有 row、FSM 默认值或 organization-governed PCR 都不能合成首次 active witness。
 
-Portable lifecycle provenance 的每个 closed 分支只携对应的 accepted 状态 Event ID：genesis 的
-`realm_create_event_id`、pause 的 `pause_event_id`、resume 的 `resume_event_id`、deactivate 的
-`deactivate_event_id`。不得携 `agent_provision_event_id` 或 `predecessor_*_event_id` 等无独立证明载体的
-历史引用；Event 也不携带任何指向上一条 lifecycle Event 的信封字段，lifecycle 次序由该 PCR stream 的 `RealmCommit.stream_position` 唯一给出。§3.6.3 的唯一 accepted
-provision 反查仍是 genesis admission 的强制条件。Receiver MUST 验证状态 Event 的 原始 producer proof 与可携带授权
-绑定与签名，并使用其中冻结的 `producer_signing_key_did` 验 controller producer proof；不得重新用当前
-controller device 状态解析历史签名。随后 MUST 按 registry 从签名 Event 重算 lifecycle current state 与 transition，
-绑定完整 ActorId、current state head/value，以及包含该 Event 的 signed RealmCommit 到目标 checkpoint 的 ancestry。
+Portable lifecycle provenance 的封闭分支及 Receiver 的历史验签、reducer／checkpoint 绑定，按上文[Agent signing-key binding 与 portable signer evidence](#agent-signing-key-binding-与-portable-signer-evidencenormative)执行。
 
 
 **未完成 provision 不可撤销（normative）**：`ak.agent.provision` 一旦 accepted 就是 controller PCR 中不可删除、

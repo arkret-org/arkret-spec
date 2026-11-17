@@ -785,6 +785,6 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 `space` 的 lifecycle 以 contract registry 中对应 current state family 的 `transition_contracts` 与 Event `state_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `space_not_active` / `space_not_archived`；终态操作对已终态对象返回 `space_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
 
 
-Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。
+Applet业务下放按[managed-governance §4](../authz/managed-governance.md#4-applet-授权来源与持续上界)执行。
 
 Realm genesis的必填initial_encryption_backup_strategy参与原Event ID preimage；当前策略及未来登记／未知拒绝规则见[可恢复内容 §1](../crypto-media/content-history.md#1-两个独立选择器)。profile／policy bundle／generic patch不得写该create-locked字段。
