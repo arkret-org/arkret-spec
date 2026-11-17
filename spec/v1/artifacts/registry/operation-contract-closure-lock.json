@@ -480,11 +480,11 @@
     },
     {
       "operation_id": "ak.self.agent.sidecar.read.list.v1",
-      "sha256": "sha256:bf3d30457bca787977767e5531455d0e7184120761a9e8d428f808884a9a9b43"
+      "sha256": "sha256:9a06694aa01b0073998963e7c57ce85b5679fd36df55ce1a865189ab5f9639a6"
     },
     {
       "operation_id": "ak.self.agent.sidecar.resource.get.v1",
-      "sha256": "sha256:59a4aab8620514aaa0764112ac739b58dbe25d2725d98cf5033b66e9f013ac50"
+      "sha256": "sha256:640f5dec56d815d0eee3f18dd1b897829f1fdd5ece4fb4f439461389a6993e04"
     },
     {
       "operation_id": "ak.self.applet.authority.read.material.v1",

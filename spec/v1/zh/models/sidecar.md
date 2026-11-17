@@ -314,7 +314,7 @@ Sidecar archive/restore/member Event：
 `tombstoned` 不可逆。Sidecar terminal 只终止 native Sidecar scope、MLS 与 private projection，不触发或
 修改任何 Circle lifecycle。
 
-**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 是 Sidecar stream 当前 committed head 的纯函数，
+**没有 actor-authored erase，也没有重建（normative）**：Sidecar state 按本节的已接纳上游 lifecycle 来源派生，
 v1 **没有**注册任何 Sidecar erase / tombstone Event 或 operation；tombstone 只由上表右列的上游 terminal
 派生。§1 的「每个 `(realm_id, controller_account_id)` 至多一个 non-tombstoned Sidecar」因此是**永久 reservation**：
 一旦某个 `(realm_id, controller_account_id)` 的 Sidecar 进入 `tombstoned`，同一 key **MUST NOT** 再有新的
@@ -328,9 +328,12 @@ Sidecar 没有可用的 controller authority。
 `(payload.sidecar_id, canonical_json(payload.source_context_ref))`，value 是以 canonical Event dot 标记的
 完整 encrypted control carrier 集合。`exchange_id` 只存在于
 `ak.schema.agent_sidecar_exchange_control.v1` 认证密文明文中，MUST NOT 为了寻址复制到外层 payload 或
-result selector。获授权参与者解密集合元素后，按 plaintext `exchange_id`、`basis_event_ids` 与 `action`
+result selector。Station 按既有外层准入检查 controller、scope、source context、producer proof 与加密 carrier 的封闭形状，
+通过后只把原 encrypted carrier 作为 canonical Event dot 加入该 current 集合；它不解密，也不以私密明文状态作为 keyed-set add 的前置。
+获授权参与者解密集合元素后，按 plaintext `exchange_id`、`basis_event_ids` 与 `action`
 折叠 coordinator reassignment 和 terminal state；错误 controller／scope／context、无法认证的密文、
-未覆盖 basis 或非法状态迁移都必须在 keyed-set add 之前拒绝，且不得留下部分写入。
+未覆盖 basis 或非法状态迁移都必须在应用客户端的已验证 exchange 投影之前拒绝，且不得留下部分投影。
+该读侧折叠不回写 current 集合，也不回滚已经接纳的 Event／RealmCommit。
 
 提供 Sidecar 上下文交互的客户端 MUST 在原 source Strand 的讨论中，向当前获授权的 controller
 合并展示普通 Strand 消息及其 Sidecar 的已验证 request 与显式 user-facing response，并明确标记
@@ -456,7 +459,7 @@ context mappings。
 1. `retype(ak.sidecar.create.event_id) == sidecar.id`。
 2. schema 与 registry 中不存在 `backing_circle_id` 或 `ak.sidecar.access.replace`。
 3. Sidecar create 不产生 Circle/member/Strand/Relation write。
-4. `desired_agent_ids` 只能从 Sidecar stream 当前 committed head 派生；任何 operation 均不可写入或覆盖它。
+4. `desired_agent_ids` 只能按 §5 从 exact Sidecar／controller、H 的 native current 与合法 G membership 来源派生；它不是 Sidecar stream head 单独决定的存储 roster，任何 operation 均不可写入或覆盖它。
 5. native `scope_ref.kind="sidecar"` 进入 digest、delivery/query 与 RealmCommit 验证。加密时从已签名外层
    Event 的 exact `scope_ref` 重构 closed pre-encryption header；最小 wire envelope 不复制
    scope、`sidecar_id`、AAD 或其 digest。接收方必须按

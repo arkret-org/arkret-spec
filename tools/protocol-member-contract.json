@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:4b5aa5cef2bcd63189162b0b75462ab62a2e96199ff59787dd064089371e3b9e",
+  "contract_digest": "sha256:7183ee23b70557952a8901897a331d3d7a8e870575a1b71e340fed293132e508",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -9898,7 +9898,7 @@
               },
               "desired_agent_ids": {
                 "type": "array",
-                "description": "Read-only projection derived at the Sidecar stream's committed head: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not caller-authored or reducer-stored and cannot be edited through Sidecar operations.",
+                "description": "Read-only projection derived for the exact Sidecar and controller from the owning Station native current and lawful governing Station membership sources: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not determined by the Sidecar stream head alone, is not caller-authored or reducer-stored, and cannot be edited through Sidecar operations.",
                 "items": {
                   "$ref": "#/$defs/did_core_id"
                 },
@@ -119289,7 +119289,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:cc7e9143d879eafe7cec959ce056230899484fab352678c89b5b00b476cb8222"
+      "digest": "sha256:95511e7c86e51910bb5240396e20f014c913c5bb0f8f90cb9c9563e1ace3b6f7"
     },
     {
       "file": "derived-wire-field-removal-lock.json",

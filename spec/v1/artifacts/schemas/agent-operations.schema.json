@@ -1819,7 +1819,7 @@
         },
         "desired_agent_ids": {
           "type": "array",
-          "description": "Read-only projection derived at the Sidecar stream's committed head: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not caller-authored or reducer-stored and cannot be edited through Sidecar operations.",
+          "description": "Read-only projection derived for the exact Sidecar and controller from the owning Station native current and lawful governing Station membership sources: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not determined by the Sidecar stream head alone, is not caller-authored or reducer-stored, and cannot be edited through Sidecar operations.",
           "items": {
             "$ref": "#/$defs/did_core_id"
           },

@@ -1156,7 +1156,7 @@
             }
           },
           "value_schema_ref": "schemas/current-state.schema.json#/$defs/agent_sidecar_exchange_controls_value",
-          "notes": "models/sidecar.md section 8. The subject is the native Sidecar plus source context; the value is a dot-tagged set of exact encrypted control carriers. exchange_id remains only inside authenticated ciphertext and MUST NOT be copied into the selector. Authorized participants decrypt and fold by plaintext exchange_id, basis_event_ids and action; malformed ciphertext, wrong controller/scope/context, uncovered basis or an invalid transition fails before the add."
+          "notes": "models/sidecar.md section 8. The subject is the native Sidecar plus source context; the value is a dot-tagged set of exact encrypted control carriers. exchange_id remains only inside authenticated ciphertext and MUST NOT be copied into the selector. Station admission validates the outer controller, scope, source context, producer proof and closed encrypted carrier shape before adding the original payload. Authorized participants authenticate and decrypt the assertions, then validate exchange_id, basis_event_ids, action and legal transitions before applying their client-side exchange projection. This read-side fold does not rewrite the current assertion set or roll back accepted Events or RealmCommits."
         }
       ]
     },

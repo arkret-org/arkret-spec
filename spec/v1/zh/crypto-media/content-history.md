@@ -449,8 +449,9 @@ recipient先提交原签durable `ak.mls.history_request`，payload为closed hist
 不得因此拒绝获授权后加入者的旧历史。
 
 原Event signer必须与recipient完整Actor／endpoint及其原生授权实例匹配；
-`recipient.signature_key_base64url`绑定其已验证MLS leaf。Event设备签名key可以与leaf signer不同，
-但须由独立原生creator／Add／recovery绑定证明为同一exact端点，不能直接比等两把key，
+`recipient.signature_key_base64url`绑定其已验证MLS leaf。Event设备签名key与leaf signer的关系按原生来源分支验证：
+普通Device Add须满足device-lifecycle §9.2.1的KeyPackage／LeafNode与已授权device signing key绑定，不能以本段放宽；
+仅在既有creator等分支明确允许独立leaf key时，才可由该分支的原生绑定证明为同一exact端点，不能一律直接比等两把key，
 也不能接受调用者自报的leaf归属。新的request及grant交付均核exact当前端点；
 端点授权或leaf绑定失效时须创建新的request。§8的current-device历史根领取不依赖先发history_request，
 因此全设备丢失时不会因尚未恢复MLS leaf而阻塞24词归档恢复。
@@ -1085,7 +1086,7 @@ Human的已接纳RecoveryTransaction terminal unit在同一PCR权威事务内保
 replacement唯一取原生授权的完整Actor、Device或runtime endpoint、authorization Event及Ed25519公钥：
 Human取原device authorize的device_public_key_did，Agent取原key authorize的public_key与verification_method，
 不能把controller签署Agent authorize时的Human producer key当成runtime key。
-这与§9.1原recovery producer fact公钥相等、§10检查点同key的合同一致；普通非恢复MLS leaf仍可使用独立key。
+这与§9.1原recovery producer fact公钥相等、§10检查点同key的合同一致；非恢复MLS leaf是否可用独立key仍按§4的各自原生creator／Add来源分支，不泛化为普通Device Add的例外。
 原生授权PoP与RFC External Commit的fresh path／signature PoP分别验证。
 接纳replacement之前还须核完整旧日常授权及MLS签名pub排除集，包括已发布／已claim而尚未进入当前tree的
 真实KeyPackage、Genesis／Add／Update和已移除端的原生来源；仅比较旧Device公钥或当前leaf不充分。

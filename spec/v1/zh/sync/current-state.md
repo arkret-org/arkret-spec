@@ -355,12 +355,12 @@ selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 - `entries[]`：closed typed results。
 
 同一 selector 在同一 revision 下必须具有完全相同的 canonical bytes。发现相同 revision、不同值时，客户端 MUST
-拒绝整批响应并重新获取当前 authority bundle；不得任择覆盖。较新 revision 原子替换旧值；来自旧
+拒绝整批响应，并经已绑定的自己 Station 重新取得按 [server-trusted-results §2.1](./server-trusted-results.md#21-普通客户端消费既有治理结果normative) 验证的当前结果；不得任择覆盖。消费 Station 验证当前 authority bundle，普通客户端不另行执行方法历史 verifier。较新 revision 原子替换旧值；来自旧
 `governance_generation` 的响应不得覆盖新任期结果。
 
 此一致性比较的前提是两条结果均符合现行 closed typed value schema。本地持久缓存若无法通过该 schema，
-客户端 MUST 将该行及依赖它的 authoring 读取视为不可用，并重新获取、验证当前 authority bundle 和完整签名
-Realm state snapshot；仅在该验证成功后，MAY 在原子持久事务中以快照的原始 typed row 重建无效缓存。
+客户端 MUST 将该行及依赖它的 authoring 读取视为不可用，并经已绑定的自己 Station 重新取得完整签名
+Realm state snapshot；当前 authority bundle 与治理签名由消费 Station 完整验证，普通客户端按同一结果消费合同核对请求、账号、原件与坐标绑定。仅在相应验证成功后，MAY 在原子持久事务中以快照的原始 typed row 重建无效缓存。
 客户端 MUST NOT 为缓存补字段、归一化已签字节或从 UI／Event 猜测值。恢复仍 MUST 检查相同 source stream、
 同 position 的 Commit identity、revision／stream head 单调和 governance generation；它不豁免两个有效结果的
 同 revision 异字节拒绝规则。增量或未验证响应 MUST NOT 触发此恢复，身份密钥、MLS 私有状态与待发送队列
@@ -403,8 +403,8 @@ query/selector 范围、C 时获准 stream heads、floors 与同 cut typed rows�
 失权原件整份拒绝，不改写原签 Snapshot；权限增加不偷加 C 的 rows。cursor 使用现有不可变句柄、TTL、
 原窗口保留及恢复规则，不延长租期，不新增 Snapshot 分页/chunk 或全局 position。
 
-Realm join bootstrap 默认从当前治理 Station 获取 authority bundle、获准 stream heads、committed Events 与 current
-results。邀请人服务器只转交邀请和当前 governance Station 定位证据；它不是 bootstrap 真相源，除非它恰好就是经验证的
+Realm join bootstrap 的消费 Account Station 从当前治理 Station 获取并验证 authority bundle、获准 stream heads、committed Events 与 current
+results；普通客户端经已绑定的自己 Station 按上述结果消费合同接收原件，不另行重放治理／方法历史。邀请人服务器只转交邀请和当前 governance Station 定位证据；它不是 bootstrap 真相源，除非它恰好就是经验证的
 current governance Station。
 
 ## 5. 预算与失败

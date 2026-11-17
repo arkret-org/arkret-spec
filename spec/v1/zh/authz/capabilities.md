@@ -489,14 +489,14 @@ Arkret v1 支持的完整 shorthand inventory、typed family/subkind 与承载�
 
 ### 6.1 Effective Validity Window
 
-Grant 的有效期只由 `constraints[]` 中的 temporal constraint 承载。全局有效期必须写成一条不含 `applies_to_actions` 与 `recurrence`、`effect=allow` 的独立 temporal constraint；不得把它结构合并进带局部 action 或 recurrence 语义的 constraint。授权解析 MUST 从 constraint 集合计算单一 effective window：
+Grant 的有效期只由 `constraints[]` 中的 temporal constraint 承载。全局有效期必须写成一条不含 `applies_to_actions` 与 `recurrence`、`effect=allow` 的独立 temporal constraint；不得把它结构合并进带局部 action 或 recurrence 语义的 constraint。以下 grant 整体存活的单一 effective window 只从这类全局 allow temporal constraint 计算；带局部 action、recurrence 或其它 effect 的 constraint 不进入本式：
 
 ```text
-effective_not_before = max(temporal.not_before[]?)
-effective_expires_at = min(temporal.expires_at[]?)
+effective_not_before = max(global_allow_temporal.not_before[]?)
+effective_expires_at = min(global_allow_temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 grant 有效期判断都 MUST 使用 effective window。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。grant 整体存活的授权日志、缓存 key 与有效期判断都 MUST 使用这个全局 effective window。逐 action 的 issuer-authority 来源窗口继续按 §10.1，动作时 temporal constraint 先按 [`constraint-schema.md` §15.0／§16.1](./constraint-schema.md) 判定适用性，再求其 predicate；不适用的 action 对 allow 中立、对拒绝类不命中。局部 action 窗口与 recurrence 不能被跨动作 min/max 合成整个 grant 的寿命，deny／quarantine／require_review 的时间谓词也不变为 grant 的 allow 有效期。
 
 | 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
