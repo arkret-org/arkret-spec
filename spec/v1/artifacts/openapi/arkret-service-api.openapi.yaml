@@ -666,8 +666,6 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_page
     KeysBackupsReplaceResponseBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body
-    KeysBackupsUnlockChallenge:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge
     KeysBackupsUnlockRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
     KeysBackupsUnlockResponseBody:

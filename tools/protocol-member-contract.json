@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:86731f5919a83852a8421daebe44234bf58d08382d1713bbdd11935c33b0b422",
+  "contract_digest": "sha256:1d959b7ca8ab38658b28b64fd9aaf4eae0bc2dbc7079c332a1b6b477af86b923",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -120108,9 +120108,6 @@
         },
         "KeysBackupsReplaceResponseBody": {
           "$ref": "../schemas/keys-operations.schema.json#/$defs/keys_backups_replace_response_body"
-        },
-        "KeysBackupsUnlockChallenge": {
-          "$ref": "../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge"
         },
         "KeysBackupsUnlockRequestBody": {
           "$ref": "../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body"
