@@ -188,7 +188,7 @@ def check_agent_runtime_contract(lint: Lint) -> None:
     runtime = rules['agent_participation_runtime_contract']
     if runtime['get_replace_role'] != 'controller' or runtime['runtime_selection_source'] != 'authenticated_session_overlay' or runtime['missing_current_selection'] != 'deny':
         lint.fail(rules_path, 'runtime selection role and current failure must remain explicit')
-    for key in ('overlay_is_action_time_current', 'internal_channel_crosses_station_boundary', 'remote_selection_carrier', 'authority_evidence_grants_participation'):
+    for key in ('owner_direct_submission_requires_runtime_overlay', 'revocation_requires_notification', 'known_revocation_allows_unknown_write_replay', 'overlay_is_action_time_current', 'internal_channel_crosses_station_boundary', 'remote_selection_carrier', 'authority_evidence_grants_participation'):
         if runtime[key] is not False:
             lint.fail(rules_path, f'participation must not enable {key}')
     fixture_path = ARTIFACTS / 'fixtures/agent-participation-fixture.json'

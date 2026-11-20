@@ -749,8 +749,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#4-主人撤回恢复与重试",
-      "section_digest": "sha256:dd98fa8b838aef348658eefab8b0b8dda393de05238016bb4c8be8e51894f678",
-      "requirement": "The original issuer may revoke its owned-Agent grant with exact CAS without a revoke action or online runtime; ineffective and terminal exact reads remain available, old revoked records never restore and fresh explicitly confirmed grants may be issued under current gates.",
+      "section_digest": "sha256:ca4f86559336584fe423f2f4a1c3f937fbe2f68920edaa6ea61409e5b26b8ce0",
+      "requirement": "The original issuer may revoke its owned-Agent grant with exact CAS without a revoke action or online runtime; ineffective and terminal exact reads remain available, old revoked records never restore and fresh explicitly confirmed grants may be issued under current gates. Withdrawal needs no runtime notification. After confirmed withdrawal, affected unattempted work stops and uncertain submissions use read-only reconciliation.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"

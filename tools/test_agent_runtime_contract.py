@@ -48,6 +48,14 @@ class AgentRuntimeContractTest(unittest.TestCase):
         for source in ('session_overlay', 'session_active', 'portable_authority_state'):
             self.assertFalse(contract.participation_allows(dict(valid, selection_source=source)))
 
+    def test_revocation_does_not_depend_on_runtime_delivery(self):
+        for field in ('owner_direct_submission_requires_runtime_overlay', 'revocation_requires_notification', 'known_revocation_allows_unknown_write_replay'):
+            with self.subTest(field=field):
+                def mutate(name, document, field=field):
+                    if name == 'contract-registry.json':
+                        document['did_evidence_boundary_registry']['agent_participation_runtime_contract'][field] = True
+                self.check_mutation(mutate)
+
     def test_reply_contract_mutations_are_rejected(self):
         fixture = contract.load_json(contract.Lint(), contract.ARTIFACTS / 'registry/contract-registry.json')
         product = fixture['did_evidence_boundary_registry']['agent_participation_runtime_contract']['product_configuration']

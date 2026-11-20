@@ -130,6 +130,8 @@ current 屏障 MUST 保持到真实模型输入交付，时钟上界须紧邻物
 advisory 或 TTL cache 不能替代。异常、取消、重启或响应丢失不能证明未交付时，原输入保持 unknown，
 不得自动重新调用模型；新显式业务请求是新候选，旧私有输入不得随 public 恢复而重放。
 
+即使运行时漏收撤权通知，若撤权在模型输入实际交付前生效，消费者 MUST 阻止交付，模型不得收到输入。若输入已交付而撤权在最终消息接纳前生效，治理 Station MUST 拒绝新消息，不能据模型调用成功报告回复已发送。
+
 生成完整回复后，以原 SDK/Agent signer 和实际 MLS scope 自著原 MessageCreate，随后通过原提交
 容器及全部当前接纳门。最终 EventId 由完整 canonical Event 派生，不得预先伪造 placeholder Event。
 私密 backing MUST 绑定原 input digest 与 exact final signed Event/canonical digest；最终提交 unknown

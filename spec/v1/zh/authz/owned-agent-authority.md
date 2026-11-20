@@ -90,6 +90,8 @@ Controller 通过既有带外 UI，明确确认 exact Agent／scope／actions／
 
 exact signed Event 重试先确认已有 durable admission outcome：已 accepted 的历史结果返回原 outcome，不能因当前撤权改判或再次扣额；未 accepted 的候选在新接纳位置重查 current。未知结果保留原 submission 查明，明确拒绝的旧密文不得因权限恢复重放；只能经新的明确业务意图产生新提交。
 
+撤权从权威变更生效起约束后续实际动作，无需等待通知、运行时在线或队列清空。运行时确认权限收紧后，MUST 停止该 Agent、动作及资源范围内尚未执行的工作，保留其它范围的工作。首次物理交付前可以取消；已经交给模型或可能已提交给 Station 的请求必须保留原标识、原件及结果未知状态。已知撤权后，运行时不得为解决未知状态再次发起可能产生新业务效果的写入；可经现有有权的读取核对原 Event 及其 Commit。读不到或无权读取时保持未知。后来恢复授权不得自动重放已因撤权停止的旧工作。撤权前已接纳的消息仍按已有历史与交付规则处理。
+
 ## 5. Current 依赖、远端与审计
 
 治理 Station **MUST** 在原子 admission transaction 锁定／校验 controller 与 Agent membership、ownership/lifecycle、grant/root/policy/claim、target revision 及父权限来源；依赖按 canonical key 排序，变更竞争整条候选零效果失败或保留 dependency pending。owner transfer 不改写旧普通 root grant，但 Agent 新操作重查原 controller 当前上界，新 Realm owner 不成为 Agent controller。授权失效不等待逐 Agent revoke、leave 或 cleanup，服务不能合成签名 Event。

@@ -783,7 +783,8 @@ MUST 支持:
 - `ak.self.agent.participation.resource.replace.v1` 与 `ak.self.agent.participation.resource.get.v1`。selection 是 controller
   的私有偏好，唯一 authority 是 controller 所属 Account Authority；它不是 Realm 事实，也不经 peer relay。
   两个 operation 都只允许 controller 访问，并必须使用 bearer+DPoP。Agent runtime 不直接读写该私有状态；
-  Account Authority 在签发 Agent session 时按需附带当前 selection/version 与同值的下一次 replace echo
+  Account Authority 可在已认证的部署内签发元数据中附带 selection/version 与对应的下一次 replace echo。公开签发响应中的凭据对普通运行时保持不透明。
+- 主人与 Agent 在已验证的 Direct、原 Chat 中回复时，运行时 MAY 使用已有内容会话和该参与者身份提交原签名消息。提交仍须满足签名、动作、目标资源、参与者绑定和 MLS 合同。缺少可选的本地观察不会单独阻止提交，也不证明准入。目标无法取得权威 current 时 MUST 拒绝。运行时有权使用既有 `ak.self.authz.read.check.v1` 时可按其既有能力查询；查询结果只作提示，不能读取主人的私有设置或替代实际动作的当前判定。
 - session overlay MUST 来自 Account Authority 已认证的权威 selection/version，不能来自 runtime 自报；绑定本次完整 Agent/controller AccountId、session 与 target_scope。runtime 保存/refresh 时 MUST 拒绝错绑定、版本回退和较旧会话的迟到响应。replace echo 不授予 runtime 写权限。
 - 同 Station AA/AS/target 通过 [service-http-binding §2.2.3](../sync/service-http-binding.md#223-deployment-internal-channel) 的已认证内部 owner-current 通道取材，在动作准入时与当前 deployment/Realm/Circle/Strand ceiling、interaction mode 和其它独立权限求交；签发时 overlay、token 未到期或旧 allow 缓存不能覆盖已生效的 selection 收紧。内部 current 不能确定时 MUST fail closed，不新增公开 wire 或 receipt。
 - own Station 的 notification/inbox/push/subscribe 在本地派生时检查 current selection 和所需有效治理事实；投递成功不授予外站自治写权限。跨独立治理 Station 的 target MUST 同时取得动作时可验证的 controller current selection 与目标 scope 完整治理 cut；内部 owner-current 通道不得跨该边界，closed introspection 的 active/status 也不能替代 selection current。v1 不登记跨站 selection carrier/取回 operation；缺 current 输入时 MUST 拒绝该自治动作且零写入，使用适用入口已登记的 `failed_precondition` / `agent_participation_ceiling_unresolved`。不得以 session overlay、短 TTL、Agent portable authority evidence 或 own Station 投递结果放行，不能声称支持跨站自治成功。selection 不得塞入 PCR 闭包、peer replica 或 unknown introspection 字段。

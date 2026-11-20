@@ -23338,6 +23338,9 @@
     "agent_participation_runtime_contract": {
       "get_replace_role": "controller",
       "runtime_selection_source": "authenticated_session_overlay",
+      "owner_direct_submission_requires_runtime_overlay": false,
+      "revocation_requires_notification": false,
+      "known_revocation_allows_unknown_write_replay": false,
       "target_selection_source": "authenticated_owner_current",
       "overlay_is_action_time_current": false,
       "internal_channel_crosses_station_boundary": false,
