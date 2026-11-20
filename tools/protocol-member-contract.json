@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:90986634728700a71093ab89866e4ea45a1940246ad5fd5e7e3f81b9a0c7188d",
+  "contract_digest": "sha256:d52dd5940b716c2a8fb012ead50fc1e460000751f875b9d80ebb1c76626ab369",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -119349,7 +119349,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:b6585a400e6d1392a61c9003311b6feeeef8b34294323a9b95957269faab5ff7"
+      "digest": "sha256:2b47bce95a11a0369681842e8389320c7652447b96d1b80e2eb5fd0a3191c4cc"
     },
     {
       "file": "operation-clause-registry.json",
@@ -123921,7 +123921,7 @@
             }
           ],
           "summary": "Streaming push of account-aggregate deltas (NDJSON frames).",
-          "description": "Bounded account long polling. Initial sync returns the first Realm summary page and segmented account baseline. Realm details require an explicit bounded filter. The notifications channel carries one closed union - Agent runtime approval rows and ordinary source-Event current rows - on a single position, baseline channel and budget; there is no separate notification list operation. See client-sync sections 2.3, 3.1 and 13.",
+          "description": "Bounded account long polling. Initial sync returns the first Realm summary page and segmented account baseline. An authorized Agent holder can discover its own currently joined Realms through realm_list and realm_list_changes without a Realm selector. Enforce the holder and disclosure rules of client-sync section 2.3 on each page and delta. Realm details require an explicit bounded filter. The notifications channel carries one closed union - Agent runtime approval rows and ordinary source-Event current rows - on a single position, baseline channel and budget; there is no separate notification list operation. See client-sync sections 2.3, 3.1 and 13.",
           "parameters": [
             {
               "name": "Arkret-Operation",

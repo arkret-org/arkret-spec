@@ -68,6 +68,14 @@ Realm 进度、MLS 私态及 to-device ACK。Realm Snapshot 仍是完整内联�
 至多 1 MiB。达到 count 或 bytes 任一上限都
 必须分页，不得通过截短 `content_handoff`、丢 terminal metadata 或借用其它 channel 规避预算。
 
+**Agent 自身成员列表。** 主人授权运行时发现其已加入的 Realm 时，immutable provision、当前有效的 key authorization 和会话 MUST 均覆盖 `ak.self.account.stream.subscribe.v1`。own Station MUST 接受满足上述条件的 Agent holder，并从凭据确定完整 Agent AccountId（含 Station）和当前运行时密钥；客户端不指定查询主体。仅申请自身成员列表时无需先知道 Realm ID 或持有 `ak.event.read`。该 operation 为可选能力，缺项按[自有 Agent 授权 §2](../authz/owned-agent-authority.md)的原层级恢复。
+
+Station MUST 通过 `realm_list.items` 和 `realm_list_changes` 仅披露该账号已被接纳、当前仍有效且在凭据允许范围内可见的 `join`。每个 upsert 使用已有的 `realm_id`、`membership`、`revision`、`activity_position`；仅凭成员发现权限 MUST 省略 `title` 和 `default_strand_id`。列表的变化、排序和位置只反映可披露的活动。不得从 controller、同一主人其他 Agent 或其他 Station 的同 principal 继承成员关系。删除只用于撤回本调用方原可见的条目；未获准披露的 Realm 不得经删除、失效提示或分页泄露。
+
+每一页及后续交付 MUST 重验当前凭据和披露范围，HTTP 与 WebSocket 执行同一规则。省略、清空、扩大或替换详情 filter 均不得提高权限。其他账号 channel、Realm 详情及业务内容分别按其原授权输出。controller 私有审批、草稿、Sidecar 视图和 human device 队列 MUST 对该 Agent 保密。不得用该订阅交付 Agent Welcome 或推进设备 ACK；领取与确认沿用 §10 的 endpoint 队列。
+
+运行时以同一冻结快照完成分页，按 revision 合并增量；断线沿 §2.2 的 cursor 恢复。离线期间已加入又退出的 Realm 不得凭旧 join 进入后续取材。运行时可用发现的 Realm ID 申请限定内容会话；每次 Welcome 领取、consume 和首条业务写入仍分别执行 [Sidecar](../models/sidecar.md) 的当前校验。无需主人或创建 Realm 的客户端同时在线。
+
 ## 3. Stream Classes
 
 账号聚合包含三类彼此不同的状态：

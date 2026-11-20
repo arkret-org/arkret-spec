@@ -1,5 +1,5 @@
 """Guard the independent portable authority and participation contracts."""
-from .core import ARTIFACTS, Lint, load_json
+from .core import ARTIFACTS, Lint, jsonschema_errors, load_json
 
 
 def participation_allows(case: dict) -> bool:
@@ -144,7 +144,35 @@ def check_reply_configuration_contract(lint: Lint, runtime: dict, fixture: dict,
                 lint.fail(path, f"reply configuration {table}: {case['name']} expected {case.get('expected')}, got {actual}")
 
 
+def check_membership_discovery(lint: Lint) -> None:
+    path = ARTIFACTS / 'fixtures/client-sync-fixture.json'
+    fixture = load_json(lint, path)
+    discovery = fixture.get('agent_membership_discovery', {})
+    if (discovery.get('operation_id') != fixture['subscription']['operation_id']
+            or discovery.get('filter') != {'realm_ids': []}):
+        lint.fail(path, 'Membership discovery must use account sync with no known Realm')
+    coverage = set()
+    for case in discovery.get('cases', []):
+        changes = case.get('realm_list_changes', {})
+        for error in jsonschema_errors(lint, path, 'schemas/account-subscribe-frame.schema.json#/$defs/realm_list_changes', changes):
+            lint.fail(path, f"{case['name']}: {error}")
+        owner = case['member_account_id'] == discovery['holder_account_id']
+        joined = case['membership_at_cut'] == case['current_membership'] == 'join'
+        disclosed = case['previously_disclosed']
+        coverage.add((owner, joined, disclosed))
+        upserts = changes.get('upserts', [])
+        removals = changes.get('removals', [])
+        if len(upserts) != int(owner and joined) or len(removals) != int(owner and disclosed and not joined):
+            lint.fail(path, f"{case['name']}: incorrect disclosure of a membership change")
+        for row in upserts:
+            if set(row) != {'realm_id', 'membership', 'revision', 'activity_position'} or row.get('membership') != 'join':
+                lint.fail(path, f"{case['name']}: membership discovery disclosed extra Realm data")
+    if not {(True, True, False), (True, False, False), (True, False, True), (False, True, False)} <= coverage:
+        lint.fail(path, 'Missing offline join, withdrawal, or cross-account membership case')
+
+
 def check_agent_runtime_contract(lint: Lint) -> None:
+    check_membership_discovery(lint)
     path = ARTIFACTS / 'schemas/agent-authority-evidence.schema.json'
     schema = load_json(lint, path)
     defs = schema['$defs']

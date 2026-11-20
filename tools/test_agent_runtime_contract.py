@@ -25,6 +25,19 @@ class AgentRuntimeContractTest(unittest.TestCase):
         contract.check_agent_runtime_contract(lint)
         self.assertEqual(lint.errors, [])
 
+    def test_membership_discovery_withholds_private_fields_and_unseen_removals(self):
+        def mutate(name, fixture):
+            if name == 'client-sync-fixture.json':
+                cases = fixture['agent_membership_discovery']['cases']
+                cases[0]['realm_list_changes']['upserts'][0]['title'] = 'private title'
+        self.check_mutation(mutate)
+
+        def disclose_unseen(name, fixture):
+            if name == 'client-sync-fixture.json':
+                cases = fixture['agent_membership_discovery']['cases']
+                cases[1]['realm_list_changes']['removals'] = cases[2]['realm_list_changes']['removals']
+        self.check_mutation(disclose_unseen)
+
     def test_missing_commit_bundle_or_dependency_is_rejected(self):
         original = contract.load_json
         for field in ('commits', 'authority_bundle', 'signer_dependencies'):

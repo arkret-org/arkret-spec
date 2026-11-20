@@ -22,6 +22,67 @@
     "global_position_exists": false,
     "realm_position_exists": false
   },
+  "agent_membership_discovery": {
+    "operation_id": "ak.self.account.stream.subscribe.v1",
+    "filter": { "realm_ids": [] },
+    "holder_account_id": { "principal_id": "ak:did_core:webvh:z6mkagent", "station_id": "ak:did_core:webvh:z6mkhome" },
+    "cases": [
+      {
+        "name": "joined_before_reconnect",
+        "member_account_id": { "principal_id": "ak:did_core:webvh:z6mkagent", "station_id": "ak:did_core:webvh:z6mkhome" },
+        "membership_at_cut": "join",
+        "current_membership": "join",
+        "previously_disclosed": false,
+        "realm_list_changes": {
+          "upserts": [{
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "revision": 3,
+            "activity_position": 4,
+            "membership": "join"
+          }],
+          "removals": []
+        }
+      },
+      {
+        "name": "left_before_first_disclosure",
+        "member_account_id": { "principal_id": "ak:did_core:webvh:z6mkagent", "station_id": "ak:did_core:webvh:z6mkhome" },
+        "membership_at_cut": "join",
+        "current_membership": "leave",
+        "previously_disclosed": false,
+        "realm_list_changes": { "upserts": [], "removals": [] }
+      },
+      {
+        "name": "previously_visible_membership_withdrawn",
+        "member_account_id": { "principal_id": "ak:did_core:webvh:z6mkagent", "station_id": "ak:did_core:webvh:z6mkhome" },
+        "membership_at_cut": "join",
+        "current_membership": "leave",
+        "previously_disclosed": true,
+        "realm_list_changes": {
+          "upserts": [],
+          "removals": [{
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "revision": 5
+          }]
+        }
+      },
+      {
+        "name": "membership_belongs_to_another_account",
+        "member_account_id": { "principal_id": "ak:did_core:webvh:z6mkcontroller", "station_id": "ak:did_core:webvh:z6mkhome" },
+        "membership_at_cut": "join",
+        "current_membership": "join",
+        "previously_disclosed": false,
+        "realm_list_changes": { "upserts": [], "removals": [] }
+      },
+      {
+        "name": "same_principal_at_another_station",
+        "member_account_id": { "principal_id": "ak:did_core:webvh:z6mkagent", "station_id": "ak:did_core:webvh:z6mkother" },
+        "membership_at_cut": "join",
+        "current_membership": "join",
+        "previously_disclosed": false,
+        "realm_list_changes": { "upserts": [], "removals": [] }
+      }
+    ]
+  },
   "stream_tails": [
     {
       "name": "realm_stream_tail_is_continuous",

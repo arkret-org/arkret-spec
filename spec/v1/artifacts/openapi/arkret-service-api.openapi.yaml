@@ -3469,10 +3469,12 @@ paths:
         DpopProof: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
       description: Bounded account long polling. Initial sync returns the first Realm summary page and segmented
-        account baseline. Realm details require an explicit bounded filter. The notifications channel carries one
-        closed union - Agent runtime approval rows and ordinary source-Event current rows - on a single position,
-        baseline channel and budget; there is no separate notification list operation. See client-sync sections
-        2.3, 3.1 and 13.
+        account baseline. An authorized Agent holder can discover its own currently joined Realms through realm_list
+        and realm_list_changes without a Realm selector. Enforce the holder and disclosure rules of client-sync
+        section 2.3 on each page and delta. Realm details require an explicit bounded filter. The notifications
+        channel carries one closed union - Agent runtime approval rows and ordinary source-Event current rows -
+        on a single position, baseline channel and budget; there is no separate notification list operation. See
+        client-sync sections 2.3, 3.1 and 13.
       parameters:
       - name: Arkret-Operation
         in: header
