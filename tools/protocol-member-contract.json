@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:d52dd5940b716c2a8fb012ead50fc1e460000751f875b9d80ebb1c76626ab369",
+  "contract_digest": "sha256:7c8b5247422a185bc0fcf2ad148923d37952c35e2c64286e56d452c645ab2831",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -19700,57 +19700,6 @@
       }
     },
     {
-      "file": "applet.schema.json",
-      "contract": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://arkret.org/v1/schemas/applet.schema.json",
-        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
-        "type": "object",
-        "required": [
-          "schema",
-          "applet_id"
-        ],
-        "properties": {
-          "schema": {
-            "const": "ak.schema.applet.v1",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "applet.schema.json#/properties/schema",
-              "owner": "applet.schema.json#/properties/schema",
-              "values": [
-                "ak.schema.applet.v1"
-              ]
-            }
-          },
-          "applet_id": {
-            "description": "Stable canonical Applet identifier. Service identity is carried separately in service_id.",
-            "$ref": "./common-ids.schema.json#/$defs/applet_id"
-          },
-          "service_id": {
-            "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-            "description": "Stable did_core_id of the service that hosts the applet runtime; current resolution is supplied by its authenticated service definition."
-          },
-          "error": {
-            "type": "object",
-            "description": "Bridge-error context for ak.applet.bridge_error events.",
-            "properties": {
-              "code": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
-            },
-            "additionalProperties": true
-          }
-        },
-        "patternProperties": {
-          "^x_[a-z][a-z0-9_]{0,63}$": true
-        },
-        "additionalProperties": false
-      }
-    },
-    {
       "file": "approval-signature.schema.json",
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -23916,6 +23865,54 @@
                 }
               }
             ]
+          },
+          "owned_agent_stream_scan_request_body": {
+            "type": "object",
+            "required": [
+              "request_id",
+              "member_account_id",
+              "membership_commit_id",
+              "content_intent",
+              "session_grant_id",
+              "scan"
+            ],
+            "properties": {
+              "request_id": {
+                "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+              },
+              "member_account_id": {
+                "$ref": "./common-ids.schema.json#/$defs/account_id"
+              },
+              "membership_commit_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+              },
+              "content_intent": {
+                "$ref": "./realm-join-intake.schema.json#/$defs/owned_agent_content_intent",
+                "not": {
+                  "required": [
+                    "backup_root_context"
+                  ]
+                }
+              },
+              "session_grant_id": {
+                "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+              },
+              "scan": {
+                "$ref": "#/$defs/stream_scan_request_body"
+              }
+            },
+            "additionalProperties": false
+          },
+          "peer_stream_scan_request_body": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/stream_scan_request_body"
+              },
+              {
+                "$ref": "#/$defs/owned_agent_stream_scan_request_body"
+              }
+            ],
+            "x-arkret-name-role": "request_body"
           }
         }
       }
@@ -60471,7 +60468,7 @@
           },
           "applet_registration_payload": {
             "type": "object",
-            "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot service). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / Realm-policy-authorized administrator actor and checked by the Station authorization capability. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
+            "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot service). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1. An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / Realm-policy-authorized administrator actor and checked by the Station authorization capability. The formal Event is signed by that installing administrator and admitted by the target Station; payload.proof is the exact controller-signed package proof and is not an Event proof.",
             "required": [
               "applet_id",
               "service_id",
@@ -76368,7 +76365,7 @@
           "allowed_handle_domains": {
             "type": "array",
             "items": {
-              "$ref": "#/$defs/domain_name"
+              "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
             },
             "uniqueItems": true,
             "description": "Optional subject-private allowlist for canonical handle domains accepted as handle_claim evidence. Empty or omitted means no subject-level domain restriction; deployment constraints may still restrict the effective set."
@@ -76376,7 +76373,7 @@
           "denied_handle_domains": {
             "type": "array",
             "items": {
-              "$ref": "#/$defs/domain_name"
+              "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
             },
             "uniqueItems": true,
             "description": "Subject-private denylist for canonical handle domains. Matches are rejected before allowed_handle_domains is evaluated."
@@ -76439,11 +76436,6 @@
           "did_method": {
             "type": "string",
             "pattern": "^did:[a-z0-9]+$"
-          },
-          "domain_name": {
-            "type": "string",
-            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-            "description": "Canonical IDNA A-label domain. Subdomains are not implied; list each accepted domain explicitly."
           },
           "receive_behavior": {
             "type": "string",
@@ -76630,7 +76622,7 @@
               "allowed_handle_domains": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/$defs/domain_name"
+                  "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
                 },
                 "uniqueItems": true,
                 "description": "Deployment-level allowlist for handle domains accepted as handle_claim evidence. Empty means no handle domain is accepted."
@@ -79266,6 +79258,114 @@
                       "authorization_binding"
                     ]
                   }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "signature_proof": {
+                  "required": [
+                    "agent_authorization_event_ref"
+                  ]
+                },
+                "contents": {
+                  "contains": {
+                    "required": [
+                      "root_context"
+                    ],
+                    "properties": {
+                      "root_context": {
+                        "properties": {
+                          "effective_scope": {
+                            "properties": {
+                              "kind": {
+                                "const": "sidecar",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "key-backup.schema.json#/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope/properties/kind",
+                                  "owner": "key-backup.schema.json#/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope/properties/kind",
+                                  "values": [
+                                    "sidecar"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "recovery_policy_ref"
+              ],
+              "properties": {
+                "contents": {
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": {
+                    "required": [
+                      "root_context",
+                      "root_ref"
+                    ],
+                    "properties": {
+                      "item_kind": {
+                        "const": "content_epoch_root",
+                        "x-arkret-value-ownership": {
+                          "class": "owned_symbol",
+                          "authority": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/item_kind",
+                          "owner": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/item_kind",
+                          "values": [
+                            "content_epoch_root"
+                          ]
+                        }
+                      },
+                      "root_context": {
+                        "properties": {
+                          "effective_scope": {
+                            "properties": {
+                              "kind": {
+                                "const": "sidecar",
+                                "x-arkret-value-ownership": {
+                                  "class": "owned_symbol",
+                                  "authority": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope/properties/kind",
+                                  "owner": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope/properties/kind",
+                                  "values": [
+                                    "sidecar"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "encryption": {
+                  "properties": {
+                    "recipient_method": {
+                      "const": "recovery_public_key",
+                      "x-arkret-value-ownership": {
+                        "class": "owned_symbol",
+                        "authority": "key-backup.schema.json#/allOf/7/then/properties/encryption/properties/recipient_method",
+                        "owner": "key-backup.schema.json#/allOf/7/then/properties/encryption/properties/recipient_method",
+                        "values": [
+                          "recovery_public_key"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "not": {
+                "required": [
+                  "expires_at"
                 ]
               }
             }
@@ -83986,6 +84086,18 @@
                 },
                 "additionalProperties": false,
                 "description": "Only current manager Service; same standard deepObject complete realm_actor_id encoding, no Device/Account, circle_id, series_id, backup_kind or agent_id. This all-scope view closes first-PUT custody inventory, not ordinary history enumeration."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "sidecar_id"
+                ],
+                "properties": {
+                  "sidecar_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+                  }
+                },
+                "additionalProperties": false
               }
             ]
           },
@@ -85260,6 +85372,9 @@
               },
               {
                 "$ref": "#/$defs/realm_actor_archive_inventory_page"
+              },
+              {
+                "$ref": "#/$defs/sidecar_backup_prepare_response_body"
               }
             ],
             "x-arkret-name-role": "response_body",
@@ -85540,6 +85655,74 @@
             ],
             "x-arkret-name-role": "response_body",
             "description": "Closed issued-challenge response selected by authenticated request role. The Account/Agent branch preserves its original Challenge object. Native Device predecessor and current Manager archive roles use the separately closed native Challenge. Current requester manager/recovery/Device qualification remains separate from target original recipient and complete signed packet digest."
+          },
+          "sidecar_backup_prepare_response_body": {
+            "type": "object",
+            "required": [
+              "sidecar_id",
+              "root_context",
+              "series_id",
+              "series_sequence",
+              "recovery_policy_ref",
+              "backup_hpke"
+            ],
+            "properties": {
+              "sidecar_id": {
+                "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+              },
+              "root_context": {
+                "$ref": "./content-encryption.schema.json#/$defs/root_context"
+              },
+              "series_id": {
+                "$ref": "#/$defs/backup_series_id"
+              },
+              "series_sequence": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "supersedes_id": {
+                "$ref": "#/$defs/backup_id"
+              },
+              "supersedes_digest": {
+                "$ref": "#/$defs/digest"
+              },
+              "recovery_policy_ref": {
+                "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_ref"
+              },
+              "backup_hpke": {
+                "$ref": "./recovery-policy.schema.json#/$defs/recovery_key_agreement_entry"
+              }
+            },
+            "additionalProperties": false,
+            "if": {
+              "properties": {
+                "series_sequence": {
+                  "maximum": 0
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "supersedes_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "supersedes_digest"
+                    ]
+                  }
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "supersedes_id",
+                "supersedes_digest"
+              ]
+            }
           }
         }
       }
@@ -100346,17 +100529,23 @@
               "history_stream_ref": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
                 "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state. For an effective personally controlled Sidecar Agent with distinct H and G, this same request is the narrow history-floor source under zh/models/sidecar.md section 6.1. The authenticated owning H asserts its actual native, endpoint, effective and read-ceiling checks at this request cut; G independently verifies its current controller/Agent membership generations, binding, management policy, fence and original accepted MLS membership basis. G directly signs the complete stream_history original without a successful full_recovery or an H-computed floor. Pending recipients use only their exact Add/Welcome/claim handshake path and cannot request business rows through this use. No native PCR disclosure, generic Agent bootstrap authority or current-delivery lease follows."
+              },
+              "content_intent": {
+                "$ref": "#/$defs/owned_agent_content_intent"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "not": {
+              "required": [
+                "history_stream_ref",
+                "content_intent"
+              ]
+            }
           },
           "peer_bootstrap_response_body": {
             "type": "object",
             "required": [
-              "request_id",
-              "authority_bundle",
-              "snapshot",
-              "visible_stream_heads"
+              "request_id"
             ],
             "properties": {
               "request_id": {
@@ -100379,6 +100568,15 @@
                 "items": {
                   "$ref": "./realm-commit.schema.json#/$defs/stream_head"
                 }
+              },
+              "content_intent": {
+                "$ref": "#/$defs/owned_agent_content_intent"
+              },
+              "membership_commit_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+              },
+              "scope_details": {
+                "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantScope"
               }
             },
             "additionalProperties": false,
@@ -100418,7 +100616,136 @@
                   }
                 }
               }
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "request_id",
+                  "authority_bundle",
+                  "snapshot",
+                  "visible_stream_heads"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "content_intent"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "membership_commit_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "scope_details"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "content_intent",
+                  "membership_commit_id",
+                  "scope_details"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "authority_bundle"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "snapshot"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "visible_stream_heads"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "producer_signer_fact"
+                      ]
+                    }
+                  ]
+                }
+              }
             ]
+          },
+          "owned_agent_content_intent": {
+            "type": "object",
+            "required": [
+              "controller_account_id",
+              "controller_membership_commit_id",
+              "agent_key_authorization_ref",
+              "action",
+              "effective_scope",
+              "request_digest"
+            ],
+            "properties": {
+              "controller_account_id": {
+                "$ref": "./common-ids.schema.json#/$defs/account_id"
+              },
+              "controller_membership_commit_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+              },
+              "agent_key_authorization_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "ak.event.read",
+                  "ak.message.create",
+                  "ak.message.redact.own",
+                  "ak.message.revise.own",
+                  "ak.object.read",
+                  "ak.object.read_content",
+                  "ak.object.read_history",
+                  "ak.object.read_metadata",
+                  "ak.reaction.add",
+                  "ak.reaction.remove",
+                  "ak.strand.read"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "namespaced_symbol",
+                  "authority": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/action",
+                  "owner": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/action",
+                  "values": [
+                    "ak.event.read",
+                    "ak.message.create",
+                    "ak.message.redact.own",
+                    "ak.message.revise.own",
+                    "ak.object.read",
+                    "ak.object.read_content",
+                    "ak.object.read_history",
+                    "ak.object.read_metadata",
+                    "ak.reaction.add",
+                    "ak.reaction.remove",
+                    "ak.strand.read"
+                  ]
+                }
+              },
+              "effective_scope": {
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+              },
+              "request_digest": {
+                "$ref": "./agent-operations.schema.json#/$defs/digest"
+              },
+              "backup_root_context": {
+                "$ref": "./content-encryption.schema.json#/$defs/root_context"
+              },
+              "strand_id": {
+                "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+              }
+            },
+            "additionalProperties": false
           }
         }
       }
@@ -119281,7 +119608,7 @@
     },
     {
       "file": "content-addressed-ref-digest-exemption-registry.json",
-      "digest": "sha256:f2be61023f3258058e616a194c83e5df327160c79950d57c76ba66da4acb622a"
+      "digest": "sha256:ca62a6d917f357174cadb5ae79bffd17b1754c86501fea45059a7e3af4baa3c6"
     },
     {
       "file": "content-encryption-registry.json",
@@ -119289,7 +119616,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:dce9a7caec31c5351dcfa993f3c45f88e85432aefb888f0013589b0fbcb48a45"
+      "digest": "sha256:34205881628327de215a2a342e3d88a14f8febdbb2bc7218fb15d214949704de"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -119321,7 +119648,7 @@
     },
     {
       "file": "forbidden-wire-fields.json",
-      "digest": "sha256:2a8f4e7d01af2160ff75bd9a80eda6734742f64b3ee6552b66405bafd2b753fc"
+      "digest": "sha256:72195839d89d0a5bd07646e8a63574507b618ae5157a69f36e543b77fe91f5b5"
     },
     {
       "file": "hpke-suite-registry.json",
@@ -119349,7 +119676,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:2b47bce95a11a0369681842e8389320c7652447b96d1b80e2eb5fd0a3191c4cc"
+      "digest": "sha256:70b7057d5fcdff3363234f0a56035529d93dab963b2c32028ccf97a35b8a9c2e"
     },
     {
       "file": "operation-clause-registry.json",
@@ -119365,7 +119692,7 @@
     },
     {
       "file": "owned-agent-authority-registry.json",
-      "digest": "sha256:0bbe37be955e928bae59015d17e54f8fd04925ac9118fafc703368dcf2bb3af6"
+      "digest": "sha256:e546b4282cb2e625dbdcd306c7fb93b641e3d005d4ecb6a093b0bcd3cbff5fdd"
     },
     {
       "file": "payload-validator-profile-registry.json",
@@ -119546,6 +119873,7 @@
           "type": "apiKey",
           "in": "header",
           "name": "Arkret-Managed-Device",
+          "x-arkret-decoded-schema-ref": "../schemas/applet-device-authentication.schema.json",
           "description": "Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope metadata; only registered operations, never a SessionGrant."
         }
       },
@@ -128333,6 +128661,15 @@
                   ]
                 }
               }
+            },
+            {
+              "in": "query",
+              "name": "sidecar_id",
+              "required": false,
+              "description": "Agent first-use preparation for one effective personal Sidecar. Exclusive of every other query parameter.",
+              "schema": {
+                "$ref": "../schemas/common-ids.schema.json#/$defs/sidecar_id"
+              }
             }
           ],
           "responses": {
@@ -134061,7 +134398,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body"
+                  "$ref": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body"
                 }
               }
             }

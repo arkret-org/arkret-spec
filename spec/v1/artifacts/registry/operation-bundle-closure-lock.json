@@ -64,7 +64,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.push_gateway.registration_handoff.v1",
-      "sha256": "sha256:d9ab49352c1201634357590522a0cf5c032e097dd73c5c7f5a2b04dd197e6b9a"
+      "sha256": "sha256:1cc96f4787fed7935639916e547ad236f9ebe162d27e6440fcec93bcaf29006f"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.recovery_service.describe.v1",

@@ -950,6 +950,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     schema_refs_by_file: dict[str, set[str]] = {}
     declared_wire_binding_kinds = {
         "account_data_plaintext",
+        "signed_http_header",
         "account_data_storage",
         "client_fragment",
         "dynamic_schema_ref",

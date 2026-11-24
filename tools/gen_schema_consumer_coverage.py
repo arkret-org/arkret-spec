@@ -55,6 +55,7 @@ REF_TOKEN_RE = re.compile(r'"\$ref"\s*:\s*"([^"]+)"')
 DECLARED_WIRE_BINDING_KINDS = {
     "client_fragment",
     "account_data_plaintext",
+    "signed_http_header",
     "account_data_storage",
     "dynamic_schema_ref",
     "mls_encrypted_payload",

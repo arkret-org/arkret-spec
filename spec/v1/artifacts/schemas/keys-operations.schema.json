@@ -2134,6 +2134,18 @@
           },
           "additionalProperties": false,
           "description": "Only current manager Service; same standard deepObject complete realm_actor_id encoding, no Device/Account, circle_id, series_id, backup_kind or agent_id. This all-scope view closes first-PUT custody inventory, not ordinary history enumeration."
+        },
+        {
+          "type": "object",
+          "required": [
+            "sidecar_id"
+          ],
+          "properties": {
+            "sidecar_id": {
+              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -3408,6 +3420,9 @@
         },
         {
           "$ref": "#/$defs/realm_actor_archive_inventory_page"
+        },
+        {
+          "$ref": "#/$defs/sidecar_backup_prepare_response_body"
         }
       ],
       "x-arkret-name-role": "response_body",
@@ -3688,6 +3703,74 @@
       ],
       "x-arkret-name-role": "response_body",
       "description": "Closed issued-challenge response selected by authenticated request role. The Account/Agent branch preserves its original Challenge object. Native Device predecessor and current Manager archive roles use the separately closed native Challenge. Current requester manager/recovery/Device qualification remains separate from target original recipient and complete signed packet digest."
+    },
+    "sidecar_backup_prepare_response_body": {
+      "type": "object",
+      "required": [
+        "sidecar_id",
+        "root_context",
+        "series_id",
+        "series_sequence",
+        "recovery_policy_ref",
+        "backup_hpke"
+      ],
+      "properties": {
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "root_context": {
+          "$ref": "./content-encryption.schema.json#/$defs/root_context"
+        },
+        "series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "series_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supersedes_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "supersedes_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "recovery_policy_ref": {
+          "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_ref"
+        },
+        "backup_hpke": {
+          "$ref": "./recovery-policy.schema.json#/$defs/recovery_key_agreement_entry"
+        }
+      },
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "series_sequence": {
+            "maximum": 0
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "supersedes_id"
+              ]
+            },
+            {
+              "required": [
+                "supersedes_digest"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "supersedes_id",
+          "supersedes_digest"
+        ]
+      }
     }
   }
 }

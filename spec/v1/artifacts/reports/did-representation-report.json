@@ -1866,16 +1866,6 @@
       ]
     },
     {
-      "schema_path": "applet.schema.json#/properties/service_id",
-      "property_name": "service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "approval-signature.schema.json#/$defs/approval_signature_input/properties/approver_did",
       "property_name": "approver_did",
       "semantic_category": "responsibility_identity_material",
@@ -2013,6 +2003,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/owned_agent_stream_scan_request_body/properties/member_account_id",
+      "property_name": "member_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
       ]
     },
     {
@@ -7196,6 +7196,16 @@
       ]
     },
     {
+      "schema_path": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body/properties/member_account_id",
       "property_name": "member_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -9328,6 +9338,18 @@
     {
       "source": "json_schema",
       "schema_path": "principal-operations.schema.json#/$defs/agent_sidecar_ensure_request_body/oneOf/0/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/controller_account_id",
       "property_name": "controller_account_id",
       "resolved_carrier": "account_id",
       "required_subject_class": "account",

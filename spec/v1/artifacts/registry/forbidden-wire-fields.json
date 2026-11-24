@@ -148,16 +148,6 @@
         }
       ]
     },
-    "applet_protocol_metadata": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "applet.schema.json",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "artifact_dsl": {
       "selectors": [
         {
@@ -2803,24 +2793,6 @@
         "kind": "field",
         "values": [
           "history_access"
-        ]
-      }
-    },
-    {
-      "id": "icon_blob",
-      "context": "applet_protocol_metadata",
-      "since_revision": "2026-05-29",
-      "rejection_level": "hard_reject",
-      "replacement": "icon_blob_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Applet protocol metadata exposes a Blob reference, so the field carries the _blob_ref suffix.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "icon_blob"
         ]
       }
     },

@@ -35,8 +35,7 @@
       "schemas/file-transfer.schema.json#/$defs/file_transfer_key_message",
       "schemas/file-transfer.schema.json#/$defs/key_envelope",
       "schemas/object-addressing.schema.json#/$defs/address_link_kind",
-      "schemas/object-addressing.schema.json#/$defs/signed_address_link_token_claims",
-      "schemas/string-profiles.schema.json#/$defs/canonical_domain"
+      "schemas/object-addressing.schema.json#/$defs/signed_address_link_token_claims"
     ]
   }
 }

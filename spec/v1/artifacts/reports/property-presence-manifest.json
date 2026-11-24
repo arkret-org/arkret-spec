@@ -13,19 +13,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11026,
-    "total_schema_documents": 177,
+    "total_properties": 11060,
+    "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2538,
+      "optional": 2549,
       "optional_defaulted": 46,
-      "required": 7827,
-      "required_nullable": 375,
-      "tristate": 240
+      "required": 7841,
+      "required_nullable": 377,
+      "tristate": 247
     },
-    "tristate_occurrences": 240,
-    "tristate_audit_targets": 185,
+    "tristate_occurrences": 247,
+    "tristate_audit_targets": 187,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 173,
+      "absent_null_equivalent": 175,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -161,6 +161,12 @@
     "key-backup.schema.json/allOf/4/then/properties/encryption/properties/aead",
     "key-backup.schema.json/allOf/5/then/properties/contents",
     "key-backup.schema.json/allOf/5/then/properties/encryption",
+    "key-backup.schema.json/allOf/7/if/properties/contents",
+    "key-backup.schema.json/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope",
+    "key-backup.schema.json/allOf/7/if/properties/signature_proof",
+    "key-backup.schema.json/allOf/7/then/properties/contents",
+    "key-backup.schema.json/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope",
+    "key-backup.schema.json/allOf/7/then/properties/encryption",
     "key-backup.schema.json/properties/encryption/allOf/0/then/properties/aead",
     "key-backup.schema.json/properties/encryption/allOf/1/then/properties/aead",
     "key-backup.schema.json/properties/encryption/allOf/2/then/properties/aead",
@@ -175,6 +181,7 @@
     "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/1/then/properties/device_keys",
     "keys-operations.schema.json/$defs/peer_keys_query_request_body/allOf/1/then/properties/relationship_basis",
     "keys-operations.schema.json/$defs/realm_actor_backup_metadata/properties/supersedes_id",
+    "keys-operations.schema.json/$defs/sidecar_backup_prepare_response_body/if/properties/series_sequence",
     "management-review-operations.schema.json/$defs/management_review_request_body/allOf/0/then/properties/target",
     "management-review-operations.schema.json/$defs/management_review_request_body/allOf/0/then/properties/target/properties/event",
     "management-review-operations.schema.json/$defs/management_review_request_body/allOf/1/then/properties/target",
@@ -1211,7 +1218,20 @@
       "occurrences": [
         "/allOf/4/if/properties/contents",
         "/allOf/4/then/properties/contents",
-        "/allOf/5/then/properties/contents"
+        "/allOf/5/then/properties/contents",
+        "/allOf/7/if/properties/contents",
+        "/allOf/7/then/properties/contents"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "key-backup.schema.json",
+      "shape": "#",
+      "instance_path": "/contents/*/root_context/effective_scope",
+      "occurrences": [
+        "/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope",
+        "/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1223,7 +1243,8 @@
       "occurrences": [
         "/allOf/0/then/properties/encryption",
         "/allOf/4/then/properties/encryption",
-        "/allOf/5/then/properties/encryption"
+        "/allOf/5/then/properties/encryption",
+        "/allOf/7/then/properties/encryption"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1276,7 +1297,8 @@
       "shape": "#",
       "instance_path": "/signature_proof",
       "occurrences": [
-        "/allOf/3/if/properties/signature_proof"
+        "/allOf/3/if/properties/signature_proof",
+        "/allOf/7/if/properties/signature_proof"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1358,6 +1380,16 @@
       "instance_path": "/supersedes_id",
       "occurrences": [
         "/$defs/realm_actor_backup_metadata/properties/supersedes_id"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "keys-operations.schema.json",
+      "shape": "/$defs/sidecar_backup_prepare_response_body",
+      "instance_path": "/series_sequence",
+      "occurrences": [
+        "/$defs/sidecar_backup_prepare_response_body/if/properties/series_sequence"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4381,19 +4413,6 @@
         "/properties/widget_origin": "required"
       }
     },
-    "applet.schema.json": {
-      "schema_ids": [
-        "ak.schema.applet.v1"
-      ],
-      "properties": {
-        "/properties/applet_id": "required",
-        "/properties/error": "optional",
-        "/properties/error/properties/code": "optional",
-        "/properties/error/properties/message": "optional",
-        "/properties/schema": "required",
-        "/properties/service_id": "optional"
-      }
-    },
     "approval-signature.schema.json": {
       "schema_ids": [
         "ak.schema.approval_signature.v1"
@@ -4615,6 +4634,12 @@
         "/$defs/organization_genesis_signer_fact/properties/method_history_evidence": "required",
         "/$defs/organization_genesis_signer_fact/properties/producer_resolution": "optional",
         "/$defs/organization_genesis_signer_fact/properties/public_key_base64url": "optional",
+        "/$defs/owned_agent_stream_scan_request_body/properties/content_intent": "required",
+        "/$defs/owned_agent_stream_scan_request_body/properties/member_account_id": "required",
+        "/$defs/owned_agent_stream_scan_request_body/properties/membership_commit_id": "required",
+        "/$defs/owned_agent_stream_scan_request_body/properties/request_id": "required",
+        "/$defs/owned_agent_stream_scan_request_body/properties/scan": "required",
+        "/$defs/owned_agent_stream_scan_request_body/properties/session_grant_id": "required",
         "/$defs/pcr_private_handoff_manifest/properties/effective_stream_head": "required",
         "/$defs/pcr_private_handoff_manifest/properties/governance_generation": "required",
         "/$defs/pcr_private_handoff_manifest/properties/holder_account_id": "required",
@@ -10251,6 +10276,18 @@
         "/allOf/6/if/properties/encryption": "required_nullable",
         "/allOf/6/if/properties/encryption/properties/recipient_method": "required",
         "/allOf/6/then/properties/actor_id": "optional",
+        "/allOf/7/if/properties/contents": "tristate",
+        "/allOf/7/if/properties/contents/contains/properties/root_context": "required_nullable",
+        "/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope": "tristate",
+        "/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope/properties/kind": "optional",
+        "/allOf/7/if/properties/signature_proof": "tristate",
+        "/allOf/7/then/properties/contents": "tristate",
+        "/allOf/7/then/properties/contents/items/properties/item_kind": "optional",
+        "/allOf/7/then/properties/contents/items/properties/root_context": "required_nullable",
+        "/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope": "tristate",
+        "/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope/properties/kind": "optional",
+        "/allOf/7/then/properties/encryption": "tristate",
+        "/allOf/7/then/properties/encryption/properties/recipient_method": "optional",
         "/properties/actor_id": "required",
         "/properties/authorization_binding": "optional",
         "/properties/backup_id": "required",
@@ -10353,6 +10390,7 @@
         "/properties/encryption/properties/kdf/properties/parameters",
         "/properties/encryption/properties/key_commitment",
         "/properties/encryption/properties/recipient_key_ref",
+        "/properties/recovery_policy_ref",
         "/properties/signature_proof/properties/agent_authorization_event_ref",
         "/properties/signature_proof/properties/device_authorize_event_id",
         "/properties/signature_proof/properties/device_id",
@@ -10767,6 +10805,7 @@
         "/$defs/keys_backups_list_query/oneOf/2/properties/limit": "optional",
         "/$defs/keys_backups_list_query/oneOf/2/properties/purpose": "required",
         "/$defs/keys_backups_list_query/oneOf/2/properties/realm_actor_id": "required",
+        "/$defs/keys_backups_list_query/oneOf/3/properties/sidecar_id": "required",
         "/$defs/keys_backups_page/properties/active_series": "required",
         "/$defs/keys_backups_page/properties/backups": "required",
         "/$defs/keys_backups_page/properties/has_more": "required",
@@ -11054,6 +11093,15 @@
         "/$defs/realm_actor_content_backup_source/properties/device_authorization": "required",
         "/$defs/realm_actor_content_backup_source/properties/governance_history": "required",
         "/$defs/realm_actor_content_backup_source/properties/origin_resolution": "required",
+        "/$defs/sidecar_backup_prepare_response_body/if/properties/series_sequence": "tristate",
+        "/$defs/sidecar_backup_prepare_response_body/properties/backup_hpke": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/recovery_policy_ref": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/root_context": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/series_id": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/series_sequence": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/sidecar_id": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/supersedes_digest": "optional",
+        "/$defs/sidecar_backup_prepare_response_body/properties/supersedes_id": "optional",
         "/$defs/signed_prekey/properties/algorithm": "required",
         "/$defs/signed_prekey/properties/created_at": "optional",
         "/$defs/signed_prekey/properties/expires_at": "optional",
@@ -11084,7 +11132,9 @@
         "/$defs/realm_actor_backup_governance_original/properties/producer_signer_fact",
         "/$defs/realm_actor_backup_unlock_challenge/properties/device_authorize_event_id",
         "/$defs/realm_actor_backup_unlock_challenge/properties/device_generation",
-        "/$defs/realm_actor_backup_unlock_challenge/properties/requesting_device_id"
+        "/$defs/realm_actor_backup_unlock_challenge/properties/requesting_device_id",
+        "/$defs/sidecar_backup_prepare_response_body/properties/supersedes_digest",
+        "/$defs/sidecar_backup_prepare_response_body/properties/supersedes_id"
       ]
     },
     "management-review-operations.schema.json": {
@@ -12861,6 +12911,15 @@
         "/$defs/join_target/properties/invite_id": "optional",
         "/$defs/join_target/properties/realm_id": "required",
         "/$defs/join_target/properties/realm_invite_link_id": "optional",
+        "/$defs/owned_agent_content_intent/properties/action": "required",
+        "/$defs/owned_agent_content_intent/properties/agent_key_authorization_ref": "required",
+        "/$defs/owned_agent_content_intent/properties/backup_root_context": "optional",
+        "/$defs/owned_agent_content_intent/properties/controller_account_id": "required",
+        "/$defs/owned_agent_content_intent/properties/controller_membership_commit_id": "required",
+        "/$defs/owned_agent_content_intent/properties/effective_scope": "required",
+        "/$defs/owned_agent_content_intent/properties/request_digest": "required",
+        "/$defs/owned_agent_content_intent/properties/strand_id": "optional",
+        "/$defs/peer_bootstrap_request_body/properties/content_intent": "optional",
         "/$defs/peer_bootstrap_request_body/properties/history_stream_ref": "optional",
         "/$defs/peer_bootstrap_request_body/properties/member_account_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/membership_commit_id": "required",
@@ -12868,11 +12927,14 @@
         "/$defs/peer_bootstrap_request_body/properties/request_id": "required",
         "/$defs/peer_bootstrap_response_body/allOf/0/if/properties/authority_bundle": "required_nullable",
         "/$defs/peer_bootstrap_response_body/allOf/0/if/properties/authority_bundle/properties/genesis_commit": "required_nullable",
-        "/$defs/peer_bootstrap_response_body/properties/authority_bundle": "required",
+        "/$defs/peer_bootstrap_response_body/properties/authority_bundle": "optional",
+        "/$defs/peer_bootstrap_response_body/properties/content_intent": "optional",
+        "/$defs/peer_bootstrap_response_body/properties/membership_commit_id": "optional",
         "/$defs/peer_bootstrap_response_body/properties/producer_signer_fact": "optional",
         "/$defs/peer_bootstrap_response_body/properties/request_id": "required",
-        "/$defs/peer_bootstrap_response_body/properties/snapshot": "required",
-        "/$defs/peer_bootstrap_response_body/properties/visible_stream_heads": "required",
+        "/$defs/peer_bootstrap_response_body/properties/scope_details": "optional",
+        "/$defs/peer_bootstrap_response_body/properties/snapshot": "optional",
+        "/$defs/peer_bootstrap_response_body/properties/visible_stream_heads": "optional",
         "/$defs/peer_preview_request_body/properties/invite_id": "optional",
         "/$defs/peer_preview_request_body/properties/link_proof": "optional",
         "/$defs/peer_preview_request_body/properties/realm_id": "required",
@@ -12900,7 +12962,13 @@
         "/$defs/self_preview_response_body/properties/request_id": "required"
       },
       "conditionally_required": [
-        "/$defs/peer_bootstrap_response_body/properties/producer_signer_fact"
+        "/$defs/peer_bootstrap_response_body/properties/authority_bundle",
+        "/$defs/peer_bootstrap_response_body/properties/content_intent",
+        "/$defs/peer_bootstrap_response_body/properties/membership_commit_id",
+        "/$defs/peer_bootstrap_response_body/properties/producer_signer_fact",
+        "/$defs/peer_bootstrap_response_body/properties/scope_details",
+        "/$defs/peer_bootstrap_response_body/properties/snapshot",
+        "/$defs/peer_bootstrap_response_body/properties/visible_stream_heads"
       ]
     },
     "realm-link-operations.schema.json": {

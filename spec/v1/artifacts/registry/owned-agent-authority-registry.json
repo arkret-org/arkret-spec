@@ -159,5 +159,17 @@
     "failed_issue_writes_session_or_reservation_or_replay": false,
     "normal_issue_or_refresh_requires_new_approval": false,
     "exact_completed_replay_recomputes_authority": false
+  },
+  "foreign_realm_content_authority": {
+    "first_join_operation": "ak.peer.events.command.submit.v1",
+    "session_source_operation": "ak.peer.realm_join.read.bootstrap.v1",
+    "delivery_operation": "ak.peer.committed_event.read.scan.v1",
+    "first_join_source": "controller_home_station_verified_target_in_exact_forward",
+    "session_source_field": "content_intent",
+    "historical_floor_field": "history_stream_ref",
+    "delivery_request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",
+    "cached_delivery_allow": false,
+    "native_expiry_authority": "owning_station",
+    "resource_admission_authority": "governing_station"
   }
 }

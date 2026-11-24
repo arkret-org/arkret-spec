@@ -827,10 +827,10 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/streams/scan",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",
       "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",
         "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_response_body"
       },
       "completeness_class": "typed_schema",

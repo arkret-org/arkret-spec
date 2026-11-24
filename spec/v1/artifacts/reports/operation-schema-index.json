@@ -2572,29 +2572,66 @@
       "operation_id": "ak.peer.committed_event.read.scan.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",
         "schema_kind": "oneOf",
         "required": [],
-        "properties": [],
+        "properties": [
+          "request_id",
+          "member_account_id",
+          "membership_commit_id",
+          "content_intent",
+          "session_grant_id",
+          "scan"
+        ],
         "closed": false,
         "variants": [
           {
             "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
-            "schema_kind": null,
-            "required": [
-              "after_position"
-            ],
+            "schema_kind": "oneOf",
+            "required": [],
             "properties": [],
-            "closed": false
+            "closed": false,
+            "variants": [
+              {
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+                "schema_kind": null,
+                "required": [
+                  "after_position"
+                ],
+                "properties": [],
+                "closed": false
+              },
+              {
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
+                "schema_kind": null,
+                "required": [
+                  "before_position"
+                ],
+                "properties": [],
+                "closed": false
+              }
+            ]
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
-            "schema_kind": null,
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/owned_agent_stream_scan_request_body",
+            "schema_kind": "object",
             "required": [
-              "before_position"
+              "request_id",
+              "member_account_id",
+              "membership_commit_id",
+              "content_intent",
+              "session_grant_id",
+              "scan"
             ],
-            "properties": [],
-            "closed": false
+            "properties": [
+              "request_id",
+              "member_account_id",
+              "membership_commit_id",
+              "content_intent",
+              "session_grant_id",
+              "scan"
+            ],
+            "closed": true
           }
         ]
       },
@@ -3010,27 +3047,42 @@
           "realm_id",
           "member_account_id",
           "membership_commit_id",
-          "history_stream_ref"
+          "history_stream_ref",
+          "content_intent"
         ],
         "closed": true
       },
       "response": {
         "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_response_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "authority_bundle",
-          "snapshot",
-          "visible_stream_heads"
-        ],
-        "properties": [
-          "request_id",
-          "authority_bundle",
-          "producer_signer_fact",
-          "snapshot",
-          "visible_stream_heads"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_response_body",
+            "schema_kind": null,
+            "required": [
+              "request_id",
+              "authority_bundle",
+              "snapshot",
+              "visible_stream_heads"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_response_body",
+            "schema_kind": null,
+            "required": [
+              "content_intent",
+              "membership_commit_id",
+              "scope_details"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       }
     },
     {
@@ -7193,7 +7245,15 @@
           "manager_ref",
           "archive_revision",
           "inventory_digest",
-          "entries"
+          "entries",
+          "sidecar_id",
+          "root_context",
+          "series_id",
+          "series_sequence",
+          "supersedes_id",
+          "supersedes_digest",
+          "recovery_policy_ref",
+          "backup_hpke"
         ],
         "closed": true,
         "variants": [
@@ -7253,6 +7313,29 @@
               "entries",
               "next_cursor",
               "has_more"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/keys-operations.schema.json#/$defs/sidecar_backup_prepare_response_body",
+            "schema_kind": "object",
+            "required": [
+              "sidecar_id",
+              "root_context",
+              "series_id",
+              "series_sequence",
+              "recovery_policy_ref",
+              "backup_hpke"
+            ],
+            "properties": [
+              "sidecar_id",
+              "root_context",
+              "series_id",
+              "series_sequence",
+              "supersedes_id",
+              "supersedes_digest",
+              "recovery_policy_ref",
+              "backup_hpke"
             ],
             "closed": true
           }

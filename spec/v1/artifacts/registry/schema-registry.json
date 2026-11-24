@@ -296,16 +296,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.applet.v1",
-      "file": "schemas/applet.schema.json",
-      "status": "active",
-      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json.",
-      "consumer_binding": {
-        "kind": "prose_only",
-        "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
-      }
-    },
-    {
       "schema_id": "ak.schema.applet_authority_material.v1",
       "file": "schemas/applet-authority-material.schema.json",
       "status": "active",
@@ -341,8 +331,9 @@
       "status": "active",
       "description": "Closed signed managed Device request metadata.",
       "consumer_binding": {
-        "kind": "prose_only",
-        "rationale": "RFC9421 Arkret-Managed-Device header encoding is normative in extensions/applet-integration.md."
+        "kind": "signed_http_header",
+        "selector": "Arkret-Managed-Device",
+        "normative_ref": "zh/extensions/realm-actors.md"
       }
     },
     {

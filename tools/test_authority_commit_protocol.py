@@ -96,6 +96,7 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         response = schema["$defs"]["peer_bootstrap_response_body"]
         self.assertEqual(list(response["properties"]), [
             "request_id", "authority_bundle", "producer_signer_fact", "snapshot", "visible_stream_heads",
+            "content_intent", "membership_commit_id", "scope_details",
         ])
         self.assertFalse(response["additionalProperties"])
         self.assertEqual(response["properties"]["producer_signer_fact"]["$ref"],

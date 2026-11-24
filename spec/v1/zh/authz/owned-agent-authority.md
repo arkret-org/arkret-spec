@@ -24,7 +24,7 @@ controller 自身 **MUST NOT** 是 canonical provisioning 所证明的 Agent；�
 | `controller_join_event_id` | yes | `EventId` | exact current join generation | 主人 membership binding。 |
 | `agent_join_event_id` | yes | `EventId` | exact current Agent join | subject 的 membership incarnation。 |
 
-治理 Station **MUST** 验证 accepted provisioning/accountability、独立 Agent 身份、当前 ownership、两个 exact join 与 `agent_controller_binding`；Agent join 的 controller 与 generation **MUST** 逐字匹配 ref。未知、terminal、错账号／Station／Realm／scope **MUST** fail closed。此来源不直接引用主人某条 grant，允许在原确认范围内使用主人当前等效合法来源；accepted ownership material 与 current lifecycle 的取材沿用 [Agent runtime evidence](../identity/key-management.md) 已登记的闭包。跨站 current 取材未登记或不可验证时 **MUST NOT** 放行。
+治理 Station **MUST** 验证 accepted provisioning/accountability、独立 Agent 身份、当前 ownership、两个 exact join 与 `agent_controller_binding`；Agent join 的 controller 与 generation **MUST** 逐字匹配 ref。未知、terminal、错账号／Station／Realm／scope **MUST** fail closed。此来源不直接引用主人某条 grant，允许在原确认范围内使用主人当前等效合法来源；accepted ownership material 与 current lifecycle 的取材沿用 [Agent runtime evidence](../identity/key-management.md) 已登记的闭包。独立归属站与治理站之间按 §5.1 分工核验，未登记或不可验证时 **MUST NOT** 放行。
 
 ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected revision、digest 或 Commit snapshot。grant.id 仍由 Event ID 重类型派生；唯一签名仍为主人 Event envelope proof。reducer 对该来源派生 `authority_depth=1`、`authority_root_ref=该 owned_agent ref`，后者是自有执行根而非 Realm authority-root，**MUST NOT** 被用来取得 root controller 资格。grant **MUST** 显式带普通 `authority_control`，`max_authority_depth=0` 且 `authority_regrant_allowed=false`；任何下游 `kind="grant"` ref 引用它都 **MUST** 拒绝。普通 grant 的不可转授与 root-transfer 语义不变。
 
@@ -106,6 +106,15 @@ H≠G 的个人 Sidecar Agent 历史下界来源按 [Sidecar §6.1](../models/si
 每次权限收缩阻止未来服务读取/交付与未来材料领取；MLS roster/epoch 移除仍须合法 author、Commit、客户端 rotate/remove，不能宣称撤权擦除了已有 epoch secrets 或已交付密文/明文。cache 的 digest/revision 依赖必须包含 controller 权限与管理 Policy，并在未知、冷启动、重启时重建，不复用旧 allow。同站原子准入、远端新交付屏障和密码学排除是分别验收的终点。
 
 审计保留 controller 原签意图、Agent 自己签名、实际 admission basis、所用父路径/共享 quota 与管理裁决；这些是 verifier-private backing，不把父 grant/private selection 原文塞进共享 Event。独立重放须得到相同结果；第三方拒绝使用已登记通用错误，主人可看自己授权和适用失效范围，不向第三方泄露私有父来源。
+
+### 5.1 独立治理站的自有 Agent（normative）
+
+普通父 Realm 及其个人 Sidecar MUST 支持以下 H（主人和 Agent 的归属站）与 G（群治理站）分工。H=G 时在本地按相同职责检查。H 只用正式来源核自己的事实，G 保持原治理任期与群接纳权。两站的独立观察不构成全球同时刻。任何身份、来源或绑定无法核实均关闭。
+
+1. 首次入群沿原 `ak.peer.events.command.submit.v1` 的 `authority_forward`。H 在首次转发之前核本人原签、本人和目标完整 AccountId 同属 H、原 accepted provision/accountability、当前 ownership 与 active lifecycle，并绑定原 join Event、Realm 和 controller 当前 join 引用。仅在该签名请求中，认证的 Source-Service-ID 等于实际 H 且目的为当前 G 时，G MUST 将该特定转发解释为 H 对目标上述本地事实的断言。G 独立核本人原签及其 producer evidence、本人当前成员世代、精确 binding、join 管理规则与已知 fence，在同一接纳事务作决定。不能要求 G 本地存在目标私有 PCR，或给 Human 原件附 Agent producer evidence。相同已决请求沿原幂等结果；新意图重核。
+2. Agent 发消息先到 H。H 在首次转发时核会话、持钥、有效期、撤权、主人和 Agent 的本地上界、实际 endpoint 与本次动作。按原合同带实际 Agent 的 producer evidence 和原签 Event；G 验签、证据的适用范围和有效窗口，以及本群同一接纳事务的当前成员、policy、写权、MLS 与 fence。G 不用 H 的 Session 自行续权；H 也不能覆盖 G 的拒绝。已经确定的历史接纳和新供给分别处理。
+3. 内容会话签发或续接时，H 先核本地 issuer、端点和本次签名意图，再以 `ak.peer.realm_join.read.bootstrap.v1` 的 `content_intent` 窄分支逐个询问 G。外层成员是 Agent 完整账号及当前父 Realm join Commit；意图绑定主人及其当前 join Commit、accepted Agent key 引用、单一已登记的内容 action、精确 scope、适用的 strand_id 和本次签名请求的 JCS SHA-256。每次使用 fresh request_id，H 经原服务认证链访问 G，两侧核服务方向、任期和父群匹配。按 Strand 授权时 MUST 指明原请求中的该 Strand，G 核其与 scope 的正式关联；缺少足以证明该范围的授权不得签发。G 只在当前两份成员原件及 binding、管理规则、动作授权和资源条件成立时返回同 request_id、原意图、同成员 Commit 和可表达的最窄 scope_details。响应与原请求通过同一经认证的实时交换关联；失败走既有 Problem。禁止同请求带 history_stream_ref；此分支不返回 Snapshot 或业务记录。H 核对原绑定、key 和主人身份，将 G 的结果与本地合法上界逐项求交，无法无损表达则收窄或拒绝。携带 backup_root_context 的请求仅用于 content-history §3.3 的该次根准备或 PUT，必须精确绑定同一个 Sidecar 和当前 MLS context；业务读取请求禁止携带该字段。普通签发回复只能用于本次签发；不得缓存作交付许可。Sidecar 本地 desired/effective 仍由 H 按所请求动作独立检查。
+4. 对应业务原件的实际读取沿 `ak.peer.committed_event.read.scan.v1` 的 owned Agent 请求分支。H 核本次已认证 endpoint、session、action、资源与 Sidecar effective，将实际会话 ID、Agent 当前 join、同一 key、双方成员绑定和实际分页参数放入同一 S2S 签名；request_digest 绑定本次客户端读取意图，禁止携带 bearer。G 在同一交付屏障重读本群成员世代、策略、已知 fence、此动作及接收者的可读范围，并按该世代自己的历史 floor 裁剪，在该屏障输出实际原件。H 仅为此次仍活跃并通过自身当前门的接收端实时转送；错 scope、错流、断连、排队后重新供给或翻页 MUST 重新核验。普通站际复制 scan、先前的签发同意及历史 Snapshot 均不授予 H 本地缓存交付权。缺少适用屏障的其它读取入口继续关闭。Sidecar §6.1 的窄 Snapshot 仅在其原前置满足后证明历史下界。
 
 ## 6. 产品与 conformance
 

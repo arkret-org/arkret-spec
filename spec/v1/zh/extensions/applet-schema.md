@@ -10,7 +10,7 @@ updated: 2026-11-15
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/arkret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract registry 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
+注册、交易和错误响应分别以各 Event 或操作登记的封闭 schema 为准。注册字段见 `event-payload.schema.json` 中的 `ak.applet.registration`，HTTP 绑定见正式 OpenAPI。
 
 ## 1. Applet Registration Schema
 
@@ -86,7 +86,6 @@ updated: 2026-11-15
 `applet_registration_payload.required` 条目的相对顺序 MUST 与 schema `properties` 字段出现顺序一致；
 required 集合与顺序均直接从 schema 读取，本节不复述派生清单。该 registration payload 的权威机读 schema 是
 [`schemas/event-payload.schema.json` 的 `$defs/applet_registration_payload`](../../artifacts/schemas/event-payload.schema.json)
-（`applet.schema.json` 仅描述 applet object metadata snapshot，不含本 registration payload）。
 
 ## 1a. Applet Package Schema
 

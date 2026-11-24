@@ -287,6 +287,7 @@ components:
       type: apiKey
       in: header
       name: Arkret-Managed-Device
+      x-arkret-decoded-schema-ref: ../schemas/applet-device-authentication.schema.json
       description: Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope metadata;
         only registered operations, never a SessionGrant.
   headers:
@@ -6732,6 +6733,13 @@ paths:
             authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
             owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
             values: *id004
+      - in: query
+        name: sidecar_id
+        required: false
+        description: Agent first-use preparation for one effective personal Sidecar. Exclusive of every other query
+          parameter.
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/sidecar_id
       responses:
         '200':
           description: Exact-scope encrypted backup metadata page or the disjoint current-manager complete native
@@ -11188,7 +11196,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body
       responses:
         '200':
           description: Successful Arkret operation outcome.

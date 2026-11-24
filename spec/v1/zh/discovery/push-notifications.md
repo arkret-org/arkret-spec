@@ -132,6 +132,8 @@ current-v1 有两条且仅有两条注册状态交付路径：同一受信部署
 
 ### 3.4 受信公共 Gateway 注册交接（normative）
 
+提供注册交接的 Push Gateway MUST 同时广告并提供 `ak.open.service.read.resolution.v1`，供首次注册按目标 Service 验证其服务身份。
+
 独立存储的公共 Gateway 通过以下 HTTP-only operation 接收 Station 的注册 desired state：
 
 ```

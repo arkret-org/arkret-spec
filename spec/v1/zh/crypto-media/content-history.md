@@ -426,6 +426,15 @@ Device sibling head 正例必须核独立原签且拒完整授权／其它 Circl
 完整私钥／包／原件导入并冷重启后解封，缺任一材料、错库存 cut 或普通 Device KEK 都不得成功。多 Station 验收
 只走已登记真实认证网络，不能共享数据库／私钥；参考模型、fixture 布尔、静态 SHA 相等或 HTTP200 均不替代这些证据。
 
+### 3.3 个人 Sidecar 的 Agent 首次业务根
+
+每一新 accepted epoch，已 effective 的 Agent MAY 作为首个实际业务作者。若已从自己的合法内容入口取得同一 epoch 的完整业务原件，可核对当前 R、完整 root_context、root_ref 与原签保护引用后复用。实际发言仍使用自己的 producer、fresh salt、AAD 和签名。没有可读原件时用以下原生入口；无需主人先发消息。
+
+* **来源与主体。** 仅适用于 accepted 私人 Sidecar、具备当前业务写权和显式备份操作权限的实际 Agent 端点。根包 subject 是 Agent 的完整 Account，原生 Agent key 签名，custodian 与 accepted provision 引用沿 §8.2。controller 已为该 Agent 正式启用 history_custody、选定 active series 及充分的当前恢复 recipient 时，accepted Sidecar 的同一主人身份与该主人当前对该 Sidecar 的内容／恢复资格共同构成此单根披露依据。任何一项缺失都拒绝；没有默认接收方。pending、普通 Realm/Circle、其它主人的 scope 或 PCR 根不能使用本分支。
+* **首次准备。** Agent 经自己活跃会话 GET 现有备份列表，仅传 sidecar_id。H 从 accepted create、当前两方成员与有效 MLS 状态导出精确 scope、Genesis、epoch、group_state 和策略；检查上述资格，只返回该 scope 的当前 root_context、Agent 已选在用 series 的下一序号和必要 predecessor ID/digest、主人当前 accepted 恢复策略引用与该策略的充分公钥 backup_hpke。前驱仅用于 CAS，不给出相邻包内容。没有 series 或充分 recipient 时拒绝。Agent 以自己合法持有的 R 核 context 和 root_ref，按 §11.1 密封一个根，用自己的身份 PUT 到原备份入口。禁止使用主人的会话、签名或读取其私有库存。
+* **接纳。** 源站在持久写入时重验本地 endpoint、key、active series、predecessor、recipient 和 context。G≠H 时，H 对准备及首次 PUT 分别以 owned-agent-authority §5.1 的 content_intent 分支询问 G：带本次实际请求摘要和 backup_root_context，action 必须是该 Agent 在此 Sidecar 已获准的业务写动作。G 从当前群状态、策略和精确成员世代核实该 context、动作及主人恢复资格；返回结果只绑定这一次原生操作。H 不得用普通会话签发答复、旧 prepare 或历史 Snapshot 替代该检查。精确重放沿原 PUT；并发 CAS 输家重新准备，单次成功 PUT 即承担 §3.1／§8.3 保管义务。业务首用必须核原包、充分 recipient 及完整引用，跨站沿 §3.1 的原生 backup_source；失败时不得接纳业务消息。
+* **恢复与撤权。** 普通 Sidecar 根必须单包单根，解密领取仅在本 Sidecar 主人当前仍具备恢复资格且满足现有 unlock 门时通过。列表、按 ID 领取、challenge、unlock、替代包与轮换均从首次 PUT 的 root_context 分派并重核当前披露资格；普通 Agent PCR 保管权本身不能读取这些业务根。失权立即停止新供给，已存包仍按 §8.3 保留充分的合法恢复覆盖。私钥不下发给运行端。
+
 ## 4. 获授权后加入者
 
 `history_access=all_history_for_current_members`必须有实际可读路径，不能只返回密文。
@@ -692,8 +701,8 @@ controller上传以其current accepted Device签完整Agent-subject envelope，d
 verification_method，禁止device_id／device_authorize／source_commit_ref冒充Human generation。
 二者都验证原provision、当前Agent lifecycle／controller binding、所选recipient的current custodian policy，
 runtime还须有明确备份操作scope且仅能追加Agent自己的密封根。
-本custody的每个根块只允许该Agent PCR的root_context，不得混入其它业务Realm、其它Agent或Human根；
-不能靠请求只选择一个获权root就把同块其它scope根泄露给controller。其它scope必须另有其自身显式披露依据。服务不取得解密key。
+本节单凭 PCR custody 获准的每个根块只允许该Agent PCR的root_context，不得混入其它业务Realm、其它Agent或Human根；
+不能靠请求只选择一个获权root就把同块其它scope根泄露给controller。其它scope必须另有其自身显式披露依据。个人 Sidecar 的单根首次发布与领取适用 §3.3。服务不取得解密key。
 
 Agent active-series只由当前custodian Device签署，记录同一custodian pair；
 其ak.key_backup.active_series Event落Agent PCR：actor_id为完整Agent Account，executed_by为custodian，
@@ -830,6 +839,8 @@ scope_cleanup保持rekeyed／removed／terminated三态；仍有参与资格的�
 不激活禁止提交的ak.realm.destroy。Circle／Sidecar派生终态须核真实上游accepted来源，不能伪造子scope tombstone。
 既有历史根保管与充分重封装仍按§8执行；后两种终态不交付root、backup、完整roster、其它成员详情或业务原件。
 无法核实实际移除或合法不可逆终态保持pending／明确不可用，不猜测完成。
+
+本站和联邦恢复收尾入口均为正式能力。服务 MUST 只在实际挂载对应 handler 并能完成原授权与耐久收尾时广告该操作；跨站收尾 MUST 验证请求来源，重复提交按本节的原终局对账。
 
 **当前reader与正式入口**：self命令`ak.self.mls.command.reconcile_recovery_scope.v1`
 （`POST /_arkret/self/mls/recovery-scope-cleanup`）的closed body字段顺序为authorization_event_ref、inventory_digest、

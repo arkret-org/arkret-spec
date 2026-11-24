@@ -133,5 +133,97 @@ class SidecarHistoryFloorSourceTest(unittest.TestCase):
             self.assertEqual(agent_session_content.decide(inputs), expected)
 
 
+class OwnedAgentWireTest(unittest.TestCase):
+    def test_session_source_and_history_are_exclusive(self):
+        validator = schema_validator(ARTIFACTS / "schemas/realm-join-intake.schema.json",
+                                     "#/$defs/peer_bootstrap_request_body")
+        request = dict(REQUEST)
+        del request["history_stream_ref"]
+        request["content_intent"] = {
+            "controller_account_id": CONTROLLER,
+            "controller_membership_commit_id": CREATE["commit_id"],
+            "agent_key_authorization_ref": CREATE["event_id"],
+            "action": "ak.object.read_content",
+            "effective_scope": {"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR},
+            "request_digest": "sha256:" + "a" * 64,
+        }
+        validator.validate(request)
+        self.assertFalse(validator.is_valid({**request, "history_stream_ref": STREAM}))
+        for member in request["content_intent"]:
+            partial = copy.deepcopy(request)
+            del partial["content_intent"][member]
+            self.assertFalse(validator.is_valid(partial), member)
+
+        response = schema_validator(ARTIFACTS / "schemas/realm-join-intake.schema.json",
+                                    "#/$defs/peer_bootstrap_response_body")
+        single = {
+            "request_id": request["request_id"], "content_intent": request["content_intent"],
+            "membership_commit_id": JOIN["commit_id"],
+            "scope_details": {
+                "controller_principal_id": CONTROLLER["principal_id"],
+                "agent_key_authorization_ref": CREATE["event_id"],
+                "realm_ids": [REALM], "strand_ids": [],
+                "resources": {"realm_ids": [REALM], "strand_ids": []},
+                "constraints": {"allowed_tracks": [], "allowed_data_labels": [], "allowed_endpoints": []},
+                "capability_grant_refs": [], "policy_refs": [],
+            },
+        }
+        response.validate(single)
+        self.assertFalse(response.is_valid({**single, "visible_stream_heads": []}))
+
+        scan = schema_validator(ARTIFACTS / "schemas/authority-commit-operations.schema.json",
+                                "#/$defs/peer_stream_scan_request_body")
+        page = {"realm_id": REALM, "stream_ref": STREAM, "after_position": None, "limit": 1}
+        scan.validate(page)
+        delivery = {k: v for k, v in request.items() if k != "realm_id"}
+        delivery.update(session_grant_id="ak:session_grant:01964137-0000-7000-8000-000000000001", scan=page)
+        scan.validate(delivery)
+        self.assertFalse(scan.is_valid({**page, "content_intent": request["content_intent"]}))
+
+    def test_first_writer_sidecar_packet_is_single_root_and_agent_signed(self):
+        packet = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))["root_backup"]["envelope"]
+        del packet["source_commit_ref"]
+        packet["actor_id"] = {"kind": "account", "account_id": AGENT}
+        packet["custodian_actor_id"] = {"kind": "account", "account_id": CONTROLLER}
+        packet["custody_authorization_ref"] = CREATE["event_id"]
+        proof = packet["signature_proof"]
+        del proof["device_id"], proof["device_authorize_event_id"]
+        proof["agent_authorization_event_ref"] = JOIN["event_id"]
+        item = packet["contents"][0]
+        item["root_context"]["effective_scope"] = {"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR}
+        validator = schema_validator(ARTIFACTS / "schemas/key-backup.schema.json", "#")
+        validator.validate(packet)
+        self.assertFalse(validator.is_valid({**packet, "contents": [item, item]}))
+        self.assertFalse(validator.is_valid({**packet, "expires_at": packet["created_at"]}))
+        self.assertFalse(validator.is_valid({**packet, "device_id": "ak:device:01964137-0000-7000-8000-000000000001"}))
+
+    def test_first_writer_preparation_selects_only_one_sidecar(self):
+        validator = schema_validator(ARTIFACTS / "schemas/keys-operations.schema.json",
+                                     "#/$defs/keys_backups_list_query")
+        validator.validate({"sidecar_id": SIDECAR})
+        for extra in ({"cursor": "other"}, {"limit": 1}, {"agent_id": AGENT["principal_id"]}):
+            self.assertFalse(validator.is_valid({"sidecar_id": SIDECAR, **extra}))
+
+        histories = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))
+        envelope = histories["root_backup"]["envelope"]
+        backups = json.loads((ARTIFACTS / "fixtures/key-backup-fixture.json").read_text("utf-8"))
+        policy = next(case["instance"] for case in backups["schema_validation_cases"]
+                      if case["name"] == "recovery_policy_recovery_unlock_distinct_signing_and_hpke_keys_valid")
+        context = dict(envelope["contents"][0]["root_context"],
+                       effective_scope={"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR})
+        prepared = {
+            "sidecar_id": SIDECAR, "root_context": context, "series_id": envelope["series_id"],
+            "series_sequence": 0, "recovery_policy_ref": envelope["recovery_policy_ref"],
+            "backup_hpke": policy["methods"][0]["keys"][0]["backup_hpke"],
+        }
+        response = schema_validator(ARTIFACTS / "schemas/keys-operations.schema.json",
+                                    "#/$defs/keys_backups_list_response_body")
+        response.validate(prepared)
+        previous = {"supersedes_id": envelope["backup_id"], "supersedes_digest": "sha256:" + "a" * 64}
+        self.assertFalse(response.is_valid({**prepared, **previous}))
+        self.assertFalse(response.is_valid({**prepared, "series_sequence": 1}))
+        response.validate({**prepared, "series_sequence": 1, **previous})
+        self.assertFalse(response.is_valid({**prepared, "backups": []}))
+
 if __name__ == "__main__":
     unittest.main()

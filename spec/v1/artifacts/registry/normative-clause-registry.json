@@ -710,7 +710,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#1-显式自有授权来源",
-      "section_digest": "sha256:af2e3e2484b29ee3d696aa77e5af3b41b2b9b3650e2bc35d292854f144313be7",
+      "section_digest": "sha256:8edd816990f6c7c86d44f363b847a73d675876dd3b8176901d9125de3cd6a762",
       "requirement": "An explicit original-controller grant to an exact owned Agent needs no general grant action or parent regrant right; both membership generations and ownership are verified, the source is terminal and cannot be reentered by an Agent controller.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -762,8 +762,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#5-current-依赖远端与审计",
-      "section_digest": "sha256:d4cf61c58435b93bb68e96cfb3d512425ac6a64e8f8ba30da5227420d7a56560",
-      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery.",
+      "section_digest": "sha256:e4f7425be209983245dd0d7b1ff9fdc71a45d9288bedcf0770d3d4cea93227c2",
+      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery. The owning Station checks the native Agent session and expiration on first forward; the governing Station enforces its own current membership and action at acceptance and actual delivery.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"

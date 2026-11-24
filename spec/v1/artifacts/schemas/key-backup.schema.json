@@ -1361,6 +1361,114 @@
           ]
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "signature_proof": {
+            "required": [
+              "agent_authorization_event_ref"
+            ]
+          },
+          "contents": {
+            "contains": {
+              "required": [
+                "root_context"
+              ],
+              "properties": {
+                "root_context": {
+                  "properties": {
+                    "effective_scope": {
+                      "properties": {
+                        "kind": {
+                          "const": "sidecar",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "key-backup.schema.json#/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope/properties/kind",
+                            "owner": "key-backup.schema.json#/allOf/7/if/properties/contents/contains/properties/root_context/properties/effective_scope/properties/kind",
+                            "values": [
+                              "sidecar"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "recovery_policy_ref"
+        ],
+        "properties": {
+          "contents": {
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "required": [
+                "root_context",
+                "root_ref"
+              ],
+              "properties": {
+                "item_kind": {
+                  "const": "content_epoch_root",
+                  "x-arkret-value-ownership": {
+                    "class": "owned_symbol",
+                    "authority": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/item_kind",
+                    "owner": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/item_kind",
+                    "values": [
+                      "content_epoch_root"
+                    ]
+                  }
+                },
+                "root_context": {
+                  "properties": {
+                    "effective_scope": {
+                      "properties": {
+                        "kind": {
+                          "const": "sidecar",
+                          "x-arkret-value-ownership": {
+                            "class": "owned_symbol",
+                            "authority": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope/properties/kind",
+                            "owner": "key-backup.schema.json#/allOf/7/then/properties/contents/items/properties/root_context/properties/effective_scope/properties/kind",
+                            "values": [
+                              "sidecar"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "const": "recovery_public_key",
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "key-backup.schema.json#/allOf/7/then/properties/encryption/properties/recipient_method",
+                  "owner": "key-backup.schema.json#/allOf/7/then/properties/encryption/properties/recipient_method",
+                  "values": [
+                    "recovery_public_key"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "not": {
+          "required": [
+            "expires_at"
+          ]
+        }
+      }
     }
   ],
   "patternProperties": {

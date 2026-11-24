@@ -300,6 +300,8 @@ cut 已知的 membership loss/fence 仍优先。H 观察 cut 与 G 接纳 cut �
 Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
 key、旧 session 或本地缓存不能继续授权新写。
 
+独立治理站成员首次入群、内容签发和原件交付沿 [自有 Agent 权威 §5.1](../authz/owned-agent-authority.md)。普通业务首次写入的根保管沿 [可恢复内容 §3.3](../crypto-media/content-history.md)。
+
 ### 6.1 跨站 Agent 历史下界来源（normative）
 
 H≠G 时，H MUST 通过既有 `ak.peer.realm_join.read.bootstrap.v1`，以 `history_stream_ref` 指定 exact
@@ -492,7 +494,7 @@ canonical unsigned bytes 与 digest；new 分支返回 create + context attach d
 commit 只接受在 exact drafts 上追加的 controller proofs，并原子提交。reservation 不分配 Sidecar ID；
 Sidecar ID由已固定 create Event ID确定。
 
-读取只通过 `ak.self.agent.sidecar.resource.get.v1` 与 `ak.self.agent.sidecar.query.list`。返回 Sidecar、
+读取只通过 `ak.self.agent.sidecar.resource.get.v1` 与 `ak.self.agent.sidecar.read.list.v1`。返回 Sidecar、
 `desired_agent_ids` 只读派生投影、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source
 context mappings。
 普通 Circle/Strand/Relation list 不得泄漏 Sidecar 存在、private Event、计数、未读、搜索或通知差异。

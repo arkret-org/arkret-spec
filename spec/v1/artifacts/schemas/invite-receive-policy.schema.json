@@ -130,7 +130,7 @@
     "allowed_handle_domains": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/domain_name"
+        "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
       },
       "uniqueItems": true,
       "description": "Optional subject-private allowlist for canonical handle domains accepted as handle_claim evidence. Empty or omitted means no subject-level domain restriction; deployment constraints may still restrict the effective set."
@@ -138,7 +138,7 @@
     "denied_handle_domains": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/domain_name"
+        "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
       },
       "uniqueItems": true,
       "description": "Subject-private denylist for canonical handle domains. Matches are rejected before allowed_handle_domains is evaluated."
@@ -201,11 +201,6 @@
     "did_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+$"
-    },
-    "domain_name": {
-      "type": "string",
-      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-      "description": "Canonical IDNA A-label domain. Subdomains are not implied; list each accepted domain explicitly."
     },
     "receive_behavior": {
       "type": "string",
@@ -392,7 +387,7 @@
         "allowed_handle_domains": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/domain_name"
+            "$ref": "./string-profiles.schema.json#/$defs/canonical_domain"
           },
           "uniqueItems": true,
           "description": "Deployment-level allowlist for handle domains accepted as handle_claim evidence. Empty means no handle domain is accepted."

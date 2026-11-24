@@ -343,17 +343,23 @@
         "history_stream_ref": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
           "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state. For an effective personally controlled Sidecar Agent with distinct H and G, this same request is the narrow history-floor source under zh/models/sidecar.md section 6.1. The authenticated owning H asserts its actual native, endpoint, effective and read-ceiling checks at this request cut; G independently verifies its current controller/Agent membership generations, binding, management policy, fence and original accepted MLS membership basis. G directly signs the complete stream_history original without a successful full_recovery or an H-computed floor. Pending recipients use only their exact Add/Welcome/claim handshake path and cannot request business rows through this use. No native PCR disclosure, generic Agent bootstrap authority or current-delivery lease follows."
+        },
+        "content_intent": {
+          "$ref": "#/$defs/owned_agent_content_intent"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "not": {
+        "required": [
+          "history_stream_ref",
+          "content_intent"
+        ]
+      }
     },
     "peer_bootstrap_response_body": {
       "type": "object",
       "required": [
-        "request_id",
-        "authority_bundle",
-        "snapshot",
-        "visible_stream_heads"
+        "request_id"
       ],
       "properties": {
         "request_id": {
@@ -376,6 +382,15 @@
           "items": {
             "$ref": "./realm-commit.schema.json#/$defs/stream_head"
           }
+        },
+        "content_intent": {
+          "$ref": "#/$defs/owned_agent_content_intent"
+        },
+        "membership_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "scope_details": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantScope"
         }
       },
       "additionalProperties": false,
@@ -415,7 +430,136 @@
             }
           }
         }
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "request_id",
+            "authority_bundle",
+            "snapshot",
+            "visible_stream_heads"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "content_intent"
+                ]
+              },
+              {
+                "required": [
+                  "membership_commit_id"
+                ]
+              },
+              {
+                "required": [
+                  "scope_details"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "content_intent",
+            "membership_commit_id",
+            "scope_details"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "authority_bundle"
+                ]
+              },
+              {
+                "required": [
+                  "snapshot"
+                ]
+              },
+              {
+                "required": [
+                  "visible_stream_heads"
+                ]
+              },
+              {
+                "required": [
+                  "producer_signer_fact"
+                ]
+              }
+            ]
+          }
+        }
       ]
+    },
+    "owned_agent_content_intent": {
+      "type": "object",
+      "required": [
+        "controller_account_id",
+        "controller_membership_commit_id",
+        "agent_key_authorization_ref",
+        "action",
+        "effective_scope",
+        "request_digest"
+      ],
+      "properties": {
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "controller_membership_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "agent_key_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "ak.event.read",
+            "ak.message.create",
+            "ak.message.redact.own",
+            "ak.message.revise.own",
+            "ak.object.read",
+            "ak.object.read_content",
+            "ak.object.read_history",
+            "ak.object.read_metadata",
+            "ak.reaction.add",
+            "ak.reaction.remove",
+            "ak.strand.read"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "namespaced_symbol",
+            "authority": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/action",
+            "owner": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/properties/action",
+            "values": [
+              "ak.event.read",
+              "ak.message.create",
+              "ak.message.redact.own",
+              "ak.message.revise.own",
+              "ak.object.read",
+              "ak.object.read_content",
+              "ak.object.read_history",
+              "ak.object.read_metadata",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.strand.read"
+            ]
+          }
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "request_digest": {
+          "$ref": "./agent-operations.schema.json#/$defs/digest"
+        },
+        "backup_root_context": {
+          "$ref": "./content-encryption.schema.json#/$defs/root_context"
+        },
+        "strand_id": {
+          "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

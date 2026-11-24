@@ -152,6 +152,11 @@
       "fragment": "141-持久恢复与积压终结normative"
     },
     {
+      "page": "authz/owned-agent-authority.md",
+      "heading": "5.1 独立治理站的自有 Agent（normative）",
+      "fragment": "51-独立治理站的自有-agentnormative"
+    },
+    {
       "page": "conformance/conformance-profiles.md",
       "heading": "2.1.2 可裁剪构建与 profile 声明对账（normative）",
       "fragment": "212-可裁剪构建与-profile-声明对账normative"

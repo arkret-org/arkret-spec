@@ -140,11 +140,11 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
 
     definitions = keys_operations.get("$defs", {})
     union = definitions.get("keys_backups_list_response_body", {}).get("oneOf", [])
-    expected_refs = {"#/$defs/keys_backups_page", "#/$defs/realm_actor_archive_inventory_page", "#/$defs/realm_actor_backup_series_head_response_body"}
-    if (not isinstance(union, list) or len(union) != 3
+    expected_refs = {"#/$defs/keys_backups_page", "#/$defs/realm_actor_archive_inventory_page", "#/$defs/realm_actor_backup_series_head_response_body", "#/$defs/sidecar_backup_prepare_response_body"}
+    if (not isinstance(union, list) or len(union) != len(expected_refs)
             or any(not isinstance(item, dict) or set(item) != {"$ref"} for item in union)
             or {item.get("$ref") for item in union if isinstance(item, dict)} != expected_refs):
-        _fail(lint, KEYS_OPERATIONS_SCHEMA, "Station list response projection must be the closed three-role union")
+        _fail(lint, KEYS_OPERATIONS_SCHEMA, "Station list response projection must be the closed role-specific union including Sidecar first-use preparation")
     projection = definitions.get("backup_active_series_state", {})
     projection_required = set(projection.get("required", []))
     projection_properties = projection.get("properties", {})

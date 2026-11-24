@@ -410,6 +410,21 @@
       },
       "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.owned_agent_content_request_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-join-intake.schema.json",
+        "json_path": "$.$defs.owned_agent_content_intent.properties",
+        "digest_field": "request_digest",
+        "content_addressed_refs": [
+          "controller_membership_commit_id"
+        ]
+      },
+      "preimage": "SHA-256 of JCS of the exact initiating request intent. The membership Commit identifies an accepted join, not that live request.",
+      "spec_anchor": "spec/v1/zh/authz/owned-agent-authority.md"
     }
   ]
 }

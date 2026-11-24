@@ -3686,6 +3686,54 @@
           }
         }
       ]
+    },
+    "owned_agent_stream_scan_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "member_account_id",
+        "membership_commit_id",
+        "content_intent",
+        "session_grant_id",
+        "scan"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "member_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "membership_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "content_intent": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/owned_agent_content_intent",
+          "not": {
+            "required": [
+              "backup_root_context"
+            ]
+          }
+        },
+        "session_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/session_grant_id"
+        },
+        "scan": {
+          "$ref": "#/$defs/stream_scan_request_body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_stream_scan_request_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/stream_scan_request_body"
+        },
+        {
+          "$ref": "#/$defs/owned_agent_stream_scan_request_body"
+        }
+      ],
+      "x-arkret-name-role": "request_body"
     }
   }
 }

@@ -12,6 +12,8 @@ updated: 2026-11-15
 
 > **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ak.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_specification` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpecification` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `operator` / `direction` 等）以 `query.schema.json` 为准。
 
+公共查询 schema、文档具名的投影和分页别名以及部署保留的 MutualTls 定义均保留原用途。单凭 OpenAPI 路径未直接引用不得取消这些公开承诺。
+
 ## 1. 目标
 
 本文定义 Arkret View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Realm policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
