@@ -762,8 +762,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#5-current-依赖远端与审计",
-      "section_digest": "sha256:e4f7425be209983245dd0d7b1ff9fdc71a45d9288bedcf0770d3d4cea93227c2",
-      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery. The owning Station checks the native Agent session and expiration on first forward; the governing Station enforces its own current membership and action at acceptance and actual delivery.",
+      "section_digest": "sha256:84aea372ac7664634be295f5885d09475952c02e0d240972720e440b81fcb869",
+      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery. The owning Station checks the native Agent session and expiration on first forward; the governing Station enforces its own current membership and action at acceptance and actual delivery. For each new controller-signed public-mode setting the owning Station rechecks current Agent ownership and active status before forwarding, and the governing Station admits the exact setting under current membership and group policy. For an exclusive owned_agent grant originally signed by the controller for their own Agent, the home verifies the exact grant against private provision scope and current native ownership before forwarding; the governor verifies the two current joins, controller coverage and policy.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"

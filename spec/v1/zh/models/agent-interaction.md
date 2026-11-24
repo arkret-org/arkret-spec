@@ -40,6 +40,7 @@ Service author、Agent 自改、第三方管理员及任何 executed_by 代行 M
 controller 签名或放宽该谓词。动作不授予任何 capability。required authority 未决时 MUST fail closed。
 经 own Station 转交治理 Station 时，original requester 按现行 self／peer submit 的可信传递合同验证，
 MUST NOT 把 peer transport 的 Service bearer 身份冒充主人，也不得要求转发 service 自著模式 Event。
+独立两站处理主人设为 `public` 的请求时，归属站在首次转发前重新确认目标 Agent 的归属和启用状态；治理站验证本次转发和原签，并按当前成员、群管理权限及模式 revision 决定是否接纳，详见[自有 Agent 权威 §5.1](../authz/owned-agent-authority.md)。
 CAS 失配 MUST 以既有 `failed_precondition` 零写入拒绝；Event、whole-value current 与 RealmCommit 原子接纳。
 same-value 设置也产生新 revision；不触发补发、不改变 membership generation，不驱动 MLS Add／Remove。
 

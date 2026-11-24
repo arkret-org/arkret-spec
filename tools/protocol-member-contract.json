@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:7c8b5247422a185bc0fcf2ad148923d37952c35e2c64286e56d452c645ab2831",
+  "contract_digest": "sha256:a94137dc5d395363a990965246b674453db1e8cb99a0a42f94cfd3289de3b789",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -119676,7 +119676,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:70b7057d5fcdff3363234f0a56035529d93dab963b2c32028ccf97a35b8a9c2e"
+      "digest": "sha256:63406c815247755d171ffad543152d76b6acff90e2d46a4b13f5d0f5770468f5"
     },
     {
       "file": "operation-clause-registry.json",
@@ -119692,7 +119692,7 @@
     },
     {
       "file": "owned-agent-authority-registry.json",
-      "digest": "sha256:e546b4282cb2e625dbdcd306c7fb93b641e3d005d4ecb6a093b0bcd3cbff5fdd"
+      "digest": "sha256:0298ab343e18eb5d8c2ae446541b6e901202ce4f8a55a2f54f1f955ab14bfab6"
     },
     {
       "file": "payload-validator-profile-registry.json",

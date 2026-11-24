@@ -152,6 +152,38 @@ def check_agent_session_content(lint: Lint) -> None:
     }
     if registry != exact_fields:
         lint.fail(registry_path, 'Agent session content authority, current supply or rotation contract drift')
+    foreign = authority.get('foreign_realm_content_authority', {})
+    grant = foreign.get('controller_owned_grant', {})
+    if (grant.get('issuer_authority_ref') != 'owned_agent'
+            or grant.get('event_kind') != 'ak.capability.grant'
+            or grant.get('operation') != foreign.get('first_join_operation')
+            or grant.get('branch') != 'authority_forward'
+            or grant.get('disclosure_recipient') != 'home_only'
+            or grant.get('reusable') is not False
+            or set(grant.get('home_before_forward', [])) != {
+                'original_controller_device_proof', 'exact_owned_agent', 'accepted_provision',
+                'active_accountability', 'active_lifecycle', 'verifier_private_disclosure',
+                'actions_resources_constraints_within_provision'}
+            or set(grant.get('governor_at_admission', [])) != {
+                'authenticated_home_and_current_governor', 'exact_original_controller_proof',
+                'both_current_join_event_refs', 'controller_current_authority_ceiling',
+                'management_policy', 'grant_constraints', 'known_fences'}):
+        lint.fail(registry_path, 'Owned grant must bind the home ceiling and current governing sources')
+    mode = foreign.get('controller_set_public', {})
+    if (mode.get('operation') != foreign.get('first_join_operation')
+            or mode.get('branch') != 'authority_forward'
+            or mode.get('event_kind') != 'ak.agent.interaction.set'
+            or mode.get('interaction_mode') != 'public'
+            or set(mode.get('home_before_first_forward', [])) != {
+                'original_controller_device_proof', 'exact_controller_and_agent_accounts',
+                'accepted_provision', 'current_ownership', 'active_accountability', 'active_lifecycle'}
+            or set(mode.get('governor_at_admission', [])) != {
+                'authenticated_home_and_current_governor', 'exact_original_controller_proof',
+                'current_controller_and_agent_membership_binding', 'current_publish_policy_and_review',
+                'known_fences', 'mode_compare_and_set'}
+            or mode.get('reuse_first_join_assertion') is not False
+            or mode.get('grants_message_write') is not False):
+        lint.fail(registry_path, 'Public Agent mode must recheck both Station authorities on the original forward')
     approval_error = authority.get('session_human_approval_contract', {}).get('error')
     if approval_error != {'status': 403, 'code': 'claim_required',
                           'reason_code': 'human_approval_required',

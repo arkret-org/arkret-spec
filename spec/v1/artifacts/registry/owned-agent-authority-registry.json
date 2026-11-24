@@ -170,6 +170,56 @@
     "delivery_request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",
     "cached_delivery_allow": false,
     "native_expiry_authority": "owning_station",
-    "resource_admission_authority": "governing_station"
+    "resource_admission_authority": "governing_station",
+    "controller_set_public": {
+      "event_kind": "ak.agent.interaction.set",
+      "interaction_mode": "public",
+      "operation": "ak.peer.events.command.submit.v1",
+      "branch": "authority_forward",
+      "home_before_first_forward": [
+        "original_controller_device_proof",
+        "exact_controller_and_agent_accounts",
+        "accepted_provision",
+        "current_ownership",
+        "active_accountability",
+        "active_lifecycle"
+      ],
+      "governor_at_admission": [
+        "authenticated_home_and_current_governor",
+        "exact_original_controller_proof",
+        "current_controller_and_agent_membership_binding",
+        "current_publish_policy_and_review",
+        "known_fences",
+        "mode_compare_and_set"
+      ],
+      "reuse_first_join_assertion": false,
+      "grants_message_write": false
+    },
+    "controller_owned_grant": {
+      "event_kind": "ak.capability.grant",
+      "issuer_authority_ref": "owned_agent",
+      "operation": "ak.peer.events.command.submit.v1",
+      "branch": "authority_forward",
+      "home_before_forward": [
+        "original_controller_device_proof",
+        "exact_owned_agent",
+        "accepted_provision",
+        "active_accountability",
+        "active_lifecycle",
+        "verifier_private_disclosure",
+        "actions_resources_constraints_within_provision"
+      ],
+      "governor_at_admission": [
+        "authenticated_home_and_current_governor",
+        "exact_original_controller_proof",
+        "both_current_join_event_refs",
+        "controller_current_authority_ceiling",
+        "management_policy",
+        "grant_constraints",
+        "known_fences"
+      ],
+      "disclosure_recipient": "home_only",
+      "reusable": false
+    }
   }
 }
