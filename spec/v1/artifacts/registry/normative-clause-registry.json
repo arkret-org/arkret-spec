@@ -906,8 +906,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/models/sidecar.md#61-私有握手历史与排队投递normative",
-      "section_digest": "sha256:9d6c7241fdf7a4f6c45f8ad3a4e409ee99ba9f12a5ed8c3745a30a2a2ed98449",
-      "requirement": "The controller Account Station alone accepts private Sidecar handshakes, delivers ciphertext and issues private history and backup evidence. Pending, effective and revoked endpoints have distinct access. A project governor separately authorizes project reads and publication at delivery under current membership. A rejoined Agent cannot reuse a prior project history snapshot.",
+      "section_digest": "sha256:4d1aadbaa3266494e5f7783faabe34e99859de1045f84e41f33ae8106cc3380a",
+      "requirement": "The controller Account Station binds a local KeyPackage claim to the exact Human PCR, Sidecar group and enabled Agent. It accepts private Sidecar handshakes, delivers ciphertext and issues private history and backup evidence. Pending, effective and revoked endpoints have distinct access. A project governor separately authorizes project reads and publication at delivery under current membership. A rejoined Agent cannot reuse a prior project history snapshot.",
       "testability_grade": "audit",
       "test_plan": "Check the private and project branches in tools.test_sidecar_history_floor_source. On independent Stations start with the project governor offline, create and attach the private Sidecar, deliver the first Welcome and private message, then recover on an authorized new device. Separately queue project history, withdraw before transport handoff, and replay the signed old snapshot after rejoin. Verify the absence of payload and checkpoint advance on refusal."
     }

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:05875cc5b8cf82881ae9476a01a702b455f5a0ada0e1e3439759644f5db27a90",
+  "contract_digest": "sha256:2eea2bee64d3caa8a0e0938eb6edb0010b391b093f0eaf6d886425fd1f442099",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -120009,7 +120009,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:174a5f7a981fe1233185715d2630caf76f0b35d9a3015d6fcfd9dee9c1ea835f"
+      "digest": "sha256:6571017d11f99fbb5bf6de3148f4d9cf58492363d200b0f311784631c8dd68bc"
     },
     {
       "file": "operation-clause-registry.json",

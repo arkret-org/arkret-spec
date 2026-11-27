@@ -1184,6 +1184,8 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
 #### 9.2.2 目标 authority 的独立准入
 
+个人 Sidecar 的 owner Device 通过 H 的 self 接口为本组已启用的 Agent 领取 KeyPackage。此处 `realm_membership` 的成员依据是该组的私有创建与当前启用，来源及目标均为 H，签名绑定的 Realm 为主人 Human PCR。H 在分配和消费时按各自的授权切点核验原件、组与端点。该领取仅在 H 本地执行。见[个人 Sidecar 首次握手](../models/sidecar.md#61-私有握手历史与排队投递normative)。
+
 在触碰 KeyPackage 状态前，目标服务 MUST 独立验证：
 
 - `Source-Service-ID` 是 requester closed 分支当前已验证的 Station locator / home authority；human target 时 `Destination-Service-ID` MUST 逐字等于 `target_account_id.station_id`，Agent target 时则等于已接受 Realm routing evidence 为该 target actor 选择的当前 KeyPackage authority。两端与请求中的 trust domain 均属于允许此次 Realm 建立的同一 trust domain；不得用同一 principal 分量下另一 Account 的 Station 替代；

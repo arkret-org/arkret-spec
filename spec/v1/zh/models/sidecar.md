@@ -188,6 +188,8 @@ transaction；独立 group、stream、epoch 和下面的参与者签名绑定不
 
 ### 6.1 私有握手、历史与排队投递（normative）
 
+主人设备首次为自有 Agent 领取 KeyPackage 时，使用本地 self claim 的 `claim_purpose=realm_membership`。其 `intended_realm_id` 为主人的 Human PCR，`mls_group_id` 为该 Sidecar 的规范组 ID，来源和目标 Station 均为 H。H 以原签创建、当前启用、Agent 的归属及当前端点核验参与资格，并在分配 KeyPackage 的同一事务重核。项目入群记录不能代替私有启用。H 不得为该领取建立 peer 转发或重试。
+
 首次 Welcome 由 H 依本地真实会话和当前启用世代投递。H 同时核对原 Add、其原签 Welcome、claim、接收端及当前授权密钥。领取和 consume 前允许端点尚未 effective。业务历史要求该端点已 effective。每次实际发送队列字节前重核当前会话、端点和资格；撤权后已经排队的内容也不得交付。
 
 H 为各获准主体签发私有历史依据。主人的历史可在同 H 的已授权设备恢复；Agent 的读取下界绑定其本 Sidecar 当前启用世代与受理的 MLS 状态。重新启用后拒绝旧世代的快照、Welcome 与日志游标，拒绝时不得推进检查点。H 验证历史原件、连续 commit 链、签名、MLS 与授权范围，允许获授权新设备独立验证并耐久安装。准备或写入首次备份根也由 H 核本次写动作、完整 Sidecar 与精确 MLS epoch。私有握手、历史、备份、同步及恢复均不得使用来源项目的站际 bootstrap、scan、事件转发、推送或离线补发。
