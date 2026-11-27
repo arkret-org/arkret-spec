@@ -133,7 +133,7 @@ def contract_errors(contract, operations, typed):
         errors.append("Local authoring must close all five input groups")
     branches = message.get("branches", [])
     if {row.get("kind") for row in branches} != {
-            "realm_default", "circle", "sidecar", "direct_participant", "direct_provisional_founder", "delegated_or_agent"}:
+            "realm_default", "sidecar", "direct_participant", "direct_provisional_founder", "delegated_or_agent"}:
         errors.append("Local authoring must cover every registered message branch")
     for branch in branches:
         if not set(branch.get("source_operations", [])) <= op_ids:

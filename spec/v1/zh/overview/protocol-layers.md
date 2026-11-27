@@ -29,7 +29,7 @@ Extension。一个实现通过 Kernel conformance，不表示它实现了完整�
 Kernel 仅包含下列安全原语：
 
 1. Principal、Device、Service identity 与 proof；
-2. Realm 与 `realm | circle | sidecar` `scope_ref` 原生安全作用域，以及 create-only `realm_genesis` 例外；
+2. Realm 与 `realm | sidecar` `scope_ref` 原生安全作用域，以及 create-only `realm_genesis` 例外；
 3. authority-commit state-changing Event、RealmCommit、governance Station、stream head 与闭集 projection 词表；
 4. signed durable Event；
 5. MLS scope/epoch binding；
@@ -86,15 +86,10 @@ accepted governance basis 求出的 capability 引用。current state family、s
 
 ## 3. Security Scope
 
-普通业务 scope 的 durable Event 使用以下三种 closed shape；私有控制另有下文的 realm_control 分支：
+普通业务 scope 的 durable Event 使用以下两种 closed shape；私有控制另有下文的 realm_control 分支：
 
 ```json illustrative
 {"kind":"realm","realm_id":"ak:realm:..."}
-```
-或：
-
-```json illustrative
-{"kind":"circle","realm_id":"ak:realm:...","circle_id":"ak:circle:..."}
 ```
 或：
 
@@ -107,13 +102,13 @@ accepted governance basis 求出的 capability 引用。current state family、s
 
 realm_control 仅用于 Realm Bot／Ghost 的控制 Event，不是业务 effective scope。
 `{"kind":"realm_genesis","realm_genesis_nonce":"..."}` 是 create-only 封闭例外，只允许对应的
-Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm、Circle 或 Sidecar Event。
+Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm 或 Sidecar Event。
 上述 closed union 以 `event-envelope.schema.json#/$defs/scope_ref` 为穷尽真源，正文集合必须由 lint 与其对齐。
 Sidecar 的领域 Event kinds 仍归 Extension；Kernel 只认识签名 Event Envelope、authority-commit/RealmCommit、MLS/AAD、
-delivery/query 所需的原生安全 scope 形状，不解释 Sidecar 领域 reducer，也不得把 Sidecar 实现为 Circle。
+delivery/query 所需的原生安全 scope 形状，不解释 Sidecar 领域 reducer。
 
 字段名固定为 `scope_ref`。它是 signed producer fact，不是 reducer 盖章字段。reducer MUST
-从 schema-validated payload、已接受的对象引用及治理状态独立派生 Realm、Circle 或 Sidecar 安全作用域，并逐字段比较；
+从 schema-validated payload、已接受的对象引用及治理状态独立派生 Realm 或 Sidecar 安全作用域，并逐字段比较；
 无法派生、引用未补齐或不相等时 MUST fail closed。Event Envelope 不包含 reducer 盖章字段；
 除 `event_id`、`producer_proof` 与 `unsigned` 外，所有实际存在的顶层字段都进入 producer event digest。
 
@@ -141,12 +136,9 @@ Event projection MAY 物化名为 `effective_scope` 的只读字段，但它 MUS
 
 ## 5. 最小正反例
 
-正例：sender 签名 `scope_ref=circle`，server 仅验证 Circle membership 后转发密文；recipient
-解密得到 `strand_id` 并运行 Collaboration Base reducer。
+正例：发送者签署所属 Realm 的 `scope_ref`。接收方解密后，从已接纳的目标 Strand 核对其所属 Realm。
 
-反例：sender 签名 Realm scope，却在密文中引用 Circle-only Strand。recipient 从 accepted
-Strand projection 派生 Circle scope 后发现不等，必须拒绝；server 不需要也不得解密
-`strand_id` 来替 sender 修正 scope。
+反例：加密正文引用另一个 Realm 的 Strand。接收方发现原签 scope 与目标归属不同，拒绝该事件。
 
 反例：扩展 manifest 声明任意 JSON path 并让 producer 选择 current state。该 manifest 必须被拒绝，
 因为它重新引入 producer reducer DSL。

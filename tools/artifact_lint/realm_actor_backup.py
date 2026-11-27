@@ -68,11 +68,11 @@ def validate_fixture(data):
     schema_validator(ARTIFACTS/"schemas/realm-actor-material.schema.json","#/$defs/current_entry").validate(data["native_current_entry"])
     private_scopes=data["native_source"]["device_authorization"]["event"]["payload"]["scopes"]
     current=packet["contents"][0]["root_context"]["effective_scope"]
-    private_circles=[row["effective_scope"]["circle_id"] for row in private_scopes
-        if row["effective_scope"]!=current and row["effective_scope"].get("kind")=="circle"]
+    other_realms = {row["effective_scope"]["realm_id"] for row in private_scopes
+                    if row["effective_scope"]["realm_id"] != current["realm_id"]}
     for field in ["native_put_response","device_head_response","device_unlock_response"]:
-        if any(circle in canonical(data[field]).decode() for circle in private_circles):
-            raise ValueError("Device reply leaks an unrelated private Circle")
+        if any(realm in canonical(data[field]).decode() for realm in other_realms):
+            raise ValueError("Device reply leaks an unrelated Realm")
 
 
 def check_realm_actor_content_backup_contract(lint: Lint):

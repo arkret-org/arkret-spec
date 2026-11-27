@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/space.schema.json",
   "title": "Arkret Space",
-  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle effective scope via scope_circle_id.",
+  "description": "A structural grouping inside its Realm. A Space can require that child placement use an accepted ordinary Realm MLS group.",
   "type": "object",
   "required": [
     "schema",
@@ -31,10 +31,6 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Immutable Realm of this Space and of resources structurally placed under it. Producers explicitly bind new resources to this Realm; scope and capability checks remain independent."
-    },
-    "scope_circle_id": {
-      "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle scope. Omitted means Realm-default scope."
     },
     "child_scope_policy": {
       "$ref": "#/$defs/child_scope_policy",
@@ -306,63 +302,8 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "child_scope_policy": {
-      "type": "object",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "allow_any",
-            "require_e2ee",
-            "require_same_scope",
-            "require_scope_circle_id"
-          ],
-          "x-arkret-value-ownership": {
-            "class": "owned_symbol",
-            "authority": "space.schema.json#/$defs/child_scope_policy/properties/kind",
-            "owner": "space.schema.json#/$defs/child_scope_policy/properties/kind",
-            "values": [
-              "allow_any",
-              "require_e2ee",
-              "require_same_scope",
-              "require_scope_circle_id"
-            ]
-          }
-        },
-        "scope_circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "require_scope_circle_id",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "space.schema.json#/$defs/child_scope_policy/allOf/0/if/properties/kind",
-                  "owner": "space.schema.json#/$defs/child_scope_policy/allOf/0/if/properties/kind",
-                  "values": [
-                    "require_scope_circle_id"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "required": [
-              "scope_circle_id"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
+      "type": "boolean",
+      "description": "True requires accepted Realm MLS activation for child placement. False clears the requirement."
     },
     "space_metadata": {
       "type": "object",

@@ -1530,5 +1530,5 @@
       "custodian_actor_id"
     ]
   },
-  "description": " Realm-native root packets contain exactly one current accepted-epoch root of an exact authorized Realm/Circle scope. Their native-only AAD appends authorization_binding to the existing canonical base before the existing x_* merge; Account/Agent AAD is unchanged. Local seal/freeze is not PUT acknowledgement; physical first PUT starts last-root custody before any business Event."
+  "description": " Realm-native root packets contain exactly one current accepted-epoch root of an exact authorized Realm scope. Their native-only AAD appends authorization_binding to the existing canonical base before the existing x_* merge; Account/Agent AAD is unchanged. Local seal/freeze is not PUT acknowledgement; physical first PUT starts last-root custody before any business Event."
 }

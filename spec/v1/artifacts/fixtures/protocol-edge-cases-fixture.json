@@ -931,9 +931,9 @@
       "basis": "realm_sync_entry.streams[].window_start_basis, evaluated once per stream_ref and never inherited from a sibling stream of the same Realm bucket",
       "variants": [
         "realm_stream_after_committed_prefix",
-        "circle_stream_position_zero_no_basis",
+        "realm_stream_position_zero_no_basis",
         "sidecar_stream_starts_at_nonzero_readable_floor",
-        "circle_stream_missing_security_context",
+        "sidecar_stream_missing_security_context",
         "realm_display_preview_only_present",
         "start_after_zero_limited_false_missing_basis",
         "signed_snapshot_row_head_floor_or_tail_invalid",
@@ -943,9 +943,9 @@
       ],
       "expected": {
         "realm_stream_after_committed_prefix": "verified_window_start",
-        "circle_stream_position_zero_no_basis": "verified_window_start_without_basis",
+        "realm_stream_position_zero_no_basis": "verified_window_start_without_basis",
         "sidecar_stream_starts_at_nonzero_readable_floor": "preview_only_for_that_stream_only",
-        "circle_stream_missing_security_context": "preview_only_for_that_stream_only",
+        "sidecar_stream_missing_security_context": "preview_only_for_that_stream_only",
         "realm_display_preview_only_present": "every_nonzero_start_without_exact_basis_stays_preview_only",
         "start_after_zero_limited_false_missing_basis": "preview_only_for_that_stream_only",
         "signed_snapshot_row_head_floor_or_tail_invalid": "reject_entire_account_frame_without_aggregate_cursor_advance",
@@ -954,7 +954,7 @@
         "basis_unavailable_after_cursor_expiry": "realm_state_snapshot_unavailable"
       },
       "assertions": [
-        "one frame carries mixed Realm, Circle and Sidecar window starts and each stream states its own coverage",
+        "one frame carries mixed Realm and Sidecar window starts and each stream states its own coverage",
         "state_at_window_start is display context and MUST NOT clear any stream preview_only",
         "a position-0 start has no basis and verifies from genesis; every basis carries anchor_position and anchor_commit_ref naming the committed prefix of that stream the state is valid after",
         "a nonzero start missing exact basis MUST be preview_only regardless of limited",

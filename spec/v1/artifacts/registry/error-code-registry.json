@@ -1609,7 +1609,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ak.self.applet.command.install.v1 recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b.",
+      "description": "ak.self.applet.command.install.v1 recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b.",
       "type_uri": "https://arkret.org/problems/applet_install_plan_mismatch",
       "title": "Applet install plan mismatch",
       "status": "active"
@@ -2844,7 +2844,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "An Agent action or mention fanout requires the current target-local deployment/Realm/Circle/Strand participation policy, but one or more required layers are stale, unavailable, or unverifiable. The action-time gate treats the unresolved policy as all false. The controller's private selection remains stored unchanged. See zh/authz/capabilities.md §5.4.",
+      "description": "An Agent action or mention fanout requires the current target-local deployment/Realm/Strand participation policy, but one or more required layers are stale, unavailable, or unverifiable. The action-time gate treats the unresolved policy as all false. The controller's private selection remains stored unchanged. See zh/authz/capabilities.md §5.4.",
       "status": "active"
     },
     {
@@ -2852,7 +2852,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a Realm/Circle/Strand agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment âŠ‡ Realm âŠ‡ Circle âŠ‡ Strand ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md §5.4.",
+      "description": "A participation setting cannot enable an action disabled by the deployment or the enclosing Realm. See zh/authz/capabilities.md.",
       "status": "active"
     },
     {
@@ -3191,69 +3191,6 @@
       "status": "active"
     },
     {
-      "code": "circle_already_terminal",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a Circle lifecycle write targets a Circle that is already tombstoned or otherwise terminal. See zh/models/common-fields.md §5.1 and zh/models/circle.md §9.",
-      "status": "reserved",
-      "activation_condition": "Promote circle_already_terminal to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
-      "code": "circle_count_exceeded",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Reducer rejected a `ak.circle.create` exceeding the per-Realm active Circle cap, or a `ak.circle.member.state -> join` that would exceed the per-actor active MLS-backed Circle cap. Caps bound cascade/delivery fanout and the M+R MLS-rotation amplification of a single membership change (zh/conformance/scalability-constraints.md §5, zh/models/circle.md §10).",
-      "status": "active"
-    },
-    {
-      "code": "circle_member_must_be_realm_member",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition on ak.circle.member.state -> join when, in the accepting cut, the target actor's parent Realm member_state current is not `join` or its typed revision differs from the payload's parent_membership_revision. Circle.members ⊆ Realm.members is a hard invariant bound to the exact current parent join. See zh/models/circle.md §9.1.",
-      "status": "active"
-    },
-    {
-      "code": "circle_not_active",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when scope_circle_id points at a Circle whose state is archived or tombstoned. See zh/models/circle.md §6.1.",
-      "status": "active"
-    },
-    {
-      "code": "circle_not_archived",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when ak.circle.restore targets a Circle whose current lifecycle state is not archived. See zh/models/common-fields.md §5.1 and zh/models/circle.md §9.",
-      "status": "reserved",
-      "activation_condition": "Promote circle_not_archived to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
-      "code": "circle_realm_mismatch",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for schema_violation when an object's scope_circle_id references a Circle whose realm_id does not match the object's realm_id. See zh/models/circle.md §6.1.",
-      "status": "active"
-    },
-    {
-      "code": "circle_short_name_taken",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution",
-        "service_call"
-      ],
-      "description": "Circle creation or display update failed the reducer-enforced case-insensitive uniqueness of display.short_name within (realm_id, short_name). See zh/models/circle.md §4.",
-      "status": "reserved",
-      "activation_condition": "Promote circle_short_name_taken to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
       "code": "claim_generation_mismatch",
       "applies_to": [
         "crypto",
@@ -3580,7 +3517,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when an actor-supplied payload illegally carries `effective_scope` where the object schema reserves that name for a read-only materialized projection. Both surfaces are decided by schema: the create shape bans the member (event-payload.schema.json#/$defs/relation_create_object), and the update shape bans the `effective_scope` / `effective_scope.*` patch paths (#/$defs/relation_update_payload), registered in registry/reducer-managed-path-registry.json. The Event envelope instead requires producer-signed `scope_ref`; the receiver derives the scope from payload and frozen pre-state, verifies exact equality, and only then may copy it into the object's effective_scope projection. See zh/models/circle.md §6.2.",
+      "description": "Sub-reason for schema_violation when an actor-supplied payload illegally carries `effective_scope` where the object schema reserves that name for a read-only materialized projection. Both surfaces are decided by schema: the create shape bans the member (event-payload.schema.json#/$defs/relation_create_object), and the update shape bans the `effective_scope` / `effective_scope.*` patch paths (#/$defs/relation_update_payload), registered in registry/reducer-managed-path-registry.json. The Event envelope instead requires producer-signed `scope_ref`; the receiver derives the scope from payload and frozen pre-state, verifies exact equality, and only then may copy it into the object's effective_scope projection. See zh/models/relation.md.",
       "status": "active"
     },
     {
@@ -3932,7 +3869,7 @@
         "authz",
         "state_resolution"
       ],
-      "description": "Realm or Circle membership admission rejects an illegal FSM edge with failed_precondition and zero writes; see models/common-fields.md section 4.5.",
+      "description": "Realm membership admission rejects an illegal FSM edge with failed_precondition and zero writes; see models/common-fields.md section 4.5.",
       "status": "active"
     },
     {
@@ -4256,7 +4193,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an Event would deactivate, replace or re-run the accepted ak.mls.genesis of an already activated Realm, Circle or Sidecar scope. Activation is a one-way transition with no protocol path back to plaintext. See zh/models/realm-and-space.md section 2.3.",
+      "description": "Sub-reason for failed_precondition when an Event would deactivate, replace or re-run the accepted ak.mls.genesis of an already activated Realm, Sidecar scope. Activation is a one-way transition with no protocol path back to plaintext. See zh/models/realm-and-space.md section 2.3.",
       "status": "active"
     },
     {
@@ -4264,7 +4201,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a Strand / Message / Morph / Blob content or metadata write carries plaintext into a scope whose ak.mls.genesis is already accepted. An activated scope accepts only RFC 9420 application ciphertext. See zh/models/circle.md section 7.",
+      "description": "Sub-reason for failed_precondition when a Strand / Message / Morph / Blob content or metadata write carries plaintext into a scope whose ak.mls.genesis is already accepted. An activated scope accepts only RFC 9420 application ciphertext. See zh/crypto-media/encryption-and-audit.md.",
       "status": "active"
     },
     {
@@ -5129,30 +5066,13 @@
       "status": "active"
     },
     {
-      "code": "scope_incomparable",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a structural relation, parent, position, cascade, or reverse-projected fact would need to span two sibling Circle scopes in the same Realm. v1 reducers MUST NOT choose either Circle, union them, or promote the fact to Realm-default. See zh/models/circle.md §6.1.",
-      "status": "reserved",
-      "activation_condition": "Promote scope_incomparable to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
-      "code": "scope_rebind_forbidden",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when scope_circle_id rebind is attempted without an explicitly profile-permitted audited-high-risk path. Default reducer rejects rebinds to prevent silent historical-discussion migration. See zh/models/circle.md §6.1.",
-      "status": "active"
-    },
-    {
       "code": "scope_ref_mismatch",
       "applies_to": [
         "event_envelope",
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The signed Event `scope_ref` does not equal the security scope deterministically resolved from the target or referenced accepted object state. Receiver MUST reject the Event and MUST NOT rewrite or reducer-stamp the signed scope. See zh/models/circle.md §6.1.",
+      "description": "The signed Event `scope_ref` does not equal the security scope deterministically resolved from the target or referenced accepted object state. Receiver MUST reject the Event and MUST NOT rewrite or reducer-stamp the signed scope. See zh/models/event-and-patch.md.",
       "status": "active"
     },
     {
@@ -5160,7 +5080,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an object write references an effective scope whose Circle or parent Realm has been tombstoned/destroyed and cannot accept new writes. Projections may surface the same string as a non-error status marker. See zh/models/realm-and-space.md §2.6.1 and zh/models/circle.md §9.2.",
+      "description": "The referenced Realm has been tombstoned or destroyed and cannot accept a new write. See zh/models/realm-and-space.md.",
       "status": "reserved",
       "activation_condition": "Promote scope_unavailable to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -5490,7 +5410,7 @@
       "applies_to": [
         "client_sync"
       ],
-      "description": "One authorized commit stream cannot be continued from the caller's durable cursor: the tail range between that cursor and the stream's current head is unavailable to this service (retention or history floor reached, or the durable range is otherwise not servable). It is per-stream and scoped to exactly one stream_ref, so the client re-acquires the snapshot and tail for that stream alone and MUST NOT reset other Realm / Circle / Sidecar streams, the account baseline or to-device ACKs. It is NOT the same as an empty tail: an authorized stream that is simply at its head returns zero items and `accepted`. emitting this code for a stream the caller may not read, or for one that does not exist, would turn that anti-enumeration bucket into an oracle. Only a stream the caller is currently authorized to read may be reported with it. See zh/sync/client-sync.md section 3.",
+      "description": "One authorized commit stream cannot be continued from the caller's durable cursor: the tail range between that cursor and the stream's current head is unavailable to this service (retention or history floor reached, or the durable range is otherwise not servable). It is per-stream and scoped to exactly one stream_ref, so the client re-acquires the snapshot and tail for that stream alone and MUST NOT reset other Realm / Sidecar streams, the account baseline or to-device ACKs. It is NOT the same as an empty tail: an authorized stream that is simply at its head returns zero items and `accepted`. emitting this code for a stream the caller may not read, or for one that does not exist, would turn that anti-enumeration bucket into an oracle. Only a stream the caller is currently authorized to read may be reported with it. See zh/sync/client-sync.md section 3.",
       "status": "active"
     },
     {

@@ -5,7 +5,9 @@
     "entrypoint": "ak.suite.relation.structural_realm.v1"
   },
   "covers_vectors": [
-    "ak.vector.relation.structural_realm.v1"
+    "ak.vector.relation.structural_realm.v1",
+    "ak.vector.relation.effective_scope_reducer_managed.v1",
+    "ak.vector.relation.primary_domain_cas.v1"
   ],
   "authority": "current_governance_station_reducer",
   "cases": [
@@ -46,5 +48,187 @@
       }
     }
   ],
-  "non_authoritative_precheck_rule": "Producer and SDK prechecks MAY mirror this predicate for early feedback but MUST NOT authorize admission; the current governance Station always resolves both endpoint realms and revalidates it."
+  "non_authoritative_precheck_rule": "Producer and SDK prechecks MAY mirror this predicate for early feedback but MUST NOT authorize admission; the current governance Station always resolves both endpoint realms and revalidates it.",
+  "schema_cases": [
+    {
+      "name": "relation_create_payload_carrying_effective_scope_rejected",
+      "definition": "relation_create_payload",
+      "valid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_commit_id": null,
+        "relation": {
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+          "rank": "U"
+        }
+      },
+      "invalid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_commit_id": null,
+        "relation": {
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+          "rank": "U",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          }
+        }
+      }
+    },
+    {
+      "name": "relation_create_top_level_rank_rejected",
+      "definition": "relation_create_payload",
+      "valid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_commit_id": null,
+        "relation": {
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+          "rank": "U"
+        }
+      },
+      "invalid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_commit_id": null,
+        "relation": {
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+          "rank": "U"
+        },
+        "rank": "V"
+      }
+    },
+    {
+      "name": "relation_update_patch_carrying_effective_scope_rejected",
+      "definition": "relation_update_payload",
+      "valid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "patch": {
+          "rank": {
+            "$op": "set",
+            "value": "U"
+          }
+        }
+      },
+      "invalid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "patch": {
+          "rank": {
+            "$op": "set",
+            "value": "U"
+          },
+          "effective_scope": {
+            "$op": "set",
+            "value": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "relation_update_primary_domain_identity_patch_rejected",
+      "definition": "relation_update_payload",
+      "valid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "patch": {
+          "rank": {
+            "$op": "set",
+            "value": "U"
+          }
+        }
+      },
+      "invalid_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "patch": {
+          "rank": {
+            "$op": "set",
+            "value": "U"
+          },
+          "to_ref": {
+            "$op": "set",
+            "value": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+          }
+        }
+      }
+    }
+  ]
 }

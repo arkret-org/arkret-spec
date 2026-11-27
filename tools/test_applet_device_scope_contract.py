@@ -31,11 +31,8 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
         rules = contract['operation_scope_rules']
         self.assertEqual([r['operation_id'] for r in rules], contract['operations'])
-        self.assertEqual(len(rules), 27)
-        rotation = next(r for r in rules if r['operation_id'] == 'ak.self.circle.command.rotate_scope.v1')
-        self.assertEqual(rotation, {
-            'operation_id': 'ak.self.circle.command.rotate_scope.v1',
-            'mode': 'submitted_business_actions', 'actions': []})
+        self.assertEqual(len(rules), 26)
+        self.assertNotIn('ak.self.circle.command.rotate_scope.v1', contract['operations'])
         native_backups = {
             'ak.self.keys.backups.resource.replace.v1',
             'ak.self.keys.backups.read.list.v1',
@@ -69,7 +66,7 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         contract = json.loads((ART / 'registry/applet-managed-authority-registry.json').read_text(encoding='utf-8'))['device_authentication']
         binding = contract['blob_upload_binding']
         self.assertEqual(binding['creation_target'], 'signed_metadata_effective_scope')
-        self.assertEqual(binding['target_validation'], 'accepted_realm_or_circle_in_body_owning_realm')
+        self.assertEqual(binding['target_validation'], 'accepted_realm_matching_body_owning_realm')
         self.assertEqual(binding['current_gates'], [
             'membership', 'original_device_scope_and_upload_action',
             'device_authorization_generation_and_expiry', 'installation',

@@ -28,7 +28,7 @@ see_also:
 - `/_arkret/open/*` 只返回明确登记的公开对象；返回 locator 不等于证明 authority。
 
 所有非 `open` 端点必须在解析大型 body 之前执行身份、audience、重放窗口和字节上限检查。
-未授权的 hidden Realm/Circle/Sidecar 必须使用不可枚举的统一失败形态。
+未授权的 hidden Realm/Sidecar 必须使用不可枚举的统一失败形态。
 
 ## 2. HTTP 端点与 Event 提交
 
@@ -151,7 +151,7 @@ unlock proof 的 manager_ref／recovery_ref 与 requester Device／generation �
 
 普通原生 list 的 realm_actor_id 是 composite identifier，OAS 必须 style=deepObject、explode=true：
 realm_actor_id[realm_id] 与 realm_actor_id[principal_id] 必须同时出现，按标准 percent encoding 编码括号和值。
-Device 的 circle_id 缺席选择该 Realm，出现只选择同 Realm 的一个 exact Circle；series_predecessor 仅当前
+Device 按完整 Realm actor 身份锁定所属 Realm；series_predecessor 仅当前
 head，禁止 cursor／limit／series_id／backup_kind／previous-series 枚举；Manager inventory 仅保适用 limit／cursor，
 禁止 scope／series／backup_kind 子集筛选。两分支均禁止 agent_id 混用、
 任意 JSON query string、partial／重复／未知键。SDK raw-pair parser 是唯一协议解析器，不能依赖框架静默丢弃
@@ -288,7 +288,7 @@ service-to-service authentication 绑定 source/destination service identity、o
 | 输入 | 唯一实际来源／检查 |
 | --- | --- |
 | 完整 actor／account／Station／device signer | 已认证本地会话与已接纳设备，切号 fence 拒绝迟到结果。 |
-| Realm／Strand／effective scope | 自己 Station 的 accepted create／current state，经既有 `ak.self.current_state.read.exact.v1`、已授权 scan／snapshot／subscribe 与 accepted source 供给；不得由显示上下文、裸 ID 或字符串猜 Circle／Sidecar。 |
+| Realm／Strand／effective scope | 自己 Station 的 accepted create／current state，经既有 `ak.self.current_state.read.exact.v1`、已授权 scan／snapshot／subscribe 与 accepted source 供给；不得由显示上下文、裸 ID 或字符串猜 Sidecar。 |
 | Realm digest suite／canonical Event | 已认证 Realm 固定配置与 SDK 唯一 canonical 算法；不得平行重算公式。 |
 | 普通 participant Direct ref | 既有 `ak.self.direct_conversation.read.resolve.v1` 的唯一 binding_event_ref 与 current group state；provisional founder／repair 分支仍分别满足其已登记 authority。 |
 | 委派／Agent／Sidecar authorizing refs | 对应已登记 current／grant／resolver，按该域最小权限与原 scope 取材。 |
@@ -317,7 +317,7 @@ caller给出的producer／digest不构成native授权、当前设备资格、MLS
 
 ### 3.1 Stream scan
 
-`POST /_arkret/self/streams/scan` 一次只扫描一条 caller 获准的 Realm、Circle 或 Sidecar stream。
+`POST /_arkret/self/streams/scan` 一次只扫描一条 caller 获准的 Realm 或 Sidecar stream。
 request 指定 `stream_ref`、`limit` 与**恰好一个**位置参数——`after_position`（朝更新）或
 `before_position`（朝更旧，历史回填）——方向由选用哪个参数给出，没有独立的方向字段；
 两者同时出现或都不出现是 schema 违规，服务端 MUST NOT 代为选一个默认方向。取 `null` 分别表示
@@ -369,7 +369,7 @@ payload bytes。两种分支都只由既有 Commit 定位，不产生新的资�
 `RealmCommit + Event`。调用方必须对缺项、任一字段不匹配、Commit 签名失败或 authority chain
 不成立 fail closed。该操作用于 Directory 首次 ingest 等精确依赖验证，不得退化为按 Event ID
 返回未提交 Event，也不得通过扫描另一条 stream 补齐。
-获准 Realm stream 不自动授权 Circle 或 Sidecar stream。
+获准 Realm stream 不自动授权 Sidecar stream。
 
 #### 3.1.4 Typed current 读取
 
@@ -426,7 +426,7 @@ atomic first-admission 使用 fixed `atomic_producer_evidence[2]`，按 business
 两面都是写 audit Event 的 command，canonical request／response budget 均为 1 MiB，S2S signature 与 actual-producer
 fresh device／Agent evidence复用 §2.7，不能传本地用户凭据或服务端代签 Event。self 的完整 Account 来源与 peer 的
 Source-Service-ID 绑定 auditor，而 watcher 可是另一 actor；专用审计权限由治理站独立核对。
-`authority-commit-log` §5.3 定义唯一 selector 来源、scope／Circle 受控审计例外、同事务 audit 与 frozen current、
+`authority-commit-log` §5.3 定义唯一 selector 来源、受控审计例外、同事务 audit 与 frozen current、
 exact replay 和最终交付。HTTP 成功／失败均 `Cache-Control: no-store`；普通本人 current read保持只读及本人绑定。
 提供 `ak.operation_bundle.station.http_audit_operations.v1` 必须同时支持现有 self／peer Event-submit 的 `audit_paired_event`
 分支与上述两个 audited-read command；未知 unit 或未声明支持不能按通用 batch接纳。Station／federation profile提供与消费义务以机器矩阵为准。
@@ -447,7 +447,7 @@ locator、TLS endpoint 或 DID route 只用来找到候选服务，不作为治�
 ### 4.2 Planned handoff
 
 `POST /_arkret/peer/realm-authority/handoff` 只安装 old/new Station 对同一 transition body 的双签 handoff。
-transition body 绑定完整 typed snapshot digest 和所有 Realm/Circle/Sidecar stream heads 的私有 manifest
+transition body 绑定完整 typed snapshot digest 和所有 Realm/Sidecar stream heads 的私有 manifest
 digest。旧方在精确 cut 后永久拒写；新方未完整导入时不得启动任何 stream。
 
 旧 authority 丢失且没有已完成 handoff 时，HTTP 层不定义 takeover、管理员自封或备份恢复写权。
@@ -778,12 +778,6 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.blob.upload.create.v1` | `POST /_arkret/self/blob/upload` | - | - | request_schema_ref=schemas/blob-operations.schema.json#/$defs/blob_upload_request_body; response_schema_ref=schemas/blob-operations.schema.json#/$defs/blob_upload_response_body |
 | `ak.self.call.invitation.command.send.v1` | `POST /_arkret/self/rtc/invitation` | - | - | request_schema_ref=schemas/call-invitation-operations.schema.json#/$defs/send_request_body; response_schema_ref=schemas/call-invitation-operations.schema.json#/$defs/send_response_body |
 | `ak.self.call.media.exchange.issue_token.v1` | `POST /_arkret/self/rtc/token` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeResponseBody |
-| `ak.self.circle.command.create.v1` | `POST /_arkret/self/circles` | - | - | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_create_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_view |
-| `ak.self.circle.command.rotate_scope.v1` | `POST /_arkret/self/circles/{circle_id}/scope-rotate` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_response_body |
-| `ak.self.circle.member.command.add.v1` | `POST /_arkret/self/circles/{circle_id}/members` | - | - | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_member_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_membership_response_body |
-| `ak.self.circle.member.resource.delete.v1` | `DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}` | - | - | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_membership_response_body |
-| `ak.self.circle.read.list.v1` | `GET /_arkret/self/circles` | - | - | response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_list |
-| `ak.self.circle.resource.get.v1` | `GET /_arkret/self/circles/{circle_id}` | - | - | response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_read_view |
 | `ak.self.committed_event.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body |
 | `ak.self.committed_event.resource.get.v1` | `GET /_arkret/self/committed-events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView |
 | `ak.self.committed_event.stream.subscribe.v1` | `GET /_arkret/self/committed-events/subscribe` | - | - | response_schema_ref=schemas/committed-event-subscribe-frame.schema.json |

@@ -43,6 +43,7 @@ from .core import (
     PROFILE_ID_TOKEN_RE,
     Path,
     ROOT,
+    schema_validator,
     SCHEMA_ID_RE,
     SCHEMA_ID_TOKEN_RE,
     SPEC_ROOT,
@@ -3743,40 +3744,6 @@ def check_account_identity_carrier_closure(lint: Lint) -> None:
 
 
 
-def check_circle_membership_enum_single_source(lint: Lint) -> None:
-    """Circle operation DTOs must reference the canonical membership enum directly."""
-    path = ARTIFACTS / "schemas" / "circle-operations.schema.json"
-    schema = load_json(lint, path)
-    if not isinstance(schema, dict):
-        return
-
-    defs = schema.get("$defs", {})
-    if not isinstance(defs, dict):
-        lint.fail(path, "circle operation schema missing $defs")
-        return
-
-    if "circle_member_state" in defs:
-        lint.fail(path, "$defs.circle_member_state is a forbidden alias; reference membership_state directly")
-
-    canonical_ref = "./event-payload.schema.json#/$defs/membership_state"
-    # Only the response DTOs still name a membership value. The request body carries
-    # the caller-signed `ak.circle.member.state` Event and nothing else, so the
-    # membership on the write path is `circle_member_state_payload.membership`, which
-    # single-sources the same enum from inside event-payload.schema.json.
-    fields = (
-        ("circle_view", "viewer_membership"),
-        ("circle_membership_response_body", "membership"),
-    )
-    for def_name, field_name in fields:
-        definition = defs.get(def_name, {})
-        properties = definition.get("properties", {}) if isinstance(definition, dict) else {}
-        field = properties.get(field_name) if isinstance(properties, dict) else None
-        if not isinstance(field, dict) or field.get("$ref") != canonical_ref:
-            lint.fail(
-                path,
-                f"$defs.{def_name}.properties.{field_name} must reference {canonical_ref}",
-            )
-
 
 def check_classification_context_paths(lint: Lint) -> None:
     """Every closed-class context MUST resolve to a real node in a real artifact.
@@ -3827,25 +3794,25 @@ def check_classification_context_paths(lint: Lint) -> None:
 
 
 
-def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
-    """Verify receiver-local gates and deterministic Circle closure classification."""
-    path = ARTIFACTS / "fixtures" / "circle-scope-fixture.json"
-    data = load_json(lint, path)
-    rows = data.get("lifecycle_basis_cases", []) if isinstance(data, dict) else []
-    if len(rows) < 8:
-        lint.fail(path, "Circle lifecycle vectors must cover cached authority, cut inclusion and exclusion, missing dependencies and restore")
-    for row in rows:
-        live = "accept" if row.get("basis_active") and not row.get("closure_known") else "reject"
-        if not row.get("basis_active"):
-            history = "quarantined"
-        elif row.get("closure_known") and row.get("cut_complete", True) is False:
-            history = "pending"
-        elif row.get("closure_known") and not row.get("covered_by_cut"):
-            history = "quarantined"
-        else:
-            history = "eligible"
-        if row.get("expected") != {"live": live, "history": history}:
-            lint.fail(path, f"{row.get('name')} does not follow verified authorization and closure membership")
+def check_relation_submission_vectors(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "relation-structural-realm-fixture.json"
+    fixture = load_json(lint, path)
+    cases = fixture.get("schema_cases", []) if isinstance(fixture, dict) else []
+    required = {
+        "relation_create_payload_carrying_effective_scope_rejected": "relation_create_payload",
+        "relation_create_top_level_rank_rejected": "relation_create_payload",
+        "relation_update_patch_carrying_effective_scope_rejected": "relation_update_payload",
+        "relation_update_primary_domain_identity_patch_rejected": "relation_update_payload",
+    }
+    if {row["name"]: row["definition"] for row in cases} != required:
+        lint.fail(path, "Relation fixture must exercise both create and update write boundaries")
+        return
+    for row in cases:
+        validator = schema_validator(
+            ARTIFACTS / "schemas/event-payload.schema.json", "#/$defs/" + row["definition"]
+        )
+        if not validator.is_valid(row["valid_payload"]) or validator.is_valid(row["invalid_payload"]):
+            lint.fail(path, f"{row['name']} must accept its control and reject its mutation")
 
 
 def check_did_and_device_constraints(lint: Lint) -> None:
@@ -4471,7 +4438,7 @@ def check_fsm_state_reachability(lint: Lint) -> None:
     with an `effect_projection` -- four names the authority-commit change
     removed. All three inputs came back absent, three `or {}` swallowed that,
     and the gate reported success over four normative paragraphs
-    (`models/circle.md`, `models/morph.md`, `models/realm-and-space.md`,
+    (`models/morph.md`, `models/realm-and-space.md`,
     `models/strand-and-message.md`) that name `transition_contracts` as the
     source of truth for object lifecycle transitions. A gate whose input
     vanished does not become a no-op; it becomes a false witness, because

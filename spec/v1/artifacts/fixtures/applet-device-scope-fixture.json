@@ -6,21 +6,20 @@
       "scopes": [
         {
           "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
-          },
-          "actions": [
-            "ak.message.create"
-          ]
-        },
-        {
-          "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
           },
           "actions": [
             "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
           ]
         }
       ],
@@ -39,28 +38,26 @@
       "scopes": [
         {
           "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
-          },
-          "actions": [
-            "ak.message.create"
-          ]
-        },
-        {
-          "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
           },
           "actions": [
             "ak.event.read"
           ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
         }
       ],
       "scope": {
-        "kind": "circle",
-        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-        "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+        "kind": "realm",
+        "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
       },
       "actions": [
         "ak.message.create"
@@ -73,21 +70,20 @@
       "scopes": [
         {
           "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
-          },
-          "actions": [
-            "ak.message.create"
-          ]
-        },
-        {
-          "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
           },
           "actions": [
             "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
           ]
         }
       ],
@@ -106,21 +102,20 @@
       "scopes": [
         {
           "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
-          },
-          "actions": [
-            "ak.message.create"
-          ]
-        },
-        {
-          "effective_scope": {
             "kind": "realm",
             "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
           },
           "actions": [
             "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
           ]
         }
       ],
@@ -136,18 +131,8 @@
       "permits": false
     },
     {
-      "name": "realm_does_not_include_circle",
+      "name": "grant_does_not_cover_third_realm",
       "scopes": [
-        {
-          "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
-          },
-          "actions": [
-            "ak.message.create"
-          ]
-        },
         {
           "effective_scope": {
             "kind": "realm",
@@ -156,12 +141,20 @@
           "actions": [
             "ak.event.read"
           ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
         }
       ],
       "scope": {
-        "kind": "circle",
-        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-        "circle_id": "ak:circle:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND"
+        "kind": "realm",
+        "realm_id": "ak:realm:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND"
       },
       "actions": [
         "ak.event.read"
@@ -235,20 +228,19 @@
         {
           "effective_scope": {
             "kind": "realm",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
           },
           "actions": [
-            "ak.event.read"
+            "ak.message.create"
           ]
         },
         {
           "effective_scope": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
-            "circle_id": "ak:circle:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
           },
           "actions": [
-            "ak.message.create"
+            "ak.event.read"
           ]
         }
       ],

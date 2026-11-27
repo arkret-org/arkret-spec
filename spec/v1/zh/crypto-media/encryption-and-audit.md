@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Arkret 使用 RFC 9420 MLS 为 Realm 或 Circle 的应用内容提供端到端加密。治理 Station只验证和保存公开
+Arkret 使用 RFC 9420 MLS 为 普通 Realm 的应用内容提供端到端加密。治理 Station只验证和保存公开
 group transition、authority commit、recipient delivery queue 与路由 metadata；它不得取得 epoch secret、
 KeyPackage init private key、Welcome plaintext、private ratchet tree、application plaintext 或成员 private state。
 
@@ -109,8 +109,8 @@ endpoint 的容量但不因容量被拒绝：[`../sync/client-sync.md` §10.1](.
 
 #### 2.2.1 MLS Group Admin 推导
 
-Realm 与 Circle 的 committer 权限来自 current capability、membership 与 policy。管理权限不由 leaf index、首个 sender、
-设备在线状态或 UI role 推导。Circle 的 group 与 Realm group 独立；一个 scope 的 committer 权限不扩张到另一个 scope。
+Realm 的 committer 权限来自 current capability、membership 与 policy。管理权限不由 leaf index、首个 sender、
+设备在线状态或 UI role 推导。一个 scope 的 committer 权限不扩张到另一个 scope。
 
 MLS leaf 的归属与 Proposal 的 target MUST 使用完整 ActorId。两者 MUST NOT collapse 到签名 principal：同一
 principal 在不同 Station 上的 Account 是不同 Actor，remove/update 的目标因此 MUST 按完整 ActorId 匹配。
@@ -118,7 +118,7 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
 
 #### 2.2.2 公开握手契约
 
-`realm` 与 `circle` 两类 effective scope 的 MLS 握手面按本节的封闭契约执行。本节与
+`realm` effective scope 的 MLS 握手面按本节的封闭契约执行。本节与
 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的
 `x-arkret-public-handshake-contract` 注解逐键对应，两侧 MUST 保持一致。
 
@@ -147,7 +147,7 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
    [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
    实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
    §6 显式规定 Sidecar 在自己的受限披露与参与者 authority 门内采用完整 `PublicMessage`，由非成员
-   Station 验证实际公开 transition 并冻结 inline provenance，成员验证 MAC；它不继承 Realm／Circle
+   Station 验证实际公开 transition 并冻结 inline provenance，成员验证 MAC；它不继承 Realm
    committer 权限或 creator-bootstrap transaction。机器合同为独立的 `x-arkret-sidecar-handshake-contract`。
 
 **v1 consumed Proposal 的唯一来源（normative）**：MLS transition Event 只有 `ak.mls.genesis` 与
@@ -214,13 +214,13 @@ attestation 保留至同一历史 cut 不再可读；重放同一 attestation �
 | --- | --- | --- |
 | 实际作者的native资格 | 作者owning Station，沿原author/forward证据和完整原body | G重放H私PCR，或把实际producer证据泛化为任意recipient census |
 | author Welcome前的selected包 | 实际requester Station按原claim/receipt及有权使用的lookup/evidence | 当前G自动取得requester或Agent查询角色 |
-| Realm/Circle MLS接纳 | G核自己的成员/policy/base/RFC与本地scope fence，提交Commit/outbox | G实时核所有外站claim或所有历史retained端的H-current |
+| Realm MLS接纳 | G核自己的成员/policy/base/RFC与本地scope fence，提交Commit/outbox | G实时核所有外站claim或所有历史retained端的H-current |
 | 远端claim/Welcome/consume与新材料供给 | recipient H在原复制/交付及实际供给截点核本地ledger、endpoint和权限 | G已accepted意味着H必须投递，或H拒投递可回滚该Commit |
 | 历史叶来源 | 原Genesis/Add/恢复原件、历史签名与target cut | 以今日key替旧实例，或仅因历史作者今日失效否定合法历史 |
 
 Sidecar仅含同H的本人/自有Agent，H检查其native参与意图，G检查自己的成员/RFC/fence，唯一按
 [`sidecar.md` §5–§6](../models/sidecar.md)。Genesis只有controller一个leaf，不以全部desired先effective为前提。
-普通Realm/Circle的撤销至实际Remove残余窗口保持；不得把Sidecar的H端native/readiness门推广为普通全叶G-current。
+普通Realm的撤销至实际Remove残余窗口保持；不得把Sidecar的H端native/readiness门推广为普通全叶G-current。
 各方职责内所需来源缺失时拒绝对应新业务/供给；不能将本不负责的H私有事实未知当作G必须新增查询的理由。
 服务角色或HTTP签名不授予额外lookup/内容披露权限。已披露secret无法追溯召回，恶意获权成员主动泄密也不在本合同保证内。
 
@@ -358,12 +358,7 @@ accepted Genesis 核对的 `group_info_ref`、`ratchet_tree_ref` 构造物料请
 请求另必带目标 accepted Commit Event ref 与 epoch，指明此次取证的加入／读取 cut；它们不改变物料始终
 属于 epoch 0 Genesis 的事实。Account Station 必须核对 caller 为本次已认证 session 的 exact ActorId，
 并在请求时 current 与该目标 cut 分别验证 joined membership、scope 可见性、history 与 policy；无权、已离组、
-隐去的 scope 或未知 selector 统一 `not_found`。Circle scope 的 joined membership 在两个 cut 上都指
-[`../models/circle.md` §9.1](../models/circle.md) 的 effective 判定：current 须为 Circle `join` 且其
-`parent_membership_revision` 仍等于父 Realm 同 cut 的 current `member_state` revision；目标 cut 按
-[`../governance/history-visibility.md` §3.1](../governance/history-visibility.md) 的 Circle 历史 cut 连续性求值——不早于当前
-Circle join Commit 的目标 cut 由同一 Circle join 实例连续承载，更早的目标 cut 所属 Circle join 实例绑定的父 join 已非
-current 时同样 `not_found`。父 Realm 与 Circle 的 position 数值不互认，目标 cut 与 Circle join 只在同一 Circle stream 上比较。它以已认证 Station 身份向治理 Station 转发同一请求，
+隐去的 scope 或未知 selector 统一 `not_found`。Account Station 以已认证 Station 身份向治理 Station 转发同一请求，
 不得把本地通用 Blob get 或用户自报 ref 当作授权依据。peer 请求带 `caller_actor_id` 时，治理 Station
 也须在当前及目标 cut 独立核验该 ActorId 的同样读取资格。此携带 caller 的请求中，调用 Station 的
 复制权必须相对于目标 accepted Commit cut 核验，不能以 epoch 0 Genesis 的 Commit 位置拒绝此后才
@@ -412,17 +407,6 @@ encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观
 自身的发送由 §2.5.2 的 send gate 同 cut 拒绝，其 leaf 由账号拥有者其它 endpoint 以普通 Remove Commit 移除。revision
 未被 current Commit覆盖时，scope 是 `epoch_update_required`，Station MUST 拒绝新的 encrypted application Event 与 Add submission。
 
-**Circle 父资格失效与唯一写者（normative）**：父 Realm `leave`／`ban`／rejoin 在 Realm stream 提交，不是 Circle stream
-的 membership Event，因此 MUST NOT 推进 Circle scope 的 `key_access_revision`，Circle canonical joined 集合也不变。治理 Station
-在 Circle scope 的每次 send gate、Add submission 与 MLS Commit 接纳中，于读取 current `mls_group` 的同一耐久 cut 求出 current
-public tree 中完整 ActorId 不满足 [`../models/circle.md` §9.1](../models/circle.md) effective Circle membership 的 leaf 集合。
-该集合非空时，scope 同样处于 `epoch_update_required`：新的 encrypted application Event 与 Add submission 以 `failed_precondition`
-+ `epoch_update_required` 零写入拒绝，任何 Add 的 target 也必须满足 effective membership；只有 post-Commit tree 不再含这些
-leaf 的 winning Commit（其 `covers_key_access_revision` 仍等于未变的 current revision）才解除该状态。Station 不产生 Remove
-proposal，repair Commit 按 §2.5.2 由任一 active、获权客户端构造。之后该 actor 的显式 Circle `leave` 改变 canonical joined
-集合，仍由它作为唯一写者把 revision 加一，并照常要求 winning Commit 覆盖。两条门互不替代：revision 只记 Circle stream 的
-membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
-
 **残余窗口（informative）**：普通endpoint撤销且不处于content-history恢复专用屏障时，到Remove Commit接纳之间其它成员仍可在旧epoch发送；被撤销 endpoint
 若另行取得这些密文，仍能解密。它的 recipient queue 读取与 ACK 在撤销时即被阻断，自身发送被 send gate 拒绝。
 
@@ -465,7 +449,7 @@ RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一�
 ```
 
 `effective_scope.kind=sidecar` 时必须携带该摘要（原像及职责见
-[`../models/sidecar.md` §6](../models/sidecar.md)）；Realm／Circle 携带它即 `schema_violation`。
+[`../models/sidecar.md` §6](../models/sidecar.md)）；Realm 携带它即 `schema_violation`。
 不存在 authority 引用数组或其兼容分支。三个整数都限于 `0..2^64-1`。外层 map 的
 deterministic-CBOR key 编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、
 `effective_scope`、`key_access_revision`、`base_group_state_ref`、
@@ -550,7 +534,7 @@ Station 的 acceptance 不证明 recipient已经解密或具有正确 secret。
 
 #### 2.5.4 跨 Station 验证
 
-接收 Station通过 authority bundle找到 current governance Station，验证对应 Realm/Circle stream 的连续
+接收 Station通过 authority bundle找到 current governance Station，验证对应 Realm stream 的连续
 `previous_commit_ref`、RealmCommit signature与 committed Event。缺少同 stream commit prefix或 public transition
 material时 fail closed；producer提交的摘要不能补足。
 
@@ -723,7 +707,7 @@ origin与outgoing intent耐久冻结exact物料，终局未知仅重放原件；
 durable 记录，其逻辑键是 `(owner_actor_id, effective_scope, operation)`，`operation` 固定为 `mls_genesis`。
 `owner_actor_id` MUST 是完整 ActorId（普通人类创建者含 `station_id`），`effective_scope` MUST 是 §5.1 的
 canonical typed scope，不能是页面路由、展示用 Realm 名或裸字符串别名。该 transaction 只适用于
-`effective_scope.kind` 为 `realm` 或 `circle`；`sidecar` scope 按 §2.2.2 第 7 项保持独立握手契约，客户端 MUST NOT
+`effective_scope.kind` 为 `realm`；`sidecar` scope 按 §2.2.2 第 7 项保持独立握手契约，客户端 MUST NOT
 为 sidecar scope 打开该记录。`creator_device_id` 与 `creator_signer_method` 是记录的不可变字段但**不进逻辑键**，
 因此同一账号的重载或第二个窗口找到同一条记录，而另一台设备不会静默开出第二次 Genesis。
 
@@ -743,7 +727,7 @@ genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0
 链、exact accepted scope-create Event／covering Commit，以及覆盖精确 effective scope 的完整授权 current cut。
 只有经验证的完整 cut 才能证明该 scope 尚无 accepted Genesis；不完整投影的缺行、HTTP `not_found`、超时或
 不可用结果都不能证明缺席。完整 owner ActorId、不可变 creator device／signer 与该 cut 的创建者和 endpoint
-授权必须一致。Realm 与 Circle 都核对自身的 accepted create 与所属 scope，不能借父 Realm 或其它 Circle 的材料。
+授权必须一致。每个 Realm 核对自身的 accepted create 与所属 scope，不能借用其它 Realm 的材料。
 
 这些已验证证据与原 durable intent 中的 canonical local proposal 在一次 durable commit 中钉住；proposal binding
 保持 exact scope、派生 group id、null base 和三个零，不是 Station 签发的证明，不新增 HTTP operation、wire
@@ -814,7 +798,7 @@ authority transaction。
 
 ## 7. v1 集成要求
 
-+ Realm、每个 Circle分别决定是否通过 Genesis不可逆激活MLS；
++ 每个 Realm 独立决定是否通过 Genesis不可逆激活MLS；
 + MLS transition Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；历史key交付另用 `ak.mls.history_grant`；
 + Welcome与Commit同一authority transaction durable enqueue；跨站 recipient 的 Welcome 随同一 Commit 的
   committed-replication item 在成员站同一 replica 事务入队；
@@ -829,6 +813,6 @@ sender只有在exact submission已由current governance Station确认为accepted
 才把本地transition标为完成。recipient只有在Welcome、producer proof、经 `ak.self.keys.keypackages.read.claim.v1` 读取并验证的
 claim binding、Commit lineage与完整RFC 9420处理均成功且private state耐久保存后才ACK。任何崩溃恢复都重放相同ID和bytes，不生成平行transition。
 
-Watch／Circle 跨 actor 写入与 Watch 私有前态读取的唯一已登记审计接纳、重放和交付合同见 [authority-commit-log §5.2／§5.3](../sync/authority-commit-log.md#52-业务与审计配对单元normative)。`watch_audit_read` 记录获授权的治理读取，不作为可复用读票或网络交付成功证明；不能通过普通投影绕过该 command。
+Watch 跨 actor 写入与 Watch 私有前态读取的唯一已登记审计接纳、重放和交付合同见 [authority-commit-log §5.2／§5.3](../sync/authority-commit-log.md#52-业务与审计配对单元normative)。`watch_audit_read` 记录获授权的治理读取，不作为可复用读票或网络交付成功证明；不能通过普通投影绕过该 command。
 
 恢复专用External Commit的current资格、recovery_binding、exact-base CAS及全旧leaf清理例外以[content-history §5](./content-history.md#5-pcr24词恢复与旧端失效)为准；未满足该例外的ExternalInit／new_member_commit继续拒绝。所有winning Commit须原签并耐久保存group_info_ref／ratchet_tree_ref。

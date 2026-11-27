@@ -75,13 +75,6 @@
       ]
     },
     {
-      "document": "spec/v1/zh/models/circle.md",
-      "schema_ref": "circle.schema.json#/$defs/display",
-      "external_field_mentions": [
-        "realm_id"
-      ]
-    },
-    {
       "document": "spec/v1/zh/models/content-types.md",
       "schema_ref": "event-payload.schema.json#/$defs/content_block_long_text/oneOf/0",
       "external_field_mentions": []
@@ -128,7 +121,6 @@
       "document": "spec/v1/zh/models/morph.md",
       "schema_ref": "morph.schema.json#",
       "external_field_mentions": [
-        "effective_scope",
         "event_id",
         "morph_kind_profiles"
       ]
@@ -203,7 +195,6 @@
       "document": "spec/v1/zh/models/strand-and-message.md",
       "schema_ref": "strand.schema.json#",
       "external_field_mentions": [
-        "effective_scope",
         "event_id",
         "is_primary"
       ]

@@ -65,7 +65,7 @@
   },
   "realm_actor_native_custody": {
     "contract_ref": "registry/contract-registry.json#/realm_actor_contract/content_backup_contract",
-    "scope": "exact_full_RealmActor_and_Realm_or_Circle",
+    "scope": "exact_full_RealmActor_and_Realm",
     "first_use": "native_Device_real_root_PUT_before_salt_and_Event",
     "native_origin": "owning_Realm_current_governance_Station_with_exact_accepted_tenure_and_handoff_archive_import",
     "account_origin_unchanged": true,

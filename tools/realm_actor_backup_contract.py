@@ -116,8 +116,8 @@ def validate_native_shape(envelope):
                 or not isinstance(reference["commit_id"], str) or not reference["commit_id"].startswith("ak:realm_commit:")):
             raise ValueError("native auth source is not an exact earlier realm-control original")
     scope = envelope["contents"][0]["root_context"]["effective_scope"]
-    if (scope.get("kind") not in {"realm", "circle"}
-            or set(scope) != ({"kind", "realm_id"} if scope["kind"] == "realm" else {"kind", "realm_id", "circle_id"})
+    if (scope.get("kind") != "realm"
+            or set(scope) != {"kind", "realm_id"}
             or scope["realm_id"] != actor["realm_actor_id"]["realm_id"]):
         raise ValueError("root belongs to another exact native scope")
     if not isinstance(envelope["series_sequence"], int) or isinstance(envelope["series_sequence"], bool) or envelope["series_sequence"] < 0:
@@ -157,7 +157,8 @@ def open_backup(envelope, recipient_private, author_public):
 
 
 def series_key(actor, scope, kind="secret_storage"):
-    if (actor.get("kind") != "realm" or scope.get("kind") not in {"realm", "circle"}
+    if (actor.get("kind") != "realm" or scope.get("kind") != "realm"
+            or set(scope) != {"kind", "realm_id"}
             or actor["realm_actor_id"]["realm_id"] != scope.get("realm_id") or kind != "secret_storage"):
         raise ValueError("invalid exact native series scope")
     return canonical([actor, scope, kind])
@@ -246,10 +247,11 @@ def select_series(record, previous, current, manager_public):
             or proof["verification_method"] != current["manager_method"]
             or any(record[name] != current[name] for name in ["manager_ref", "recovery_ref", "recipient_ref"])):
         raise ValueError("series differs from current manager/recipient/scope")
+    key = series_key(record["actor_id"], record["effective_scope"])
     if previous is None:
         if record["series_pointer_version"] != 1 or record["previous_series_ids"]:
             raise ValueError("invalid first scope pointer")
-    elif (series_key(record["actor_id"], record["effective_scope"]) != series_key(previous["actor_id"], previous["effective_scope"])
+    elif (key != series_key(previous["actor_id"], previous["effective_scope"])
             or record["series_pointer_version"] != previous["series_pointer_version"] + 1
             or record["previous_series_ids"] != previous["previous_series_ids"] + [previous["active_series_id"]]
             or record["active_series_id"] in record["previous_series_ids"]):
@@ -531,9 +533,9 @@ def derive_native_series_current_key(realm_actor_id, effective_scope, backup_kin
     if (not isinstance(realm_actor_id, dict) or set(realm_actor_id) != {"realm_id", "principal_id"}
             or any(not isinstance(value,str) or not value for value in realm_actor_id.values())
             or not isinstance(effective_scope, dict)
-            or effective_scope.get("kind") not in {"realm", "circle"}
+            or effective_scope.get("kind") != "realm"
             or effective_scope.get("realm_id") != realm_actor_id["realm_id"]
-            or set(effective_scope) != ({"kind", "realm_id"} if effective_scope["kind"] == "realm" else {"kind", "realm_id", "circle_id"})
+            or set(effective_scope) != {"kind", "realm_id"}
             or any(not isinstance(value,str) or not value for value in effective_scope.values())
             or backup_kind != "secret_storage"):
         raise ValueError("native current key requires the exact RealmActorId and scope")
@@ -681,8 +683,7 @@ def admission_fixture(packet, current, recipient, history, device_seed, authoriz
         "hpke_key": "z"+base58(b"\xec\x01"+welcome_public), "algorithms": ["Ed25519"], "device_key_algorithm": "Ed25519",
         "authorized_by": actor["realm_actor_id"]["principal_id"], "authorization_binding_kind": "realm_managed_delegation",
         "authorized_generation_ref": 1, "not_before": "2026-11-07T00:00:00.000Z", "expires_at": "2026-11-09T00:00:00.000Z",
-        "scopes": [{"effective_scope": current["effective_scope"], "actions": list(NATIVE_BACKUP_OPERATIONS if authorized_actions is None else authorized_actions)},
-            {"effective_scope":{"kind":"circle","realm_id":actor["realm_actor_id"]["realm_id"],"circle_id":token("circle",89)},"actions":list(NATIVE_BACKUP_OPERATIONS)}], "applet_id": applet,
+        "scopes": [{"effective_scope": current["effective_scope"], "actions": list(NATIVE_BACKUP_OPERATIONS if authorized_actions is None else authorized_actions)}], "applet_id": applet,
         "expected_control_commit_id": create_ref["commit_id"], "expected_device_commit_id": None}
     possession = {"actor_id": actor, **authorize}
     possession_bytes = b"ak.device_authorize_realm_actor_possession_proof.v1\n"+canonical(possession)

@@ -125,7 +125,7 @@
       ]
     },
     {
-      "given": "The member has left currently, lacked target-cut history, changes caller_actor_id or target Commit, requests a hidden Circle, or points to unavailable or inconsistent Genesis Blob bytes",
+      "given": "The member has left currently, lacked target-cut history, changes caller_actor_id or target Commit, requests a hidden Sidecar, or points to unavailable or inconsistent Genesis Blob bytes",
       "expected": {
         "decision": "unauthorized and unknown return indistinguishable not_found; authorized material failure returns revision_unavailable; no partial bytes, private tree, secret or inferred leaf index"
       },

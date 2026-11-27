@@ -21,7 +21,7 @@ see_also:
 
 共享Event／状态finality由以下三类治理结果承载；本节后述MLS窄native证明不新增共享finality类型：
 
-- `RealmCommit`：证明 exact Event 已在某一 Realm/Circle/Sidecar stream 的唯一 position 被接纳；
+- `RealmCommit`：证明 exact Event 已在某一 Realm/Sidecar stream 的唯一 position 被接纳；
 - `RealmStateSnapshot`：由其指定 authority generation 当时的治理 Station 签名确认同 cut 的内联 typed current rows、调用者获准 stream heads 与 history floors；当前 `/head` 必须属于当前任期，exact 历史 by-ref 可属于链内旧任期；
 - `CurrentState`：返回封闭 selector 的 current value 及最后影响它的 Commit revision。
 
@@ -35,7 +35,7 @@ see_also:
 2. 确认签名者是该 generation 的 current governance Station；
 3. 验证 object ID、detached signature 投影和 nonce/audience；
 4. 对 Commit 验证同 stream 的 position/predecessor 连续性；
-5. 对 snapshot/current 验证 selector 和可见性没有扩张到其它 Circle/Sidecar。
+5. 对 snapshot/current 验证 selector 和可见性没有扩张到其它 Sidecar。
 
 客户端仍独立验证 Event producer proof 的自身一致性（[`federation.md` §3](./federation.md)）、MLS/attachment 密码学和用户意图。外站 human 设备的授权以治理 Station 的 RealmCommit 为准；authority signature 不能替代 producer proof 的自身一致性检查，也不能替代 MLS 认证。
 

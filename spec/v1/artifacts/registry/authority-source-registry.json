@@ -103,7 +103,7 @@
         "realm_main_strand_and_target_scope_exact",
         "unique_scope_derived_group_state_cross_binding_exact",
         "realm_binding_and_target_strand_non_terminal_or_suspended",
-        "resource_within_dm_realm_non_circle_discussion_scope",
+        "resource_within_dm_realm_discussion_scope",
         "current_authorization_basis_gate_for_send_like_actions_contact_or_owned_agent_controller",
         "action_specific_self_device_mls_and_agent_gates"
       ],
@@ -127,8 +127,8 @@
       ],
       "structural_contract": {
         "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
-        "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
-        "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+        "canonical_main": "active_same_realm_primary_discussion_anchor_independent_of_actual_target",
+        "chat_create": "event_derived_same_realm_active_primary_discussion_without_content_or_extra_tracks",
         "chat_update_paths": [
           "encrypted_metadata",
           "topic"
@@ -157,7 +157,7 @@
       "personal_watch_contract": {
         "action": "ak.strand.watch.set",
         "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
-        "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+        "target": "actual_chat_strand_in_same_direct_realm",
         "authority": "stable_participant_and_unique_binding_confirmation_only",
         "bootstrap": "forbidden",
         "others": "forbidden_including_the_other_stable_participant",

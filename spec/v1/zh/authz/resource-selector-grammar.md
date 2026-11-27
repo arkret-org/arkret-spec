@@ -79,28 +79,10 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
 ```
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_relation_kinds` 或对应 strand move payload 字段。
 
-### 2.2 Circle 选择
+### 2.2 Realm 范围
 
-Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `ak.audit.accessed` 配对要求。
+Realm 级 grant 使用 `kind="realm"` 和完整的 `realm_id`。验证方同时检查 action、接纳的 Realm 成员资格和被访问对象所属的 Realm。
 
-```json fragment
-{
-  "resources": [
-    {
-      "kind": "circle",
-      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "circle_id": "ak:circle:AdYzZqwOV7QGAA-4lkcJ7t3e37ykrejD-IweH6iPy9vz"
-    }
-  ],
-  "constraints": [
-    {
-      "constraint_kind": "kind_restriction",
-      "effect": "allow",
-      "allowed_circle_ids": ["ak:circle:AdYzZqwOV7QGAA-4lkcJ7t3e37ykrejD-IweH6iPy9vz"]
-    }
-  ]
-}
-```
 ### 2.3 Strand track 选择
 
 Strand 的 track-targeted 能力面使用 `kind="strand"` 选择器，再用 `allowed_tracks` 限制 track 范围：`tracks.synthesis.content` 写入的 track 是 `synthesis`，Message timeline 操作的 track 是 `discussion`。Strand 顶层 Description（`content` / `encrypted_content`）以及 metadata / stage / lifecycle 等基础面不属于任何 track，MUST NOT 为套用 `allowed_tracks` 而被重分类成 `synthesis`；这类字段写入由 action 与 `allowed_write_fields` 收窄。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
@@ -144,7 +126,6 @@ conjunction          ::= selector_term ("+" selector_term)*
 selector_term        ::= wildcard_selector
                       | realm_selector
                       | space_selector
-                      | circle_selector
                       | strand_selector
                       | message_selector
                       | morph_selector
@@ -166,7 +147,6 @@ realm_selector       ::= "realm" ":" (realm_id | "*")
 
 space_selector       ::= "space" ":" realm_part ":" (space_id | "*")
 
-circle_selector      ::= "circle" ":" realm_part ":" (circle_id | "*")
 
 strand_selector        ::= "strand" ":" realm_part ":" (strand_id | "*")
 
@@ -203,12 +183,12 @@ strand_part            ::= strand_id | "*"
 
 **运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 §2 JSON canonical selector，不得仅用 shorthand 表达。
 
-Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id 字段”，绝不是 canonical JSON 的字段值。例如 `strand:<realm>:*` 解析为 `{"kind":"strand","realm_id":<realm>}`，MUST NOT 产生 `"strand_id":"*"`。同理适用于 `space_id`、`circle_id`、`message_id`、`morph_id`、`relation_id`、`view_id`、`event_id`、`policy_id`、`invite_id` 与 `object_ref`。`realm_part="*"` 只允许能由全局 kind 安全表达的 shorthand；对 Realm-local kind，若对象 id 也为 `*`，parser MUST 拒绝 `selector_missing_realm_scope`。
+Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id 字段”，绝不是 canonical JSON 的字段值。例如 `strand:<realm>:*` 解析为 `{"kind":"strand","realm_id":<realm>}`，MUST NOT 产生 `"strand_id":"*"`。同理适用于 `space_id`、`message_id`、`morph_id`、`relation_id`、`view_id`、`event_id`、`policy_id`、`invite_id` 与 `object_ref`。`realm_part="*"` 只允许能由全局 kind 安全表达的 shorthand；对 Realm-local kind，若对象 id 也为 `*`，parser MUST 拒绝 `selector_missing_realm_scope`。
 
 ### 3.2 词法规则（reference）
 
 - `realm_id`：`ak:realm:` 后只接受 44-char Event token。header 高 nibble 永久保留并 MUST 为 `0x0`，低 nibble 是 digest suite；非零高 nibble MUST 以 `realm_id_not_event_derived` 拒绝。header 不编码 Realm 类别——类别由签名 create payload 的 `purpose` 表达。
-- `space_id`、`circle_id`、`strand_id`、`message_id`、`morph_id`、`relation_id`、`view_id`：
+- `space_id`、`strand_id`、`message_id`、`morph_id`、`relation_id`、`view_id`：
   对应 typed prefix 后接创建 Event 的 44-char suite-tagged完整digest token。
 - `event_id`：`ak:event:` 后接44-char suite-tagged完整digest token。
 - `policy_id`：`ak:policy:` 后接 UUIDv7。
@@ -293,7 +273,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 - 匹配：某个 Strand `discussion` track 内的所有 Message。
 - 不授予 Strand Description 或 synthesis track 正文写入权限。
-- 不绕过 Strand 的 effective scope（`Strand.scope_circle_id=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
+- 不绕过 Strand 的 effective scope（所属 Realm）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.5 Morph 选择器
 
@@ -394,8 +374,8 @@ function matches(target, selector):
     if selector.match_scope == "realm_wide" and not selector.realm_id:
         raise SchemaViolation("realm_wide selector missing realm_id")
     # Authorization does not traverse current or creation ancestry.
-    if selector.match_scope == "realm_wide" and selector.kind not in {"space", "circle", "object", "morph"}:
-        raise SchemaViolation("realm_wide match_scope only valid for space/circle/object/morph")
+    if selector.match_scope == "realm_wide" and selector.kind not in {"space", "object", "morph"}:
+        raise SchemaViolation("realm_wide match_scope only valid for space/object/morph")
 
     if selector.kind == "realm":
         if selector.realm_id == "*":
@@ -484,12 +464,6 @@ function matches(target, selector):
                 return selector.space_id == target.id
         return selector.match_scope == "realm_wide"
 
-    if selector.kind == "circle":
-        if target.type != "circle":
-            return false
-        if selector.circle_id:
-            return selector.circle_id == target.id
-        return selector.match_scope == "realm_wide"
 
     if selector.kind == "blob":
         return target.type == "blob" and (
@@ -508,7 +482,7 @@ function matches(target, selector):
     return false
 ```
 
-> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` / `object` / `morph` 的 `realm_wide` wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中（`object` / `morph` 的 `realm_wide` 命中该 Realm 内对应 `object_kind` / `morph_kind` 的全部资源，用于表达 Realm 全域的对象/Morph 授权）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+> `space` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `object` / `morph` 的 `realm_wide` wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中（`object` / `morph` 的 `realm_wide` 命中该 Realm 内对应 `object_kind` / `morph_kind` 的全部资源，用于表达 Realm 全域的对象/Morph 授权）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
 
 `match_scope` 的语义固定如下：
 
@@ -519,7 +493,7 @@ function matches(target, selector):
 
 **导航与授权分离（normative）**：Space 的当前 parent、创建时 parent、祖先链与 placement 均不是权限继承路径。授权选择器只按本节登记的显式目标、对象类型与 Realm 范围匹配，不遍历 Space 树。`match_scope=children` 或 `subtree` MUST `schema_violation`，不得静默解释为 `exact`、`realm_wide` 或忽略该条目；包含非法选择器的整个 grant 无效。查询仍可遍历子树，但必须逐对象执行独立的可见性检查，查询结果不能成为授权证明。
 
-操作 Space 自身仍必须具有命中该 Space 的 action、resource selector 与 constraints。该授权不自动扩展到子 Space、Strand、Message 或其它内容。普通 move/reparent 不改变对象的 Realm、Circle、capability 或密钥访问资格；`child_scope_policy` 只能允许或拒绝放置，不能为通过检查而改绑子对象 scope。权限变更必须由相应的显式安全操作完成。用户界面可以帮助批量选择对象，但批准时必须冻结确切对象集合并使用各自已登记的授权操作；后续导航变化不扩大该集合。
+操作 Space 自身仍必须具有命中该 Space 的 action、resource selector 与 constraints。该授权不自动扩展到子 Space、Strand、Message 或其它内容。普通 move/reparent 不改变对象的 Realm、capability 或密钥访问资格；`child_scope_policy` 只能允许或拒绝放置，不能为通过检查而改绑子对象 scope。权限变更必须由相应的显式安全操作完成。用户界面可以帮助批量选择对象，但批准时必须冻结确切对象集合并使用各自已登记的授权操作；后续导航变化不扩大该集合。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 
@@ -589,7 +563,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 实现 MUST：
 
 - 接受本规范定义的 JSON resource selector。
-- 支持精确 ID、Realm、Space、Circle、Strand、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
+- 支持精确 ID、Realm、Space、Strand、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
 - 拒绝按当前或创建祖先授权的选择器；同一对象仅改变导航位置时，其授权匹配结果 MUST 不变。

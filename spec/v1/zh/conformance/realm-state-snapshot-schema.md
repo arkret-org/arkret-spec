@@ -35,11 +35,11 @@ v1 保留完整内联基线及其 Realm 硬容量预算，包含按 §3 获准�
 
 ## 2. 可见 stream heads
 
-`visible_stream_heads[]` 对接收者获准读取的每条 Realm、Circle 或 Sidecar stream 分别记录 `stream_ref`、
+`visible_stream_heads[]` 对接收者获准读取的每条 Realm 或 Sidecar stream 分别记录 `stream_ref`、
 `stream_position` 与 `realm_commit_id`。不同 stream 的 position 不能比较，也不能由数组顺序推导总序。
 
 普通 joiner 的 snapshot 只列出其当前可见 stream；因此它只能验证这些 stream 的连续性，不能证明隐藏
-Circle 或 Sidecar 不存在。planned authority handoff 使用单独的私有 full-stream-head manifest，不能从公开
+Sidecar 不存在。planned authority handoff 使用单独的私有 full-stream-head manifest，不能从公开
 authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 
 ## 3. Typed current rows
@@ -47,7 +47,7 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 `current_state_entries[]` 的每个元素必须是 `current-state.schema.json` 的 closed typed result；
 其 selector、revision 和 value 由各 family 的 schema 决定，不额外包一层通用 row/chunk。当前治理 Station
 必须从同一 durable cut 读取本用途覆盖范围内全部可向该请求者披露的 rows、`visible_stream_heads[]` 和 stream floors，
-不得把无权 Circle/Sidecar 的 row、head 或 floor 混入；同一完整 typed subject 不得出现两个 current row。
+不得把无权 Sidecar 的 row、head 或 floor 混入；同一完整 typed subject 不得出现两个 current row。
 接收方须以每条 row 必填的 `source_stream_ref` 定位可见 head 与 floor，验证其 Realm/stream 属于本次可见范围、
 revision 的位置不晚于**该 stream** 的可见 head；不得从 selector 或同值 position 猜来源。可读取到
 revision 所指 Commit 时还须逐字核对其 stream、commit id 与 position。落在获授权 history floor 之前的
@@ -57,7 +57,7 @@ row 由当前治理 Station 的这份签名 snapshot 承诺，不能要求受限
 Relation 使用已登记的 `relation` result：selector 是完整 `primary_conflict_domain`，
 value 是该 domain 唯一的完整当前 Relation（含 active 或 tombstoned 状态），不另造按 RelationId
 选取的 current 身份或冲突集合。它的 `source_stream_ref` MUST 等于当前 value 的源作用域；
-Circle scope 不进入 primary-domain 身份。除源 Realm/Circle 成员可见性外，完整 row 还 MUST
+除源 Realm 成员可见性外，完整 row 还 MUST
 满足 [`../models/relation.md` §4](../models/relation.md#4-跨-realm-引用) 对两个 endpoint 的
 reference-disclosure 要求。无权、未知或不可证明可披露的 endpoint 不得通过 Snapshot 泄露；
 该完整 row MUST 省略，不能将 locked stub、部分 Relation 或未授权 target-side reverse edge
@@ -121,8 +121,8 @@ v1 在窗口引用发布前签发独立 `purpose="stream_history"` 原件；签�
 个人 Sidecar 的握手、历史与备份仅由主人归属站 H 验证。项目历史由实际治理站 G 按当前入群世代签发。两种依据的适用范围按
 [Sidecar §6.1](../models/sidecar.md#61-私有握手历史与排队投递normative) 执行。
 
-**selector 完备性（normative）**：取该已接受 cut 下所有 `source_stream_ref` 等于目标流的可披露 typed rows，但排除 `circle`／`sidecar` 定义 selector：这些定义虽来自父 Realm stream，实际属于各自 scope，不得让 Realm 历史顺带依赖它们；
-Circle 目标还取该 cut 的项目成员状态与精确 Circle 定义。个人 Sidecar 目标只在 H 取得对应的 Sidecar 定义，并核验该主体的私有访问依据；Agent 的启用世代取自原签私有流。项目成员状态不能成为个人快照的依赖。同一 selector 不得重复。跨流来源必须逐条解析为
+**selector 完备性（normative）**：取该已接受 cut 下所有 `source_stream_ref` 等于目标流的可披露 typed rows，但排除 `sidecar` 定义 selector：这些定义虽来自父 Realm stream，实际属于各自 scope，不得让 Realm 历史顺带依赖它们；
+个人 Sidecar 目标只在 H 取得对应的 Sidecar 定义，并核验该主体的私有访问依据；Agent 的启用世代取自原签私有流。项目成员状态不能成为个人快照的依赖。同一 selector 不得重复。跨流来源必须逐条解析为
 原 accepted Event／Commit 四坐标，排序去重后逐字等于 `history_basis.accepted_dependency_refs` 与窗口的依赖引用。
 heads／floors 恰覆盖目标与这些必要 selector 的 source streams，不得顺带包含其他 scope。target head 必须等于
 anchor；所有 rows、heads、floors 来自原同一 cut，依赖不得跨 cut 更新替换。source 明确承担该 selector 集在该 cut
@@ -134,7 +134,7 @@ anchor；所有 rows、heads、floors 来自原同一 cut，依赖不得跨 cut 
 
 每次 exact by-ref 读取，Station MUST 在同一当前授权 cut 重验所有实际包含的 rows、heads、floors 及 exact
 accepted dependencies，包括 membership、scope、history floor、retention 与 redaction。目标自身或真实依赖失权时
-整份拒绝；未包含的无关 Circle／Sidecar 失权不影响目标 basis。值或 head 前进、新增可见流不要求改写历史原件。
+整份拒绝；未包含的无关 Sidecar 失权不影响目标 basis。值或 head 前进、新增可见流不要求改写历史原件。
 MUST NOT 部分采用、删除失权组件沿用原 ID，或用另一 cut／Snapshot／裸 cursor 替换 basis。
 
 未被窗口 reservation 引用的原件按完整恢复／逐流历史 coverage 分别有界保留，淘汰同一 coverage 的旧原件不得挤掉另一流正在使用的 basis；已引用原件仍受原 cursor 生命周期保护。

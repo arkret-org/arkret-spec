@@ -116,7 +116,8 @@ def build(include_sources=False):
     external_binding = {"encoding": "MlsGroupBinding deterministic CBOR without prefix",
                         "carrier": "FramedContent.authenticated_data",
                         "group_context_extension": "inherited exact accepted base bytes",
-                        "cases": governance["cases"][0]["accepted"][:3]}
+                        "cases": [sample for sample in governance["cases"][0]["accepted"]
+                                  if sample["name"] in {"realm_scope_commit", "sidecar_scope_commit"}]}
     event_ref = "ak:event:" + b64(b"\x01" + bytes([0x41]) * 32)
     realm = "ak:realm:" + event_ref.split(":", 2)[2]
     actor = {"kind": "account", "account_id": {"principal_id": "ak:did_core:webvh:z6mkfixture", "station_id": "ak:did_core:webvh:z6mkfixturestationexample"}}

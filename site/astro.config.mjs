@@ -270,7 +270,6 @@ document.addEventListener("astro:after-swap", boot);
                 "common-fields",
                 "realm-and-space",
                 "strand-and-message",
-                "circle",
                 "sidecar",
                 "morph",
                 "relation",

@@ -52,7 +52,7 @@ def check_direct_conversation_structure(lint: Lint) -> None:
     watch = {
         "action": "ak.strand.watch.set",
         "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
-        "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+        "target": "actual_chat_strand_in_same_direct_realm",
         "authority": "stable_participant_and_unique_binding_confirmation_only",
         "bootstrap": "forbidden",
         "others": "forbidden_including_the_other_stable_participant",

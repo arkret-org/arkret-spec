@@ -108,18 +108,6 @@
       "spec_anchor": "spec/v1/zh/extensions/applet-integration.md"
     },
     {
-      "lock_id": "ak.lock.derived_wire_field_removal.circle_view_member_count.v1",
-      "ruling": "2026-09-02-1951 A1",
-      "schema": "schemas/circle-operations.schema.json",
-      "path": "/$defs/circle_view",
-      "removed": "member_count",
-      "source": {
-        "field": "member_ids"
-      },
-      "derivation": "member_count := len(member_ids)",
-      "spec_anchor": "spec/v1/zh/models/circle.md"
-    },
-    {
       "lock_id": "ak.lock.derived_wire_field_removal.client_step_attestation_attestation_digest.v1",
       "ruling": "2026-09-02-1951 A2",
       "schema": "schemas/security-transaction.schema.json",
@@ -307,18 +295,6 @@
       "schema": "schemas/event-payload.schema.json",
       "path": "/$defs/mls_governance_binding",
       "removed": "realm_id",
-      "source": {
-        "field": "effective_scope"
-      },
-      "derivation": "Scope IDs project from effective_scope. MLS group_id is base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))), 43 characters; see zh/models/realm-and-space.md section 2.2 for the scope key bytes and the single-formula rule.",
-      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.mls_governance_binding_circle_id.v1",
-      "ruling": "2026-09-12-1825",
-      "schema": "schemas/event-payload.schema.json",
-      "path": "/$defs/mls_governance_binding",
-      "removed": "circle_id",
       "source": {
         "field": "effective_scope"
       },

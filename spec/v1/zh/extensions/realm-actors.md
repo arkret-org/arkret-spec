@@ -36,9 +36,8 @@ Bot／Ghost 的 SCID **MUST** 独立于 Service 和 controller；托管 host/pat
 Bot／Ghost 的 AppletId、初始角色和创建来源不可改；当前管理 Service 是独立状态。
 同 core 合法密钥／定位更新保持身份；换 core 创建新主体。退役身份保留占用，不得重新创建复活。
 
-主体只参加自己的 Realm 及其中明确授权的 Circle。同 Applet 在另一 Realm 创建另一个完整主体。
+主体只参加自己的 Realm。同 Applet 在另一 Realm 创建另一个完整主体。
 不得加入个人 PCR、个人 Agent 控制 Realm、固定参与者 DirectConversation 或个人 Agent Sidecar。
-Circle-only 场景仍满足父 Realm 最小成员前提，但父成员资格不自动授父内容读取。
 不得为解决依赖读取而放开父 Realm；使用既有获准 exact 依赖读取。
 
 对 Realm Bot／Ghost 的 mention 使用同 Realm 的完整 `subject_actor_id`，由 Applet 的获准原生 Device
@@ -52,8 +51,8 @@ mention 不授予实际执行权；未知外部执行结果不得重做，详细
 `scope_ref` 与 `stream_ref` 增加同形 closed 分支 `{kind:"realm_control",realm_id}`。
 每个 Realm 至多一个，所有本 Realm 的 Applet 主体共用；不产生新 RealmId、独立成员集、authority root 或任期。
 这只是控制 Event 的归属与隔离流，**MUST NOT** 被当作消息、Blob、Call、MLS、KeyPackage、
-Device 业务授权、Circle／Sidecar 创建或通用 capability 的 effective scope。
-管理权限在所属 Realm 或 candidate 指定 Circle 核验，不给此流通用 read／write grant。
+Device 业务授权、Sidecar 创建或通用 capability 的 effective scope。
+管理权限在所属 Realm 核验，不给此流通用 read／write grant。
 
 首个成功 `ak.realm.actor.create` 原子初始化此流，position=0、previous=null；没有另一个 stream.create
 或 Realm genesis。并发首建在当前治理方锁内排序，只能有一个 position=0。
@@ -594,11 +593,11 @@ owner／governance 任一 retired 或 Realm terminal 均拒绝；owner／governa
 PUT 仍核 current installation／consent／双业务状态／scope/action／MLS epoch 等完整当前条件。其私有历史 signer fact 使用 realm_recovery_service 的显式本分支，按 record.actor_id 绑定
 目标及真实 registration／manager／recovery／accepted_at，禁止泛化成任意 Service 例外。
 
-每个完整 Actor＋一个 Realm/Circle scope＋secret_storage 各自从 pointer version 1 开始，严格后继与 CAS。
+每个完整 Actor＋一个 Realm scope＋secret_storage 各自从 pointer version 1 开始，严格后继与 CAS。
 允许先选择空 series，再由真正有权的 Device 发序号0首包；选定 record 自身就是签名来源，不伪造 PCR checkpoint。
 同 manager 的普通控制轮换／Device generation 变化不自动重置 scoped pointer 或归档密钥；Device 的业务资格
 仍按最新代次与原授权独立求值。manager.change 后新 manager 按 scope 明确选择 fresh series，不能继续旧
-manager 的新写权限。current pointer、其确认 basis 和 predecessor 不得跨 Circle 互作来源。
+manager 的新写权限。current pointer、其确认 basis 和 predecessor 不得跨 Realm 互作来源。
 series.record.recovery_ref 只冻结选择时的真实 Recovery 来源，新 selection 仍必须匹配锁内 current 来源。
 普通 recovery.set 切换 enabled 或不替换 manager／recipient 的 Recovery 来源推进，不改写已接受 series，
 也不要求 fresh series。新 PUT／next_prepare_input.authorization_binding.recovery_ref 使用本次 current Recovery
@@ -636,7 +635,7 @@ membership／MLS／Policy／quota，按 [device-lifecycle §16.2](../crypto-medi
 selected series 的当前 head，空 series 返回空；禁止 cursor、任意 series_id、previous series 或旧包枚举。它仅
 交付 head metadata／完整签名密文与最小 signed admission 用于续链和 current root 识别；Station 必须独立
 保管／验完整原 first-PUT 授权闭包，Device 只在本次 own-Station bound response 验证后以 receipt 原公钥验包 Ed。
-Device 不得获得 sibling 原 DeviceAuthorize、其它 Circle scopes 或完整 native_source，也不自行查 signer／治理。此来源不授 archive key、明文根或旧 Event／业务历史读取资格。
+Device 不得获得 sibling 原 DeviceAuthorize、完整 native_source，也不自行查 signer／治理。此来源不授 archive key、明文根或旧 Event／业务历史读取资格。
 
 **归档私钥与换端**：archive vault 必须使用 manager-only 的独立存储／解锁 capability；Device Runtime 的
 通用 authoring KEK、DeviceRecord、RootStore 或 generic decrypt 入口均不得解开该 vault。使用同一类库或同一
@@ -668,7 +667,7 @@ manager.change 原子安装 fresh future recipient、manager 和新 Device gener
 private MLS state。Account／Agent 固定原 Station 的规则不变。各独立 Service 只沿已登记网络操作交付精确材料，
 不得连接对方数据库、共享私钥或把本地 verified 标记当对端凭证；实际来源不支持或无法证实时保持不可用。
 
-验收必须实际覆盖独立 Bot／Ghost 首次 PUT→真实 ACK→journal→业务发送、Scope/Circle 隔离、无效角色／引用／
+验收必须实际覆盖独立 Bot／Ghost 首次 PUT→真实 ACK→journal→业务发送、Realm 隔离、无效角色／引用／
 签名／代次／recipient 零效果、同包并发和丢响应重启、identity recovery disabled 的合法 PUT、pending／撤权竞态、
 最后充分根拒删、完整及缺项 manager archive 转交、fresh scoped series 后显式 resume、旧 manager 拒绝、
 合法 Realm handoff 的实际完整导入，以及新 Device 的 history-only 恢复；schema／reference tests 不代替真实链路。
@@ -689,7 +688,7 @@ private MLS state。Account／Agent 固定原 Station 的规则不变。各独�
 Account Device 与 Agent 原分支不得携 Realm 身份字段；缺身份或混合分支必须拒绝。
 
 任一端为 Realm actor 时，claim_purpose 必须是 realm_membership；所属 RealmId 必须等于
-intended_realm_id，实际 group／effective scope 只可为该 Realm 或其获准 Circle。禁止个人 PCR、
+intended_realm_id，实际 group／effective scope 只可为该 Realm。禁止个人 PCR、
 DirectConversation、Sidecar 和 realm_control。原 requester 签名与服务请求签名覆盖完整 closed 请求及
 现有 service_binding；新增字段不得从签名投影、request digest、幂等或限速键中排除。双方继续核真实
 Device key、授权实例、generation、双 gate、manager、当前安装／grant、成员／邀请条件与 Policy。

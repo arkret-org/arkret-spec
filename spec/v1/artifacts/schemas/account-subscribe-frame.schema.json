@@ -925,7 +925,7 @@
     },
     "realm_stream_window": {
       "type": "object",
-      "description": "Per-stream delivery window for one visible authority stream of this Realm bucket. Realm, each Circle and each Sidecar are independent commit streams, so every window boundary marker is per stream: a bucket-level 'there is more history' boolean has no referent once the bucket spans N streams, and a bucket-level one would make one stream's window a function of activity on streams the caller cannot see (zh/sync/client-sync.md §4).",
+      "description": "Per-stream delivery window for one visible authority stream of this Realm bucket. Realm and each Sidecar are independent commit streams, so every window boundary marker is per stream: a bucket-level 'there is more history' boolean has no referent once the bucket spans N streams, and a bucket-level one would make one stream's window a function of activity on streams the caller cannot see (zh/sync/client-sync.md §4).",
       "required": [
         "stream_ref",
         "head_commit_ref",
@@ -1029,7 +1029,7 @@
               "additionalProperties": false
             }
           ],
-          "description": "Projection-only MLS epoch of THIS stream at its window start. Each Circle and each Sidecar owns an independent MLS group and epoch, so this cannot be a Realm-level scalar. null when the stream has no MLS group. Not part of any state hash, checkpoint or causal graph."
+          "description": "Projection-only MLS epoch of THIS stream at its window start. Each Sidecar owns an independent MLS group and epoch, so this cannot be a Realm-level scalar. null when the stream has no MLS group. Not part of any state hash, checkpoint or causal graph."
         }
       },
       "additionalProperties": false
@@ -1044,7 +1044,7 @@
           "items": {
             "$ref": "#/$defs/realm_stream_window"
           },
-          "description": "Per-stream window boundaries for the streams of this Realm bucket that the caller is authorized to see and whose Commit chain is already established. A container with no Commit yet MUST NOT appear here: head_commit_ref and next_position have no value to carry before position 0 exists, and the server MUST NOT fabricate a window with an empty head. Such a container becomes visible through stream enumeration (ak.self.realm.read.streams.v1) or a later frame once its first Commit lands. Entries MUST be sorted by unsigned bytes of RFC 8785 JCS(stream_ref) and stream_ref MUST be unique. Delivery rows live in committed_events[]; this array carries only the window scalars, which are per stream because Realm / each Circle / each Sidecar are independent commit streams. The caller MUST NOT infer anything about streams absent from this array other than what streams_limited states: an authorized-but-absent stream and a stream the caller cannot see are indistinguishable here by construction."
+          "description": "Per-stream window boundaries for the streams of this Realm bucket that the caller is authorized to see and whose Commit chain is already established. A container with no Commit yet MUST NOT appear here: head_commit_ref and next_position have no value to carry before position 0 exists, and the server MUST NOT fabricate a window with an empty head. Such a container becomes visible through stream enumeration (ak.self.realm.read.streams.v1) or a later frame once its first Commit lands. Entries MUST be sorted by unsigned bytes of RFC 8785 JCS(stream_ref) and stream_ref MUST be unique. Delivery rows live in committed_events[]; this array carries only the window scalars, which are per stream because Realm / each Sidecar are independent commit streams. The caller MUST NOT infer anything about streams absent from this array other than what streams_limited states: an authorized-but-absent stream and a stream the caller cannot see are indistinguishable here by construction."
         },
         "streams_limited": {
           "type": "boolean",
@@ -1256,7 +1256,7 @@
     },
     "state_at_window_start": {
       "type": "object",
-      "description": "Derived projection-only state at the window start, Realm-level display context only. NOT part of state hash, checkpoint, or causal graph, and never a security basis: it is a display preview and MUST NOT be presented as, or accepted in place of, an authority-signed snapshot. The verifiable rebuild material is per stream in realm_sync_entry.streams[].window_start_basis, and the presence of this object MUST NOT clear any stream's preview_only. The MLS epoch is NOT here either: each Circle and each Sidecar has its own group and epoch, so e2ee_epoch lives on realm_sync_entry.streams[] instead.",
+      "description": "Derived projection-only state at the window start, Realm-level display context only. NOT part of state hash, checkpoint, or causal graph, and never a security basis: it is a display preview and MUST NOT be presented as, or accepted in place of, an authority-signed snapshot. The verifiable rebuild material is per stream in realm_sync_entry.streams[].window_start_basis, and the presence of this object MUST NOT clear any stream's preview_only. The MLS epoch is NOT here either: each Sidecar has its own group and epoch, so e2ee_epoch lives on realm_sync_entry.streams[] instead.",
       "required": [
         "actor_profiles",
         "realm_metadata"

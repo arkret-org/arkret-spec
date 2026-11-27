@@ -14,7 +14,7 @@ see_also:
 
 规范关键字按[规范语言](../conformance/normative-language.md)解释。
 
-Arkret v1 的每条 Realm、Circle 或 Sidecar stream 由其 current governance Station 唯一接纳 Event，并通过连续 RealmCommit
+Arkret v1 的每条 Realm 或 Sidecar stream 由其 current governance Station 唯一接纳 Event，并通过连续 RealmCommit
 chain 提供完整性与顺序。每个 Realm 在某一 authority generation 只有一个 current governance Station。
 
 **章节编号是稳定引用身份（normative）**：本页的编号小节都是正文，各自承载自己的完整义务。
@@ -35,7 +35,7 @@ handoff proof 必须分别验证。
 
 ## 3. 复制
 
-项目复制单元是一条具体 Realm 或 Circle stream 中连续的 `(RealmCommit, Event)` 序列。调用方对
+项目复制单元是一条具体 Realm stream 中连续的 `(RealmCommit, Event)` 序列。调用方对
 每条 stream 单独授权和分页，必须验证：
 
 1. authority generation 与已验证的 genesis/handoff chain 一致；
@@ -180,7 +180,7 @@ membership history 与 typed current projection重新验证 commit/event/ref、s
 authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。
 
 **成员站 bootstrap（normative）**：唯一例外是本项本身就是本机托管成员自己的有效 join（Realm stream 的 `ak.member.state{join}`
-或定向 invite 的 `ak.invite.accept`，以及 Circle stream 的 `ak.circle.member.state{join}`），且事件前本 Station 在该 stream 上没有 joined 托管成员：本 Station 尚未持有该
+或定向 invite 的 `ak.invite.accept`），且事件前本 Station 在该 stream 上没有 joined 托管成员：本 Station 尚未持有该
 stream，或持有的 stream 止于其最后一名托管成员的终止 Commit（上文「终止托管成员资格的 membership Event」）。接收方只验证
 source Commit 签名、authority generation 与 Event 绑定（不要求前驱连续，也不按事件前状态重验本机托管成员资格），原子保存 Event、Commit 与派生 membership，并把该 stream 标为**待锚定**：待锚定期间
 本地对该 stream 的读取 MUST `temporarily_unavailable`，后续 replica 的可见性重验 MUST `dependency_missing`。
@@ -193,9 +193,9 @@ typed reducer 推进本地 current，并据此完成本节的接收方重验。�
 已持有该 stream 时（托管成员全部离开后再加入），装入 snapshot typed current 即整体替换旧 current；此前持有的行保持
 原样，只作 canonical 持有，不推进 current，也不构成复制权。连续性从该 join 重新起算：终止 Commit 与该 join 之间的
 位置与首次开流时 join 之前的位置相同，本 Station 对其没有复制权，不补齐，也不按下文「Withheld 链节点」拉取。
-Circle bootstrap 必须验证该 member 的父 Realm 本地 current `member_state` 为 `join`，且其 `revision` 逐字段等于该 Circle join 的 `parent_membership_revision`（[`../models/circle.md` §9.1](../models/circle.md)）。本地 Realm 副本在同一 Realm stream 上尚未覆盖该 revision（Circle 先到、Realm 滞后），或本地父 current 已是另一 revision（该父 join 已被 leave／ban／rejoin 取代，该 Circle join 已 effective-invalid）时，均不构成本机托管成员的有效 join：MUST `dependency_missing` 零写该项，不开流、不锚定；前者待 Realm 副本推进后由重试成功，后者由发送方发送前的 basis 重验转为 `cancelled_authority_lost`。比较只用 Commit 身份与父 Realm stream 内的 position，不与 Circle stream position 互认；`membership_commit_id` 必须指向其自身 Circle join 的 covering Commit，不能以父 Realm join 替代。snapshot 只包含同一 accepted cut 中 caller 有权读取的 stream 与 current；本 Circle stream 的 floor 精确等于该 Circle join 位置，其它可读 stream 继续按各自 history floor 裁剪，不套用 Circle 的 position。
+Snapshot 只包含同一 accepted cut 中该 Account 有权读取的流与 current；各流分别验证可读起点。
 需要多 Event 的 bootstrap 仍使用 registered atomic unit。上述一般单项 bootstrap 的首次开流前缀仍以该 join
-位置为 floor；Circle 继续适用上一段自身 join 与父 membership revision 规则。本段不把 Direct Conversation
+位置为 floor。本段不把 Direct Conversation
 四项 founding 拆成四个单项 bootstrap，也不扩张一般首次开流或 rejoin 的前缀权限。
 
 **已完成原子单元 materialization 后的 Snapshot 刷新（normative）**：成员站已经完成 registered atomic unit
@@ -210,7 +210,7 @@ materialization 后，刷新治理 Snapshot 应保留该 caller 依 history-visi
 join position，或删除同单元中原本合法的 current rows。仍须验证治理 Snapshot 签名、tenure/generation、完整
 caller/stream scope、当前有效 join、原子单元证明、visible heads 与连续前缀，并要求待发布 Snapshot 与该 Account
 完整 current cut 一致。不新增读取操作、DTO、其它 stream 权限或跨 stream 位置比较；不改变一般首次单项 bootstrap、
-一般 rejoin 与 Circle 的原规则。
+一般 rejoin 的原规则。
 
 **Withheld 链节点（normative）**：同一 stream 上本机托管成员无权取得完整 bytes 的位置不会进入本 Station 的
 目标集，其后继的 `previous_commit_ref` 因而指向本地未持有的位置。接收方对该项仍 MUST `dependency_missing` 零写入，
@@ -278,7 +278,7 @@ Invite 和 Directory 只携带 locator candidate；客户端必须自行请求�
 
 ## 6. 隐私
 
-Circle 使用独立授权的 stream。个人 Sidecar 的唯一治理站是用户归属站 H；站际链不得传递其创建记录、握手、密文、历史、队列或恢复材料。来源项目的治理站 G 只取得项目实际访问或发布所需事实。复制 API 对隐藏 stream 的存在、head、position 与 timing 均保持相同的拒绝行为。
+个人 Sidecar 的唯一治理站是用户归属站 H；站际链不得传递其创建记录、握手、密文、历史、队列或恢复材料。来源项目的治理站 G 只取得项目实际访问或发布所需事实。复制 API 对隐藏 stream 的存在、head、position 与 timing 均保持相同的拒绝行为。
 
 ### 6.3 DID route privacy
 
@@ -288,7 +288,7 @@ DID route 更新不得泄露隐藏 stream inventory，也不得取代已签 hand
 
 ### 8.5 Failure normalization
 
-错误响应必须避免区分 hidden/nonexistent/unauthorized Realm、Circle 或 Sidecar。
+错误响应必须避免区分 hidden/nonexistent/unauthorized Realm 或 Sidecar。
 
 ## Account Device historical signer fact transport (Normative)
 

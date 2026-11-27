@@ -41,11 +41,10 @@ class KeypackageClaimScopeBindingTest(unittest.TestCase):
             del body["effective_scope"]
             self.assertTrue(list(validator.iter_errors(body)), name)
 
-    def test_pending_realm_circle_and_sidecar_targets_remain_exact_without_welcome(self):
+    def test_pending_realm_and_sidecar_targets_remain_exact_without_welcome(self):
         request = self.request()
         realm = request["intended_realm_id"]
         scopes = [{"kind": "realm", "realm_id": realm},
-                  {"kind": "circle", "realm_id": realm, "circle_id": realm.replace("ak:realm:", "ak:circle:")},
                   {"kind": "sidecar", "realm_id": realm, "sidecar_id": realm.replace("ak:realm:", "ak:sidecar:")}]
         groups = set()
         for scope in scopes:
@@ -54,7 +53,7 @@ class KeypackageClaimScopeBindingTest(unittest.TestCase):
             self.assertEqual(list(self.validator("keypackages_claim_request_body").iter_errors(request)), [])
             verify_claim_scope(request)
             groups.add(request["mls_group_id"])
-        self.assertEqual(len(groups), 3)
+        self.assertEqual(len(groups), 2)
 
     def test_wrong_realm_group_missing_or_changed_scope_fails(self):
         original = self.request()
@@ -77,8 +76,8 @@ class KeypackageClaimScopeBindingTest(unittest.TestCase):
         request["last_resort_allowed"] = False
         self.assertEqual(list(self.validator("keypackages_claim_request_body").iter_errors(request)), [])
         verify_claim_scope(request)
-        request["effective_scope"] = {"kind": "circle", "realm_id": request["intended_realm_id"],
-                                      "circle_id": request["intended_realm_id"].replace("ak:realm:", "ak:circle:")}
+        request["effective_scope"] = {"kind": "sidecar", "realm_id": request["intended_realm_id"],
+                                      "sidecar_id": request["intended_realm_id"].replace("ak:realm:", "ak:sidecar:")}
         request["mls_group_id"] = canonical_mls_group_id(request["effective_scope"])
         self.assertTrue(list(self.validator("keypackages_claim_request_body").iter_errors(request)))
         with self.assertRaises(ValueError):
@@ -98,8 +97,8 @@ class KeypackageClaimScopeBindingTest(unittest.TestCase):
         domain = b"ak.peer-keypackage-claim-authorization-v1\n"
         key.verify(signature, domain + jcs(transcript))
         changed = deepcopy(transcript)
-        changed["request"]["effective_scope"] = {"kind": "circle", "realm_id": request["intended_realm_id"],
-            "circle_id": request["intended_realm_id"].replace("ak:realm:", "ak:circle:")}
+        changed["request"]["effective_scope"] = {"kind": "sidecar", "realm_id": request["intended_realm_id"],
+            "sidecar_id": request["intended_realm_id"].replace("ak:realm:", "ak:sidecar:")}
         changed["request"]["mls_group_id"] = canonical_mls_group_id(changed["request"]["effective_scope"])
         verify_claim_scope(changed["request"])
         with self.assertRaises(InvalidSignature):

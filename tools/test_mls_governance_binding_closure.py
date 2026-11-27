@@ -65,20 +65,20 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
                 self.assertTrue(any("Sidecar handshake" in error for error in self._run(SCHEMA, mutate)))
 
-    def test_sidecar_handshake_cannot_default_to_the_realm_circle_contract(self) -> None:
+    def test_sidecar_handshake_cannot_default_to_the_realm_contract(self) -> None:
         def mutate(value):
             value["x-arkret-public-handshake-contract"]["effective_scope_kinds"].append("sidecar")
 
         self.assertTrue(any("remain separate" in error for error in self._run(SCHEMA, mutate)))
 
-    def test_circle_acceptance_kat_is_required(self) -> None:
+    def test_realm_acceptance_kat_is_required(self) -> None:
         def mutate(value):
             value["cases"][0]["accepted"] = [
                 sample for sample in value["cases"][0]["accepted"]
-                if sample["name"] != "circle_scope_commit"
+                if sample["name"] != "realm_scope_commit"
             ]
 
-        self.assertTrue(any("circle_scope_commit" in error for error in self._run(FIXTURE, mutate)))
+        self.assertTrue(any("realm_scope_commit" in error for error in self._run(FIXTURE, mutate)))
 
     def test_accepted_bytes_are_actually_decoded(self) -> None:
         def mutate(value):

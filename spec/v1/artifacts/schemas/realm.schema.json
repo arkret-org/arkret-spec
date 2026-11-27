@@ -236,11 +236,11 @@
     },
     "governance_station_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-      "description": "Current governance Station service identity, derived from generation-0 genesis and the verified consecutive handoff chain. It is the authority that signs RealmCommit records for every independent Realm, Circle, and Sidecar stream in this Realm generation."
+      "description": "Current governance Station service identity, derived from generation-0 genesis and the verified consecutive handoff chain. It is the authority that signs RealmCommit records for every independent Realm, and Sidecar stream in this Realm generation."
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm five-bit Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Circle and Strand ceilings.",
+      "description": "Realm five-bit Agent participation ceiling. It may only tighten the target-service safety ceiling and is itself the parent of Strand ceilings.",
       "required": [
         "agent"
       ],

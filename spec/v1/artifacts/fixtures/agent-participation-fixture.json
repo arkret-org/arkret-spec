@@ -164,16 +164,6 @@
             "name": "composer_route_4"
           },
           {
-            "scope": "circle",
-            "owned": true,
-            "other": true,
-            "audience": true,
-            "choice": "default",
-            "expected": "blocked",
-            "interaction_mode": "private",
-            "name": "circle_private_mention_never_routes_realm_sidecar"
-          },
-          {
             "scope": "direct",
             "owned": true,
             "other": false,
@@ -323,9 +313,9 @@
         "widen_reason": "agent_participation_ceiling_widen"
       },
       "assertions": [
-        "Circle and Strand participation ceilings may only drop bits from their parent",
+        "Realm and Strand participation ceilings may only drop bits from their parent",
         "a child that enables acting_on_behalf_allowed below a disabled parent bit is rejected",
-        "a Strand that re-enables a Circle-disabled third-party mention bit is rejected"
+        "a Strand that re-enables a Realm-disabled third-party mention bit is rejected"
       ]
     },
     {
@@ -844,7 +834,6 @@
     "invariants": {
       "mode_changes_sidecar_roster": false,
       "sidecar_manual_membership": false,
-      "circle_private_routes_to_realm_sidecar": false,
       "message_revision_changes_scope": false,
       "private_history_auto_published": false,
       "shared_reply_uses_sidecar_context": false,
@@ -854,7 +843,7 @@
       "mode_change_replays_old_notifications": false,
       "controller_private_tools_allowed_with_authority": true,
       "private_mode_erases_shared_identity": false,
-      "mode_has_circle_or_strand_override": false
+      "mode_has_strand_override": false
     },
     "request_cases": [
       {
@@ -947,102 +936,6 @@
       },
       {
         "scope": "realm",
-        "mode": "unknown",
-        "controller_request": true,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "private",
-        "controller_request": false,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "private",
-        "controller_request": false,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "private",
-        "controller_request": true,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "private",
-        "controller_request": true,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "public",
-        "controller_request": false,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "public",
-        "controller_request": false,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": true
-      },
-      {
-        "scope": "circle",
-        "mode": "public",
-        "controller_request": true,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": true
-      },
-      {
-        "scope": "circle",
-        "mode": "public",
-        "controller_request": true,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": true
-      },
-      {
-        "scope": "circle",
-        "mode": "unknown",
-        "controller_request": false,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "unknown",
-        "controller_request": false,
-        "third_party_gate": true,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
-        "mode": "unknown",
-        "controller_request": true,
-        "third_party_gate": false,
-        "ordinary_authority": true,
-        "expected": false
-      },
-      {
-        "scope": "circle",
         "mode": "unknown",
         "controller_request": true,
         "third_party_gate": true,

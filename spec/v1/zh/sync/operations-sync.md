@@ -16,7 +16,7 @@ see_also:
 
 ## 1. 目标
 
-本文件定义producer Event从本地authoring到authority commit、复制、snapshot和客户端sync的统一路径。Realm、每个Circle、每个Sidecar各有独立stream。
+本文件定义producer Event从本地authoring到authority commit、复制、snapshot和客户端sync的统一路径。Realm 与每个 Sidecar各有独立stream。
 
 ## 2. 事件类型与 wire 边界
 

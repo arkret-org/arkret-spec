@@ -13,7 +13,7 @@ see_also:
 
 ## 1. 权威来源与执行模型
 
-每个 Realm只有一个 current governance Station。它为 Realm、每个 Circle、每个 Sidecar分别维护一条单写者 authority stream。Producer签 Event；governance Station在实际 commit位置验证 current authorization和领域规则并签 `RealmCommit`。
+每个 Realm只有一个 current governance Station。它为 Realm 与每个 Sidecar分别维护一条单写者 authority stream。Producer签 Event；governance Station在实际 commit位置验证 current authorization和领域规则并签 `RealmCommit`。
 
 ## 2. 独立接收站准入
 
@@ -42,12 +42,12 @@ Station 在该 stream 上给出的 `stream_position`：位置更大的已接纳�
 `CurrentRevision`，Station 在接纳位置比较该值，不匹配即以 `failed_precondition` 拒绝且零写入，客户端重读
 当前值后重新签发再试。并发写因此串行化为该 stream 上的一串位置，不产生需要用户合并的多头。
 
-跨 stream 不存在共享次序：Realm、每个 Circle 与每个 Sidecar 各自独立。需要跨 stream 协调的领域使用已提交
+跨 stream 不存在共享次序：Realm 与每个 Sidecar 各自独立。需要跨 stream 协调的领域使用已提交
 引用与显式补偿 Event，MUST NOT 假定两个 stream 的位置可比较。
 
 ## 7. 其他普通状态与结构
 
-Membership、policy、Strand、Message、Relation、Circle和capability由各自 typed reducer处理。wire 只暴露 producer-signed Event、RealmCommit 与登记的 current state。
+Membership、policy、Strand、Message、Relation和capability由各自 typed reducer处理。wire 只暴露 producer-signed Event、RealmCommit 与登记的 current state。
 
 ## 8. 安全状态与 RealmCommit
 
@@ -55,7 +55,7 @@ Membership、policy、Strand、Message、Relation、Circle和capability由各自
 
 ## 9. 跨域与不可逆效果
 
-跨Realm/Circle/Sidecar不提供原子提交。不可逆side effect只能在其前置Event committed后执行，并以exact committed ref作幂等键；失败使用领域saga补偿，不伪造跨stream事务。
+跨Realm/Sidecar不提供原子提交。不可逆side effect只能在其前置Event committed后执行，并以exact committed ref作幂等键；失败使用领域saga补偿，不伪造跨stream事务。
 
 ## 10. MLS、恢复与快照
 
@@ -101,7 +101,7 @@ Station 串行化：落后 revision 的命令以 `failed_precondition` 拒绝。
 已签名并已接纳的位置，也 MUST NOT 授权一条并行 lineage 接管该位置。崩溃后 MUST 先查原 durable outcome；
 结果未知时只能精确重投同一字节或继续查询，MUST NOT 另签一个 Event 冒充重试。
 
-**跨 stream 原子性边界（normative）**：一次原子接受只能推进一个 authority stream。Realm、Circle、Sidecar
+**跨 stream 原子性边界（normative）**：一次原子接受只能推进一个 authority stream。Realm、Sidecar
 以及不同 Realm 的 stream 即使由同一治理 Station、同一进程或同一 serializable store 承载，也仍是独立的
 权威边界；共址不得把它们合并成一个原子事务。跨 stream 工作流 MUST 以已提交的精确引用串联为 saga：每一步
 分别取得自己的 RealmCommit，重试使用同一请求身份与 exact bytes，后续不可用时不得回滚或改写已提交的前序

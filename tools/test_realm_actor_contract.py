@@ -142,7 +142,6 @@ class RealmActorContractTests(unittest.TestCase):
             'ak.self.blob.resource.get.v1',
             'ak.self.blob.resource.head.v1',
             'ak.self.blob.upload.create.v1',
-            'ak.self.circle.command.rotate_scope.v1',
             'ak.self.committed_event.read.scan.v1',
             'ak.self.committed_event.resource.get.v1',
             'ak.self.committed_event.stream.subscribe.v1',

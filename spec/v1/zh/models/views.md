@@ -74,10 +74,10 @@ Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation �
 
 ### 2.5 权限必须逐对象、按 effective scope 与 action scope 裁剪
 
-View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home Realm / Circle effective scope 判断可见性，再按 capability action scope 裁剪可执行操作。Renderer、track name、View filter 都不能授予读取或写入权限。
+View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home Realm effective scope 判断可见性，再按 capability action scope 裁剪可执行操作。Renderer、track name、View filter 都不能授予读取或写入权限。
 
 - 用户能看某个 Strand，仍不代表能执行 `ak.strand.update`、`ak.strand.stage.set`、`ak.strand.move` 或 `ak.message.create`；每个交互写入都要按对应 action 重新鉴权。
-- Message timeline 的可见性来自 Strand 的 single effective scope（Realm-default 或 Circle），不是 `discussion` track 自己的 ACL。
+- Message timeline 的可见性来自 Strand 的 single effective scope（Realm），不是 `discussion` track 自己的 ACL。
 - `allowed_tracks` / `strand_track` 这类 action 或通知 scope 只能缩小已授权动作和通知匹配范围，不能创造新的读权。
 - Board projection MAY 显示 discussion locked link，但不得泄露未授权 discussion 的消息摘要、成员、统计、最后活动时间或存在性细节，除非 policy 明确允许。
 
@@ -400,7 +400,7 @@ MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有效 access polic
 | 卡片 | `strand` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | 派生 `contains` projection | 真源是 `strand_position:<board_space_id>:<strand_id>` position current state；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
 | 列属于看板 | 派生 `contains` projection | 真源是 `space_parent:<list_space_id>` parent current state；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
-| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Strand；access 完全继承 Strand 的 effective scope（由 `Strand.scope_circle_id` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
+| 讨论入口 | `tracks` map 中的 `discussion` entry | 所有普通 Strand track 共享所属 Realm 的访问边界。 |
 
 ### 6.2 Board 不显示全 Realm 数据
 

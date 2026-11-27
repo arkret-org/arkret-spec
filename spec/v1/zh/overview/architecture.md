@@ -13,7 +13,6 @@ see_also:
   - ../crypto-media/device-lifecycle.md
   - ../security/server-threat-model.md
   - ../models/realm-and-space.md
-  - ../models/circle.md
   - ../conformance/normative-language.md
 ---
 
@@ -40,35 +39,20 @@ Arkret 采用 **Station + signed Event + identity registry + client-side project
 
 Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Station 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ak:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ak:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
+协作数据层使用 Realm 作为复制与授权边界。普通 Strand、Space、Message、Relation 事件均进入所属 Realm 的提交流。Morph 的扩展能力由 Realm schema 或 Morph profile 显式声明，facets 只提供查询提示。Morph MUST NOT 绕过标准对象的 kind、capability 或 reducer 规则。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
-Arkret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Strand。
-
-本节的"判定顺序"是容器选型的唯一 normative 总入口。`overview/current-model.md` 与 `models/overview.md` 只作为读者导览引用本节与各对象专属文件，不重复承载容器升级 / 降级规则。
-
-*Table 2-1. 容器对象按使用场景索引（informative）。*
-
-| 使用场景 | 推荐对象 | 关键边界属性 |
+| 需要表达的关系 | 协议对象 | 接纳与读取依据 |
 | --- | --- | --- |
-| 共享 federation / identity、capability registry、Realm-default E2EE group | `ak:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、capability registry、Realm-default MLS group |
-| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ak:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity；约束 `Circle.members ⊆ Realm.members` |
-| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ak:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
-| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ak:strand:` | Realm 内协作主体；整 Strand 单一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
-| 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
+| 一组参与者共享成员治理、历史可见性和可选 MLS group | Realm | 独立的成员名单、提交流与授权；不同 Realm 分别验证 |
+| 导航、分组和排序，如看板、列和文件夹 | Space | Space 只记录结构与放置约束，移动前后均依对象所属 Realm 验证授权 |
+| 协作事项、讨论或任务及其 Track | Strand | 各 Track 共用 Strand 所属 Realm 的内容域；动作和字段可进一步限制权限 |
+| 关联多个已有 Realm | Realm link 或客户端 View | 每个目标独立检查读取资格 |
 
-判定顺序（normative）：
+需要独立成员、历史或密钥的普通协作组 MUST 使用独立 Realm。Realm 的 `parent_membership` 准入规则可要求申请人在指定来源 Realm 中具有有效成员资格。个人 Sidecar 由其主人启用，使用专用私有流与 MLS group。Space 的 `child_scope_policy` 只在放置时检查所属 Realm 的加密状态。
 
-1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `ak:realm:`。
-2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ak:circle:`，对象通过 `scope_circle_id` 引用。
-3. 仅用于导航 / 结构分组的容器 MUST 使用 `ak:space:`，MUST NOT 借此获得 membership 或安全边界。
-4. 带协作语义的最小单元 MUST 使用 `ak:strand:`。
-5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 governance 提案流程中留档。
-
-子资源 scope 继承（`child_scope_policy`）取值、冲突解析，以及 `Space.scope_circle_id` 与 `realm_id` 同时存在时的优先级，权威定义见 [`models/circle.md`](../models/circle.md)（`child_scope_policy` 与 scope 解析优先级）；overview 不重复承载该解析规则。
-
-详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/strand-and-message.md`](../models/strand-and-message.md)。
+对象与约束定义见 [Realm 与 Space](../models/realm-and-space.md)、[Space 层级](../models/space-hierarchy.md)、[Realm links](../models/realm-links.md)、[Strand 与 Message](../models/strand-and-message.md) 和 [Sidecar](../models/sidecar.md)。
 
 ### 2.1 Organization / Realm 边界
 
@@ -486,7 +470,7 @@ Arkret 固定以下架构取向：
 | 同一 principal 在不同 Station 的 Account | 每个完整 AccountId 都是独立账号与信任上下文；只有显式、已验证的绑定或协议事件才能建立它们之间的关系。 | 分别认证 Station、会话、设备 generation、ActorId 与 operation scope；跨站引用不得丢弃 `station_id` 或只按 principal DID 合并。 | 相同 principal 分量不证明两个 Account、设备集合、消息队列、push target、权限或历史相同，也不授权一个 Station 代表另一 Station。 |
 | 跨 Station 用户 | 用户可依赖自己的 Station 已验证并按本次 operation 返回的远端治理、设备或 signer 结果；共享事实仍以签名 Event、RealmCommit、membership/capability 和端到端密码学为准。 | 客户端核对完整双方 AccountId/ActorId、Realm/scope、实际 producer 签名、MLS/内容绑定和 freshness；远端取材由自己 Station 走 peer 面完成，客户端不向远端 Station 交付自己的 SessionGrant/DPoP。 | 用户不因 federation、同 Realm 或对方 Station 的自报 verified 状态而直接信任对方。远端 Station 的已签 attestation 提供归责，不在密码学上阻止其为自己的账号发布虚假服务器断言；恶意源还可 withholding、选择性转发或提供不完整观察。 |
 | Station ↔ Station | 没有默认互信。接收 Station 只在本地 peer policy、Realm 业务授权和请求级认证全部通过后，接受某个有界 federation transaction。 | 接收方独立验证 service DID/method evidence、delegation/endpoint、HTTP message signature、双方 service/trust-domain、body digest、replay/freshness、Event proof、capability、RealmCommit/basis 和目标绑定。 | allowlist、TLS、可解析 DID、有效服务签名或已知 peer 只证明相应层的身份/准入，不证明业务授权、内容真实、历史完整或对方善意。current-v1 不证明从未观察到的 Event 不存在，也不阻止 source withholding；见 [`sync/federation.md` §2–§3](../sync/federation.md#2-设计原则)。 |
-| 同一 Realm/Circle 的用户或 Agent | accepted membership 与 capability 只证明主体可在相应 effective scope 内执行特定动作；MLS membership 证明相应 epoch 的密码学参与资格。 | 每个接收方继续验证 Event、授权状态、scope、MLS epoch/sender、内容 schema，并把不可信内容当作潜在恶意输入。 | 共处 Realm/Circle 不建立人际信任、设备信任或内容真实性的额外保证。E2EE 防止未持钥服务读取正文，不阻止合法成员泄露已解密内容、提交恶意内容或观察其有权看到的元数据。 |
+| 同一 Realm 的用户或 Agent | accepted membership 与 capability 只证明主体可在相应 effective scope 内执行特定动作；MLS membership 证明相应 epoch 的密码学参与资格。 | 每个接收方继续验证 Event、授权状态、scope、MLS epoch/sender、内容 schema，并把不可信内容当作潜在恶意输入。 | 共处 Realm 不建立人际信任、设备信任或内容真实性的额外保证。E2EE 防止未持钥服务读取正文，不阻止合法成员泄露已解密内容、提交恶意内容或观察其有权看到的元数据。 |
 | 治理结果消费 Station ↔ 治理 Station | 唯一冻结 signer 认证该 Realm 的 RealmCommit（治理确认记录）与精确治理结果证明；普通客户端经自己 Station 消费 scoped 结果。 | 消费站验证独立信任起点、连续轮换、唯一签名、target/selectors、所需结果及已知撤销；治理 Station 完整执行验证，用户持钥授权与 E2EE 保留。 | 唯一治理方可谎报、分叉或阻断安全变更和冷查询；不承诺 Byzantine 容错，也不能生成未持有的用户签名或 MLS 秘密。见 [authority_commit-profiles §1、§9](../sync/authority-commit-log.md)。 |
 | 账号 ↔ trusted_recovery_service | 账号事先在 accepted policy 精确登记的单服务可作为 OR 方法授权本次整个账号控制权恢复。 | 接收者按 [key-management §8–§8.2](../identity/key-management.md#8-recovery-policy) 验 exact account、replacement key、session/challenge、policy、有效期、设备 PoP 与原子消费；policy 发布/撤销仍由该节已有合法授权者执行。 | 被登记服务失陷可滥用其恢复权，但 reanchor/unlock 不自动解密历史、授予任意业务写入或删除 active backup。显式 policy revoke 使未完成授权失效；普通 rotate 的 frozen session 与已 accepted reanchor 不追溯回滚按 §8.1 处理。 |
 | 用户 / native actor ↔ delegated Applet 或 Agent | 已接受 delegation/grant 可允许 executor 用自己的 key 代表 actor 写入；不是冒充 actor 私钥。 | 核对 actor、executed_by、authorization_ref、实际签名与 scope；Applet 另按 [applet-integration §11](../extensions/applet-integration.md#11-masquerading-与-delegated-agent) 验 exact resources、registration_epoch 与安装主体。UI 展示 actor 与 executor 双身份。 | 双身份归责不等于每条 Event 要求两份密码学签名。受托 executor 可在授权内作恶；Applet 不是唯一代表签署路径，Agent 亦按 §7 处理。 |

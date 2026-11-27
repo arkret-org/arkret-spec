@@ -135,19 +135,19 @@ class AppletManagementSourceTests(unittest.TestCase):
         self.assertEqual(child['payload']['grant']['resources'],[case['effect_scope']])
         self.assertEqual(child['payload']['grant']['issuer_id'],parent['payload']['grant']['subject'])
 
-    def test_governance_authoring_is_realm_but_payload_effect_stays_circle(self):
+    def test_governance_authoring_requires_realm_scope(self):
         case=self.f['governance_delivery_kats']
         grant_validator=self.schema('schemas/applet-install-authoring.schema.json#/$defs/capability_grant_event')
         for row in case['source_rows']:
             event=row['event']
             grant_validator.validate(event)
             self.assertEqual(event['payload']['grant']['resources'],[case['effect_scope']])
-            wrong=copy.deepcopy(event);wrong['scope_ref']=case['effect_scope']
-            self.assertFalse(grant_validator.is_valid(wrong),'a Circle effect is not a Circle governance Event')
+            wrong=copy.deepcopy(event);wrong['scope_ref']={'kind':'realm_genesis'}
+            self.assertFalse(grant_validator.is_valid(wrong),'Realm genesis cannot authorize an ordinary grant')
         revoke=case['body']['events'][0]
         submission=self.schema('schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body/properties/capability_revoke_events/items')
         submission.validate({'event':revoke})
-        wrong=copy.deepcopy(revoke);wrong['scope_ref']=case['effect_scope']
+        wrong=copy.deepcopy(revoke);wrong['scope_ref']={'kind':'realm_genesis'}
         self.assertFalse(submission.is_valid({'event':wrong}))
         body=copy.deepcopy(case['body']);body['effective_scope']=case['effect_scope']
         request=self.schema('schemas/applet-edge-operations.schema.json#/$defs/applet_event_transaction_request_body')

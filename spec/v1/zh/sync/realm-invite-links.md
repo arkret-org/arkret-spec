@@ -12,7 +12,7 @@ updated: 2026-11-12
 
 ## 1. 身份、角色与信任边界
 
-RealmInviteLink是一个Realm范围的独立授权对象；其 `realm_invite_link_id` 从已接纳 `ak.realm_invite_link.create` Event派生，使用 `ak:realm_invite_link:<44-char-event-token>`，MUST NOT 当作InviteId。目标只包含Realm，MUST NOT 授予Strand、Circle、Sidecar、消息、历史、管理或MLS私态权限。
+RealmInviteLink是一个Realm范围的独立授权对象；其 `realm_invite_link_id` 从已接纳 `ak.realm_invite_link.create` Event派生，使用 `ak:realm_invite_link:<44-char-event-token>`，MUST NOT 当作InviteId。目标只包含Realm，MUST NOT 授予Strand、Sidecar、消息、历史、管理或MLS私态权限。
 
 创建者与接受者 MUST 是完整account Actor；AccountId的principal_id和station_id均不可省略。同principal在不同Station的两个账号是不同接受者。接受者自己的Station验证其普通会话／producer proof，通过正式peer网络面将原签Event交给当前Realm治理Station；不得访问别的服务的数据库、配置、KeyStore或实现函数。账号服务只承担普通登录会话职责，不承担链接秘密托管、计次或成员权威。
 

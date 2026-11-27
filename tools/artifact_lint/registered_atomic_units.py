@@ -17,8 +17,8 @@ FIXTURE = ARTIFACTS / 'fixtures/registered-atomic-unit-and-watch-audit-fixture.j
 SELF = 'ak.self.strand.watch.command.audit_read.v1'
 PEER = 'ak.peer.strand.watch.command.audit_read.v1'
 UNIT_KINDS = {'ordinary_realm_bootstrap', 'direct_conversation_founding', 'membership_compensation', 'audit_paired_event'}
-UNIT_REQUIRED = {'watch_pair_accepted', 'circle_manage_pair_accepted', 'circle_others_pair_accepted', 'missing_audit', 'duplicate_audit', 'reverse_order', 'wrong_writer', 'wrong_target', 'wrong_pair_ref', 'wrong_scope', 'wrong_producer', 'missing_audit_capability', 'cas_conflict', 'muted_by_other', 'public_by_other', 'clear_by_other', 'unregistered_kind', 'raw_atomic_batch', 'exact_unit_replay', 'changed_unit_replay', 'ordinary_replication_pair_fragment', 'committed_pair_replication', 'replica_missing_source_slot', 'cross_stream_unit', 'device_proof_missing', 'agent_controller_revoked'}
-READ_REQUIRED = {'audited_never_written', 'audited_written_null', 'audit_capability_missing', 'read_capability_missing', 'others_is_not_read', 'nonmember_without_circle_audit', 'scoped_circle_auditor', 'wrong_scope_read', 'wrong_auditor_station', 'governor_unverified', 'namespace_incomplete', 'audit_admission_failure', 'replay_returns_frozen_value', 'old_audit_cannot_query_new_value', 'changed_audit_request', 'preaccepted_ticket_rejected', 'replay_material_missing', 'delivery_revoked', 'agent_content_ceiling_denied', 'handoff_requires_new_audit', 'network_loss_keeps_authorized_audit'}
+UNIT_REQUIRED = {'watch_pair_accepted', 'missing_audit', 'duplicate_audit', 'reverse_order', 'wrong_writer', 'wrong_target', 'wrong_pair_ref', 'wrong_scope', 'wrong_producer', 'missing_audit_capability', 'cas_conflict', 'muted_by_other', 'public_by_other', 'clear_by_other', 'unregistered_kind', 'raw_atomic_batch', 'exact_unit_replay', 'changed_unit_replay', 'ordinary_replication_pair_fragment', 'committed_pair_replication', 'replica_missing_source_slot', 'cross_stream_unit', 'device_proof_missing', 'agent_controller_revoked'}
+READ_REQUIRED = {'audited_never_written', 'audited_written_null', 'audit_capability_missing', 'read_capability_missing', 'others_is_not_read', 'nonmember', 'wrong_scope_read', 'wrong_auditor_station', 'governor_unverified', 'namespace_incomplete', 'audit_admission_failure', 'replay_returns_frozen_value', 'old_audit_cannot_query_new_value', 'changed_audit_request', 'preaccepted_ticket_rejected', 'replay_material_missing', 'delivery_revoked', 'agent_content_ceiling_denied', 'handoff_requires_new_audit', 'network_loss_keeps_authorized_audit'}
 
 
 def producer(event: dict) -> dict:
@@ -33,7 +33,7 @@ def evaluate_unit(value: dict) -> str:
     if len(events) != 2:
         return 'failed_precondition'
     business, audit = events
-    pairs = {'ak.strand.watch.set': ('watch_set_others', 'watcher_actor_id', 'strand_id'), 'ak.circle.member.state': ('circle_member_set_others', 'member_id', 'circle_id')}
+    pairs = {'ak.strand.watch.set': ('watch_set_others', 'watcher_actor_id', 'strand_id')}
     if business['kind'] not in pairs or audit['kind'] != 'ak.audit.accessed':
         return 'failed_precondition'
     access, actor_key, target_key = pairs[business['kind']]
@@ -83,7 +83,7 @@ def evaluate_read(value: dict) -> str:
         return 'not_found'
     if not value['governor_verified']:
         return 'revision_unavailable'
-    if not value['read_authorized'] or not value['audit_authorized'] or not value['realm_member'] or not (value['scope_member'] or value['scoped_circle_audit']):
+    if not value['read_authorized'] or not value['audit_authorized'] or not value['realm_member']:
         return 'not_found'
     if not value['target_scope_matches']:
         return 'not_found'
@@ -152,9 +152,9 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     req = audit_schema['$defs']['watch_audit_read_request_body']
     if req.get('required') != ['audit_submission'] or set(req.get('properties',{})) != {'audit_submission'} or req.get('additionalProperties') is not False:
         errors.append('Audited read selector must derive only from the signed audit Event')
-    manageable = next(r for r in catalog['capability_action_registry']['actions'] if r['action']=='ak.circle.member.manage')
+    manageable = next(r for r in catalog['capability_action_registry']['actions'] if r['action']=='ak.strand.watch.set.others')
     if 'audit_pair_required' not in manageable.get('required_evaluator_checks',[]):
-        errors.append('Circle member.manage must not bypass audit pairing')
+        errors.append('Setting another actor’s watch must not bypass audit pairing')
     peer = defs['peer_submit_request_body']
     branches = peer.get('oneOf', [])
     forwarding = [b for b in branches if b.get('properties', {}).get('branch', {}).get('const') == 'authority_forward']
@@ -167,9 +167,8 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     if peer_read.get('oneOf') != [{'required':['producer_device_evidence']},{'required':['producer_agent_evidence']}]:
         errors.append('Peer audited read must carry exactly one actual producer proof')
     audit_contract = registry.get('audit_read', {})
-    circle = audit_contract.get('circle_authorization', {})
-    if audit_contract.get('producer_classes') != ['account_device','agent_runtime'] or circle != {'current_parent_realm_membership':True,'effective_circle_member_or_scoped_circle_audit':True,'nonmember_exception':'watch_audit_read_command_audit_event_only','no_membership_content_history_or_mls_key_grant':True}:
-        errors.append('Audited-read producer/Circle exception boundary drift')
+    if audit_contract.get('producer_classes') != ['account_device','agent_runtime']:
+        errors.append('Audited-read producer classes drift')
     if rows[-1].get('replay_fence') != 'full_canonical_unit_and_single_use_business_event_id_and_audit_event_id':
         errors.append('Audit pair must fence each Event ID against changed pairing')
     response_cases = fixture.get('response_cases', [])

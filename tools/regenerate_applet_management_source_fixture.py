@@ -31,7 +31,7 @@ def governance_delivery_kats():
     from tools.regenerate_detached_object_signature_kat import make_signature
     ids=json.loads((ROOT/'spec/v1/artifacts/fixtures/managed-governance-fixture.json').read_text(encoding='utf-8'))['identities']
     realm=ids['realm_id']; service=ids['service']; applet=ids['applet_id']
-    scope={'kind':'circle','realm_id':realm,'circle_id':'ak:circle:'+b64(b'\x01'+bytes([41])*32)}
+    scope={'kind':'realm','realm_id':realm}
     stream={'kind':'realm','realm_id':realm}; at='2026-09-20T00:00:00.000Z'
     old_seed=bytes(range(32)); new_seed=bytes(range(32,64)); authority_seed=bytes(range(64,96))
     old_vm='did:webvh:z6mkfixtureapplet:applet.example#service-old'

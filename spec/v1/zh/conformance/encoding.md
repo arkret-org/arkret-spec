@@ -51,7 +51,7 @@ JSON Schema 同时允许 property 省略和显式 `null`，只表示两种 wire 
 - 不得仅因字段名称包含 `expected`、`state`、`proof` 或 `ref` 就推断三态；安全关键 CAS 若确需
   omission 表示"无断言"，必须显式使用上述扩展并提供三种正向与交叉负向 vector。
 
-当前唯一 `distinct` 目标是 Circle membership CAS 的 `expected_membership`。
+未登记字段不使用 `distinct` 规则。
 
 ### 2.2 String profile 与 Unicode
 
@@ -98,13 +98,13 @@ Event、RealmCommit、handoff 与 snapshot 的 ID 都从各自 canonical body
 
 ### 3.3 Stream 链接与 Commit ID 承诺
 
-每条 Realm、Circle 或 Sidecar stream 的完整性由 `RealmCommit.previous_commit_ref` 与 `stream_position` 的链接
+每条 Realm 或 Sidecar stream 的完整性由 `RealmCommit.previous_commit_ref` 与 `stream_position` 的链接
 承诺给出：位置从 0 起在本 stream 内连续递增，每个 Commit 指向本 stream 的上一个 Commit。Commit ID 是对完整
 Commit body（不含其自身 ID）的 canonical 摘要，因此一次性承诺 Event ID、stream、位置、前驱、authority
 generation 与治理 Station proof。验证方据此重算 Commit ID 并校验链接，就得到该 stream 的完整性判据。
 
 跨 stream 的协调只经由已提交引用与显式补偿 Event：不存在共享 root、共享 position，也不存在隐含的跨 stream
-原子提交。Realm、每个 Circle 与每个 Sidecar 各自独立，两条 stream 的位置之间没有可比较关系。
+原子提交。Realm 与每个 Sidecar 各自独立，两条 stream 的位置之间没有可比较关系。
 
 ### 3.4 Canonical 展示顺序（normative）
 
@@ -151,7 +151,7 @@ Typed ID 必须通过 `id-kind-registry.json` 登记的唯一 grammar 和 author
 
 #### 4.0.1 引用验证
 
-`*_ref` 必须先验证类型前缀，再在调用者获权的 stream 中解析，不得跨 Circle/Sidecar 探测。
+`*_ref` 必须先验证类型前缀，再在调用者获权的 stream 中解析，不得跨 Sidecar 探测。
 
 ### 4.1 生产者分配的 ID
 
@@ -364,6 +364,8 @@ rank_between(left, right):
   | `ak.pin.add` / `ak.pin.reorder` | 被 pin 的目标对象 | `payload.target_ref` |
   | `ak.relation.create` | 物化后的 Relation | Relation 的 `id`（由 create Event 的 `event_id` 重类型派生） |
   | `ak.strand.move` / `ak.strand.reorder` | 被移动的 Strand | `payload.strand_id` |
+  | `ak.strand.update`（整体 set `topic`） | 该 Topic 内的 Chat | `payload.strand_id` |
+  | `ak.space.create` / `ak.space.update`（Board 或 Topic 自身的 rank） | Board 或 Topic Space | 创建时的 Space ID 或更新的 `payload.space_id` |
 
   该 tie-break **只用于展示序**，MUST NOT 进入 canonical state，也 MUST NOT 参与授权判断。相同 rank 不构成
   互斥冲突，也不需要人工修复。新增承载 rank 的 payload 时 MUST 同批在上表登记它的 tie-break typed id，
@@ -389,7 +391,7 @@ Typed reducer 直接读取 kind 对应的封闭 Event payload 和 envelope；sub
 subject 的 registry 字段来源必须显式命名：payload 来源写成 `payload.<具名路径>`，Event Envelope 来源写成
 `envelope.<字段>`；裸字段名与"先查 payload、再查 envelope"的 fallback 求值一律未定义并 MUST
 `schema_violation`。
-v1 的 envelope 来源白名单包含 `envelope.actor_id`、`envelope.actor_id.kind` 与 `envelope.scope_ref`；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
+v1 的 envelope 来源白名单包含 `envelope.actor_id` 与 `envelope.actor_id.kind`；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
 
 需要多字段业务键时，schema 必须列出固定字段、顺序与正规化方法；实现按 typed reducer 构造数据库唯一
 键。该数据库键不是 wire ID，也不得作为跨实现授权材料。

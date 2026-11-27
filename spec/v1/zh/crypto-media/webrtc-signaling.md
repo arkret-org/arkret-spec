@@ -67,7 +67,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - Realm 成员不自动拥有 `ak.call.record`。
 - `ak.call.screen_share` SHOULD 独立授权。
 - `ak.realm.media_service` 只应授予管理员或受信服务。
-- Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ak.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
+- Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(c) 发起设备的 device grant MUST NOT 被 revoked，且其 `ak.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
 - `signal_kind=invite` 的产品准入按 §3b 执行，并 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 

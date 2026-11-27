@@ -3209,45 +3209,10 @@
         }
       ]
     },
-    "audit_paired_circle_member_submission": {
-      "allOf": [
-        {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
-        },
-        {
-          "properties": {
-            "event": {
-              "properties": {
-                "kind": {
-                  "const": "ak.circle.member.state",
-                  "x-arkret-value-ownership": {
-                    "class": "namespaced_symbol",
-                    "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/kind",
-                    "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/kind",
-                    "values": [
-                      "ak.circle.member.state"
-                    ]
-                  }
-                },
-                "payload": {
-                  "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            }
-          }
-        }
-      ]
-    },
     "audit_paired_business_submission": {
       "oneOf": [
         {
           "$ref": "#/$defs/audit_paired_watch_submission"
-        },
-        {
-          "$ref": "#/$defs/audit_paired_circle_member_submission"
         }
       ]
     },
@@ -3284,16 +3249,14 @@
                       "properties": {
                         "access_kind": {
                           "enum": [
-                            "watch_set_others",
-                            "circle_member_set_others"
+                            "watch_set_others"
                           ],
                           "x-arkret-value-ownership": {
                             "class": "owned_symbol",
                             "authority": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
                             "owner": "authority-commit-operations.schema.json#/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind",
                             "values": [
-                              "watch_set_others",
-                              "circle_member_set_others"
+                              "watch_set_others"
                             ]
                           }
                         }

@@ -835,7 +835,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$"
+      "pattern": "^(ak:(realm|space|strand|message|morph|relation|event|view):[A-Za-z0-9_-]{44}|did:.+)$"
     },
     "kind_configuration_exclusivity": {
       "$comment": "zh/models/views.md section 3.1: kind and its typed config are mutually exclusive. The block is a $def because the materialized object and the author-supplied definition of zh/models/views.md section 3.2 MUST apply the same content constraint; restating it twice is how the two drift apart.",

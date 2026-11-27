@@ -20,7 +20,7 @@ see_also:
 
 Client Sync 是 own Account Station 向客户端提供的受信账号聚合流。它传送：
 
-- Realm/Circle/Sidecar 各自独立 authority stream 的 committed delta；
+- Realm/Sidecar 各自独立 authority stream 的 committed delta；
 - typed current state 与签名 snapshot；
 - Account-private 数据、to-device、device list 和 notification projection；
 - MLS public transition 提示和 recipient-scoped Welcome delivery。
@@ -80,7 +80,7 @@ Station MUST 通过 `realm_list.items` 和 `realm_list_changes` 仅披露该账�
 
 账号聚合包含三类彼此不同的状态：
 
-1. `authority_committed`：Realm、Circle、Sidecar 各自独立 Commit stream；
+1. `authority_committed`：Realm、Sidecar 各自独立 Commit stream；
 2. `account_private`：preference、notification state、local drafts 等 Station-local 状态；
 3. `delivery`：to-device、Welcome 与 push hint，需要独立 ACK/去重。
 
@@ -141,13 +141,15 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 
 ## 4. Realm Buckets
 
-每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `max_window_event_count` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `committed_events[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
+每个 Realm bucket 包含 Realm stream 和 caller 可见的 Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `max_window_event_count` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `committed_events[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
 
 看不到某 private stream 时，客户端不能从 position gap推断其存在或活动。**这条同时是 account 聚合 cursor 保持不透明的理由**：明文位置向量会把 caller 可见流集合的形状暴露出去，而单条 stream 的扫描因为位置本身不跨越可见性边界，才可以位置化（[`api-conventions.md` §7.2](./api-conventions.md)）。
 
 `streams[]` 有条目上限。caller 获准可见的流超过上限时，服务端 MUST 置 `streams_limited=true`，且截断规则只依赖 caller 自己的可见流集合：Realm stream 只要可见就必须保留，其余按 `JCS(stream_ref)` 的 unsigned 字节序升序填满剩余名额。客户端 MUST 用 per-stream surface 补齐其余流，MUST NOT 把未出现在 `streams[]` 里的流判定为不存在。服务端不得静默丢流。
 
 ### 4.1 流的发现与选择（normative）
+
+普通协作 Realm 只有一条内容流。已知目标 Realm 的客户端从受权且已验证的快照取得该流的可读起点与 head 后，直接扫描或订阅该流。用于发现个人 Sidecar 等独立流的枚举仍按下述规则执行。
 
 条目上限不得使一条流不可发现或永久饥饿。`ak.self.committed_event.read.scan.v1` 要求调用方**已经知道** `stream_ref`，因此它补不齐发现面；发现面是 `ak.self.realm.read.streams.v1`（`GET /_arkret/self/realms/{realm_id}/streams`）：ACL 过滤、可分页，返回该 caller 获准知道其存在且**已建立 Commit 链**的 `stream_ref`，以及每条流的可读 floor 与 head anchor。
 
@@ -193,7 +195,7 @@ timeline 已读或强制扫描 PCR。受限 Human PCR historical key 查询遵�
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Circle / Sidecar 的窗口都标成可重建。
+窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Sidecar 的窗口都标成可重建。
 
 `window_start_basis` 只用于起点 position > 0 的窗口，绑定 exact Realm、exact `stream_ref`、状态所在的 exact committed prefix（`anchor_position` + `anchor_commit_ref`：状态在该流直到并含该 Commit 的全部 Commit 之后成立）、承载该逐流完整 selector 集的独立原签 `purpose="stream_history"` Snapshot（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。起点为 position 0 时无 basis，客户端从该流的 genesis Commit 开始验证连续链，该窗口不因无 basis 而成为 preview。窗口起点恰为 caller 可读 floor 且 floor > 0 时，caller 可读区间内不存在 floor 之前的 Commit，也就没有可向其签发的前缀状态，该流 MUST `preview_only=true`、不携带 basis；floor Commit 本身由 scan `readable_floor` 验证，受限成员**不必**拿到 position 0。起点在 floor 之后的窗口照常以 head 不早于 floor、已向该 caller 签发的 snapshot 作 basis。
 
@@ -211,7 +213,7 @@ timeline 已读或强制扫描 PCR。受限 Human PCR historical key 查询遵�
 
 同一 stream 中只按 `stream_position` 升序；position 0 无 predecessor，后续 Commit 的 `previous_commit_ref` 必须等于该 stream上一 Commit。Event 本身不携 predecessor。
 
-不同 Realm/Circle/Sidecar stream 之间没有 protocol total order。UI需要混排时 MAY 使用 `created_at`/arrival time 做展示排序，但该顺序不得进入授权、current、MLS epoch或审计完整性判断。
+不同 Realm/Sidecar stream 之间没有 protocol total order。UI需要混排时 MAY 使用 `created_at`/arrival time 做展示排序，但该顺序不得进入授权、current、MLS epoch或审计完整性判断。
 
 **本节是跨流展示序的唯一定义点（normative）**：同一 stream 按 `stream_position`，跨 stream 无 protocol 序，混排序只是展示选择。[`conformance/encoding.md` §3.4](../conformance/encoding.md) 的 canonical digest comparator 是 scope restriction（规定该序可以用在哪里），不是任何展示面的默认序；其它章节 MUST NOT 另行定义跨流展示序。
 
@@ -372,7 +374,7 @@ v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。每个 
 1. own Station验证或刷新 current `RealmAuthorityBundle`；
 2. 从 current authority取得 nonce-bound bundle；
 3. 拉取 authority-signed typed snapshot；
-4. 按 Realm、每个可见 Circle、每个可见 Sidecar的独立 head补 tail；
+4. 按 Realm、每个可见 Sidecar的独立 head补 tail；
 5. 安装 current state、delivery和Account-private baseline。
 
 Invite issuer、Directory、cache或 genesis Station都只能提供 locator。默认不拉全历史。
@@ -385,7 +387,7 @@ Invite issuer、Directory、cache或 genesis Station都只能提供 locator。�
 
 治理 Station只跟踪 MLS public state，不持有 group secret。客户端完整验证 RFC 9420 Commit、GroupContext minimal binding、tree、confirmation和Welcome。
 
-MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内容只能使用允许的明文形态，此后新的应用内容必须使用该 MLS group。Realm与各 Circle独立激活。
+MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内容只能使用允许的明文形态，此后新的应用内容必须使用该 MLS group。每个 Realm 独立激活。
 
 ### 14.1 MLS 私态与解密缓存的本地静态加密 (normative)
 

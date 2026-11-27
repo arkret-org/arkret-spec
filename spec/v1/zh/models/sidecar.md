@@ -19,7 +19,7 @@ Sidecar 的 `realm_id` 使用 H 已接纳的主人 Human PCR 标识，作为固�
 
 旧实现已经由 G 签署的引用仍绑定原站、原流和原始签名。H 不得改写其签署方、把旧快照当作新私聊的起点，或为了创建个人 Sidecar 向 G 查询及导入旧记录。用户在 H 新建的私聊从自己的已接纳 create 和首次关联开始。
 
-项目资料和项目动作按其实际来源授权。客户端或工具打开原文、附件、查询或调用项目工具时，须按实际执行者、动作和资源取得 G 当前授权。自动把原文、摘要或工具输出持久写入 Sidecar，还须有来源允许复制并持久保留给全部实际 MLS 接收端的依据；缺少此依据时仅保留可重新鉴权的引用。私聊正文与定位符不得作为项目读取凭证发送给 G。Circle 保持原跨界限制。H 与 G 即使为同一逻辑 Station，也分别执行这两套检查。
+项目资料和项目动作按其实际来源授权。客户端或工具打开原文、附件、查询或调用项目工具时，须按实际执行者、动作和资源取得 G 当前授权。自动把原文、摘要或工具输出持久写入 Sidecar，还须有来源允许复制并持久保留给全部实际 MLS 接收端的依据；缺少此依据时仅保留可重新鉴权的引用。私聊正文与定位符不得作为项目读取凭证发送给 G。H 与 G 即使为同一逻辑 Station，也分别执行这两套检查。
 
 用户从 Contacts/Direct Messages 产品面点击自己的 Agent 时，客户端 MUST 使用
 [`ak.self.direct_conversation.read.resolve.v1`](../identity/contact-and-direct-conversation.md#91-resolver-状态)
@@ -29,18 +29,7 @@ Sidecar 的 `realm_id` 使用 H 已接纳的主人 Human PCR 标识，作为固�
 该入口不得调用 Sidecar ensure，也不得要求当前 Realm/Strand context；Sidecar 只用于既有 Realm/Strand
 内的 context-routed 私有协作。
 
-Sidecar 与 Circle 功能正交：
-
-| 维度 | Circle | Sidecar |
-| --- | --- | --- |
-| 目的 | Realm 内显式沟通圈与安全边界 | controller 与其明确启用的自有 Agents 的个人协作上下文 |
-| 参与者 | 显式可治理成员子集 | 由 H 核实逐 Sidecar 的主人启用世代和当前原生资格 |
-| scope | `scope_ref.kind="circle"` | `scope_ref.kind="sidecar"` |
-| 跨边界映射 | 不允许自动映射到圈外 Strand | 可在普通 Strand shell 中显示 private view；durable publish 必须创建新 Event |
-| MLS | Circle membership 驱动 | ownership、lifecycle、runtime-key authorization 与该 Sidecar 的当前启用世代 派生目标 roster；MLS/key readiness 只决定 effective 收敛状态 |
-
-协议中不存在 Sidecar backing Circle。实现 MUST NOT 为 Sidecar 创建、隐藏、保留或模拟 Circle 对象、
-Circle membership、Circle role/admin、Circle join rule、Circle invite 或 `SC-` 保留名称。
+主人归属 Station 按原签启用、所有权、生命周期与运行时密钥授权确定 Sidecar 参与者。源项目只定位上下文。
 
 每个 `(source_realm_id, controller_account_id)` 在 H 至多存在一个 Sidecar。
 
@@ -60,7 +49,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `created_at` | yes | timestamp | 等于 accepted create Event `created_at` |
 | `updated_at` | no | timestamp | reducer-derived |
 
-`backing_circle_id`、成员列表、管理员、title、summary、directory visibility、join rule 与 history visibility
+成员列表、管理员、title、summary、directory visibility、join rule 与 history visibility
 均不是 Sidecar 字段。
 
 `ak.schema.agent_sidecar.v1` 的 schema identity 固定独立 MLS/RFC 9420 保护。Sidecar 的加密激活点是它
@@ -88,7 +77,7 @@ create Event 使用主人的 Human PCR scope，payload 只携来源项目标识�
   "payload": {"source_realm_id":"ak:realm:..."}
 }
 ```
-payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_account_id`、成员、Circle ID、Strand ID、
+payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_account_id`、成员、Strand ID、
 Relation ID、state 或 timestamp。H 验证原签主人设备、其已接纳的 Human PCR 和完整账号，再从原 Event ID 重算 Sidecar ID。H 在同一事务中检查 singleton、保存 create 与首个 attach 两份原件并签收。相同原件重试恢复原回执，竞争失败或任一原件非法均零写入。源项目和项目复制队列不接收任何一个原件。
 
 ### 3.2 后续 Event scope
@@ -103,8 +92,7 @@ Sidecar create accepted 后，全部 Sidecar-private Event 必须使用：
 }
 ```
 Receiver MUST 验证 Sidecar 存在、Realm 一致、actor 属于当前有效访问集合，并将完整 `scope_ref`
-纳入 Event digest、AAD、query/delivery 裁剪与 RealmCommit coverage。普通 Circle API、Circle capability 与 Circle
-membership proof 不能授权 Sidecar Event。
+纳入 Event digest、AAD、query/delivery 裁剪与 RealmCommit coverage。项目成员资格不能授权 Sidecar Event。
 
 ## 4. Context attach：映射，不创建对象
 
@@ -139,7 +127,7 @@ H 使用已合法取得的普通位置引用；首次打开、切换或恢复私
 
 ## 6. 原生 MLS 绑定
 
-Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑定 Circle ID 或 membership current state。
+Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`。
 不存在 controller-global Sidecar MLS group：不同 `sidecar_id` 的 Add/Remove/Update、Welcome、epoch、future
 epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidecar 复用或传播。
 
@@ -156,9 +144,9 @@ provenance；Remove+Add 即使 leaf 元组相同仍是新 provenance，不能由
 `PublicMessage` 只描述 RFC wire 形态，**不授予公开或父 Realm 成员读取权**。握手 bytes、public tree 与历史
 provenance MUST 继续经过本 Sidecar 既有当前及目标 accepted cut 的披露门；普通 Realm 成员、其它 Sidecar
 参与者与无本 Sidecar 授权的 Agent 不得读取。准入仍以本节 Sidecar controller／desired authority 和已签 binding
-为准，不继承 Realm／Circle committer 权限。治理 Station MUST NOT 取得 `membership_key` 或其它成员 secret，
+为准，不继承 Realm committer 权限。治理 Station MUST NOT 取得 `membership_key` 或其它成员 secret，
 也不得把 membership MAC 当作它的准入证据；成员 MUST 在本地验证 MAC。应用 payload 与 Welcome 保持原有
-加密保护，不新增 Principal／Account／Device／Realm 外 locator 披露。不适用 Realm／Circle 的 creator-bootstrap
+加密保护，不新增 Principal／Account／Device／Realm 外 locator 披露。不适用 Realm 的 creator-bootstrap
 transaction；独立 group、stream、epoch 和下面的参与者签名绑定不变。
 
 `participant_authority_digest` 必须覆盖：
@@ -235,7 +223,6 @@ Strand Event：
 - 不泄漏 `sidecar_id`、private Event ID、MLS material、Agent scratchpad/tool output、exchange/control plaintext；
 - 失败或重试不得产生部分 shared durable output。
 
-Circle 内容不得使用本节映射或发布规则跨越 Circle 边界。
 
 ### 8.1 Composer 发送路由
 
@@ -258,9 +245,8 @@ MLS 未就绪或恢复失败不得成为该普通草稿的发送门，仍须通�
 | 普通 Realm Strand，只含公开 Agent（可含其它共享目标） | 普通共享 Strand，包括主人提及自己的公开 Agent | 模式不授予回复／读取／第三方投递权限；仍求交现有各门。 |
 | 普通 Realm Strand，只含主人的私人 Agent（可含主人自身） | 私有 Sidecar | 不提供将私人请求直接“发送到群”的绕过；显式成果 publish 另走 §8。 |
 | 普通 Realm Strand，私人／公开 Agent 混合，或私人 Agent 与外部／audience 混合 | 阻止发送，保留草稿并要求修改当前目标 | 不自动拆分、丢弃目标、转群或改变模式；unknown 模式也阻止发送。第三方手工构造 private mention 只抑制 Agent 触发，不改变原共享消息 scope。 |
-| Circle Strand | 公开目标保持普通 Circle；主人私人 Agent 交互阻止发送 | 不提供 Realm Sidecar 路由，不复制 Circle 内容；公开目标仍需 Circle 读取／participation／E2EE 门。 |
 
-客户端 MUST 在发送前展示实际 scope 与可读取者边界；Circle／Direct 显示其固定 scope。公开／私人模式
+客户端 MUST 在发送前展示实际 scope 与可读取者边界；Direct 显示其固定 scope。公开／私人模式
 由主人独立设置，不是当前草稿的“发送到群”按钮。原 Strand 的发送 scope 与可读取者提示 MUST 随当前
 草稿的实际路由更新，不能因为仍显示 Sidecar 历史而沿用私密提示。mention 是请求寻址子集，不是
 加密收件人全体，也不得修改 derived roster。Sidecar
@@ -328,7 +314,7 @@ Sidecar ID由已固定 create Event ID确定。
 读取只通过 `ak.self.agent.sidecar.resource.get.v1` 与 `ak.self.agent.sidecar.read.list.v1`。返回 Sidecar、
 `desired_agent_ids` 只读派生投影、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source
 context mappings。
-普通 Circle/Strand/Relation list 不得泄漏 Sidecar 存在、private Event、计数、未读、搜索或通知差异。
+普通 Strand/Relation list 不得泄漏 Sidecar 存在、private Event、计数、未读、搜索或通知差异。
 
 ## 10. 验收不变量
 
@@ -372,4 +358,3 @@ MLS、主人合并显示、实时恢复或 UI 响应性。这些生产验收见
 - Event/ID 派生：[`common-fields.md`](./common-fields.md)、[`event-and-patch.md`](./event-and-patch.md)
 - Agent ownership/lifecycle：[`actor.md`](./actor.md)、[`../identity/key-management.md`](../identity/key-management.md)
 - MLS：[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)
-- Circle 边界：[`circle.md`](./circle.md)

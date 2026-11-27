@@ -7,7 +7,7 @@
     "The creator device and signer method are immutable fields of the record and are deliberately not part of the logical key, so a reload, a second window of the same account and a re-entry on the same device all find the same record, while a different device never silently opens a second Genesis. A device that does not hold this record's private state and signer MUST wait for the accepted result and proceed through Welcome, device migration or recovery; it MUST NOT take the record over and regenerate material.",
     "Each local authoring vault holds at most one active record per (effective_scope, operation), enforced by a partial unique constraint or an equivalent atomic compare-and-swap. A process lock, a UI guard or a de-duplicated effect is not protocol mutual exclusion; mutual exclusion across devices remains the single accepted-Genesis slot of the same effective scope.",
     "The closed creation intent MAY be amended in place, and only while the record is at genesis_intent_persisted. An amendment is one atomic durable replacement of the whole closed intent under the unchanged logical key, never a partial patch of a single selector, and it is registered as the self transition genesis_intent_persisted_to_genesis_intent_persisted. From realm_accepted on, and in every terminal state, the intent is immutable; a creator who wants a different selector must finish this attempt or reach a terminal state and open a new attempt generation.",
-    "This transaction applies to effective_scope.kind realm and circle only. effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1 and is out of scope here; a client MUST NOT open this record for a sidecar scope.",
+    "This transaction applies to effective_scope.kind realm only. effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1 and is out of scope here; a client MUST NOT open this record for a sidecar scope.",
     "A recoverer reads the durable record and executes the single next arrow its current state allows. A retryable transport failure, a page reload, a process crash and an unavailable accepted-Genesis query do not change the logical state. Rebuilding material from UI state is never a recovery path.",
     "Any change to a field of an active attempt after the Genesis is signed is not a retry and MUST fail closed. A second window or a background effect may only join the existing record.",
     "The selector is read only from the formal transaction record. A local draft without that record follows the retention rules: converge on an existing accepted Genesis, discard the draft when there is definitely none, and stay unwritable while the accepted state is unknown.",
@@ -30,8 +30,7 @@
   },
   "scope_kind_applicability": {
     "applicable_scope_kinds": [
-      "realm",
-      "circle"
+      "realm"
     ],
     "excluded_scope_kinds": [
       "sidecar"

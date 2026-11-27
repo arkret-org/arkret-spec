@@ -1920,7 +1920,7 @@ def check_agent_interaction_contract(lint: Lint) -> None:
         elif scope == "direct" and own is True:
             permitted = True
         else:
-            permitted = scope in {"realm", "circle", "direct"} and mode == "public" and (
+            permitted = scope in {"realm", "direct"} and mode == "public" and (
                 own is True or row.get("third_party_gate") is True
             )
         permitted = permitted and row.get("ordinary_authority") is True
@@ -1936,14 +1936,12 @@ def check_agent_interaction_contract(lint: Lint) -> None:
         owned = row.get("owned") is True and row.get("token_bound", True) is True
         if scope == "direct" and owned:
             result = "direct"
-        elif scope in {"realm", "circle"} and not owned and not row.get("other"):
+        elif scope == "realm" and not owned and not row.get("other"):
             result = "shared"
         elif mode not in {"private", "public"}:
             result = "blocked"
         elif scope == "direct":
             result = "direct" if owned or mode == "public" else "blocked"
-        elif scope == "circle":
-            result = "blocked" if mode == "private" and owned else "shared"
         elif scope == "realm":
             if mode == "public":
                 result = "shared"
@@ -1957,18 +1955,18 @@ def check_agent_interaction_contract(lint: Lint) -> None:
             lint.fail(path, f"agent interaction composer case mismatch: {row}")
     required_invariants = {
         "mode_changes_sidecar_roster": False, "sidecar_manual_membership": False,
-        "circle_private_routes_to_realm_sidecar": False, "message_revision_changes_scope": False,
+        "message_revision_changes_scope": False,
         "private_history_auto_published": False, "shared_reply_uses_sidecar_context": False,
         "private_can_read_authorized_group_context": True, "third_party_private_mention_deletes_message": False,
         "queued_action_uses_current_mode": True, "mode_change_replays_old_notifications": False,
         "controller_private_tools_allowed_with_authority": True, "private_mode_erases_shared_identity": False,
-        "mode_has_circle_or_strand_override": False,
+        "mode_has_strand_override": False,
     }
     if contract.get("invariants") != required_invariants:
         lint.fail(path, "agent interaction normative containment invariant drift")
     if not all(contract.get(key) for key in ("mode_cases", "admission_cases", "shared_action_cases")) or not routing:
         lint.fail(path, "agent interaction decision tables must not be empty")
-    if len(contract.get("request_cases", [])) != 48 or {row.get("target_status") for row in observation_cases} != {"private", "unknown", "undisclosed", "nonexistent", "deactivated", "gate_closed"}:
+    if len(contract.get("request_cases", [])) != 36 or {row.get("target_status") for row in observation_cases} != {"private", "unknown", "undisclosed", "nonexistent", "deactivated", "gate_closed"}:
         lint.fail(path, "agent interaction directed request or negative observation coverage is incomplete")
 
 
@@ -5874,11 +5872,10 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
 
     accepted = case.get("accepted")
     if not isinstance(accepted, list):
-        lint.fail(path, "the binding case must carry accepted Realm/Circle/Sidecar/Genesis encodings")
+        lint.fail(path, "the binding case must carry accepted Realm/Sidecar/Genesis encodings")
         return
     accepted_names = {
         "realm_scope_commit",
-        "circle_scope_commit",
         "sidecar_scope_commit",
         "realm_scope_genesis",
     }
@@ -5916,8 +5913,8 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             value = binding.get(field)
             if not isinstance(value, str) or re.fullmatch(r"0|[1-9][0-9]*", value) is None or int(value) > MLS_BINDING_UINT64_MAX:
                 lint.fail(path, f"accepted[{index}].binding.{field} must be a canonical unsigned 64-bit decimal string")
-    if seen_scope_kinds != {"realm", "circle", "sidecar"}:
-        lint.fail(path, "accepted KATs must cover Realm, Circle and Sidecar effective_scope branches")
+    if seen_scope_kinds != {"realm", "sidecar"}:
+        lint.fail(path, "accepted KATs must cover Realm and Sidecar effective_scope branches")
 
     samples = case.get("rejection_samples")
     if not isinstance(samples, list) or not samples:
@@ -6074,8 +6071,8 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     }
     if (schema or {}).get("x-arkret-sidecar-handshake-contract") != expected_sidecar_handshake:
         lint.fail(schema_path, "Sidecar handshake must preserve its PublicMessage, member-MAC, own-Station native, governance-cut and restricted-disclosure contract")
-    if ((schema or {}).get("x-arkret-public-handshake-contract") or {}).get("effective_scope_kinds") != ["realm", "circle"]:
-        lint.fail(schema_path, "Sidecar handshake must remain separate from the Realm/Circle contract")
+    if ((schema or {}).get("x-arkret-public-handshake-contract") or {}).get("effective_scope_kinds") != ["realm"]:
+        lint.fail(schema_path, "Sidecar handshake must remain separate from the Realm contract")
     definitions = schema.get("$defs", {}) if isinstance(schema, dict) else {}
     binding_schema = definitions.get("mls_governance_binding")
     if not isinstance(binding_schema, dict):
@@ -8247,7 +8244,7 @@ MLS_CREATOR_BOOTSTRAP_SCOPE_KIND_KEYS = (
     "rule",
 )
 
-MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS = ("realm", "circle", "sidecar")
+MLS_CREATOR_BOOTSTRAP_SCOPE_KINDS = ("realm", "sidecar")
 
 MLS_CREATOR_BOOTSTRAP_TRANSITION_KEYS = (
     "transition_id",
@@ -8468,7 +8465,7 @@ def check_mls_genesis_timestamp_cases(lint: Lint, fixture: dict) -> None:
     required = {
         "event_field": "created_at", "payload_field": "created_at",
         "comparison": "canonical_timestamp_string_equality",
-        "effective_scope_kinds": ["realm", "circle", "sidecar"],
+        "effective_scope_kinds": ["realm", "sidecar"],
         "check_phase": "before_any_accepted_effect",
         "mismatch_error_code": "failed_precondition", "mismatch_reason_code": None,
         "mismatch_accepted_effects": [],

@@ -102,8 +102,8 @@ def native_backup_device_permission_errors(contract):
         elif rows[0].get("control_rule") != "exact_self_native_root_scope_and_current_epoch_for_PUT_same_scope_predecessor_ciphertext_for_reads_no_archive_private_key_or_manager_role":
             errors.append(f"{operation}: native scope/role control rule changed")
     scope = device["scope_matching"]
-    for name, expected in {"scope_equality": "exact_closed_realm_or_circle", "one_entry_per_scope": True,
-                           "cross_entry_combination": False, "realm_includes_circle": False,
+    for name, expected in {"scope_equality": "exact_closed_realm", "one_entry_per_scope": True,
+                           "cross_entry_combination": False, "realm_includes_other_realms": False,
                            "sidecar_supported": False, "unknown_scope_or_action": "reject"}.items():
         if scope.get(name) != expected:
             errors.append(f"native scope ceiling changed: {name}")
@@ -112,7 +112,7 @@ def native_backup_device_permission_errors(contract):
         errors.append("native publisher is not the exact current Device")
     if backup.get("manager_inventory_or_archive_recovery") is not False:
         errors.append("Device gained a Manager archive role")
-    if backup.get("scope") != "one_exact_Realm_or_Circle_entry_no_cross_entry_combination":
+    if backup.get("scope") != "one_exact_Realm_entry_no_cross_entry_combination":
         errors.append("native backup scope entry may be combined or widened")
     return errors
 
@@ -231,7 +231,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         realm_resource={"kind":"realm","realm_id":state["owning_realm_id"]}
         state["parent_resources"]=[realm_resource]
         state["contributing_sources"][0]["resource"]=realm_resource
-        state["submitted_child_resources"]=copy.deepcopy(original["parent_resources"])
+        state["submitted_child_resources"]=[{"kind":"strand","realm_id":state["owning_realm_id"],"strand_id":"ak:strand:"+state["owning_realm_id"].split(":")[-1]}]
         resource=self.validator("capability-grant.schema.json","#/properties/resources/items")
         resource.validate(realm_resource)
         resource.validate(state["submitted_child_resources"][0])
@@ -250,7 +250,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         extra["grant_id"]="second-qualified-contributing-parent"
         state["contributing_sources"].append(extra)
         self.assertTrue(lineage_effective(state),"same-tuple sources remain legal")
-        state["contributing_sources"][1]["resource"]={"kind":"realm","realm_id":state["owning_realm_id"]}
+        state["contributing_sources"][1]["installation_instance"]="another-installation"
         self.assertFalse(lineage_effective(state),"cross-install sources cannot be combined")
 
     def test_terminal_executor_transfer_preserves_source_and_rejects_service_borrowing(self):
@@ -403,36 +403,18 @@ class ManagedGovernanceTests(unittest.TestCase):
             self.assertIn(carrier["carrier_field"], body["properties"])
             self.assertFalse(body["additionalProperties"])
 
-    def test_native_circle_review_keeps_its_original_account_and_join_scope(self):
+    def test_join_review_targets_registered_membership_events(self):
         actions = {row["action"]: row for row in self.catalog["capability_action_registry"]["actions"]}
-        self.assertEqual(actions["ak.applet.join"]["target_event_kinds"], ["ak.circle.member.state", "ak.member.state"])
+        self.assertEqual(actions["ak.applet.join"]["target_event_kinds"], ["ak.member.state"])
         self.assertEqual(actions["ak.applet.join"]["required_evaluator_checks"], ["applet_managed_self_join"])
-        self.assertEqual(actions["ak.circle.member.add"]["target_event_kinds"], ["ak.circle.member.state"])
         schema = json.loads((ART / "schemas/management-review-operations.schema.json").read_text())
         join = next(row for row in schema["$defs"]["management_review_request_body"]["allOf"]
                     if row.get("if", {}).get("properties", {}).get("management_operation", {}).get("const") == "join")
         gate = join["then"]["properties"]["target"]["properties"]["event"]
         validator = Draft202012Validator({"$id": schema["$id"], **gate}, registry=self.registry)
-        # The Event envelope independently owns complete shape and signature rules.
-        candidate = {"kind": "ak.circle.member.state",
-                     "scope_ref": {"kind": "circle", "realm_id": self.fixture["identities"]["realm_id"],
-                                   "circle_id": "ak:circle:01904100-0000-7000-8000-000000000001"},
-                     "actor_id": self.fixture["identities"]["bot"],
-                     "applet_id": self.fixture["identities"]["applet_id"],
-                     "payload": {"membership": "join"}}
-        self.assertTrue(validator.is_valid(candidate))
-        for field, value in [("scope_ref", {"kind": "realm"}),
-                             ("actor_id", self.fixture["identities"]["service"]),
-                             ("payload", {"membership": "leave"}),
-                             ("executed_by", self.fixture["identities"]["service"]),
-                             ("kind", "ak.profile.create")]:
-            invalid = copy.deepcopy(candidate)
-            invalid[field] = value
-            self.assertFalse(validator.is_valid(invalid), field)
-        invalid = copy.deepcopy(candidate)
-        del invalid["applet_id"]
-        self.assertFalse(validator.is_valid(invalid))
         self.assertTrue(validator.is_valid({"kind": "ak.member.state"}))
+        self.assertFalse(validator.is_valid({"kind": "ak.profile.create"}))
+        self.assertFalse(validator.is_valid({"kind": "ak.circle.member.state"}))
 
     def test_first_device_and_service_child_have_a_real_transport_carrier(self):
         operations = {o["operation_id"]: o for o in self.catalog["operation_registry"]["operations"]}
@@ -489,7 +471,7 @@ class ManagedGovernanceTests(unittest.TestCase):
                 changed = copy.deepcopy(contract)
                 changed["device_authentication"]["operations"].append(operation)
                 self.assertTrue(native_backup_device_permission_errors(changed))
-        for key, value in (("cross_entry_combination", True), ("realm_includes_circle", True),
+        for key, value in (("cross_entry_combination", True), ("realm_includes_other_realms", True),
                            ("sidecar_supported", True), ("scope_equality", "parent_realm")):
             changed = copy.deepcopy(contract)
             changed["device_authentication"]["scope_matching"][key] = value

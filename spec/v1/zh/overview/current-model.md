@@ -26,7 +26,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | Jira issue / workflow status / issue links | `Strand` / 顶层 `stage`（8 值）+ 本地 `metadata.fields.<domain>_status` / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
 | Watchers、订阅、勿扰 | `ak.strand.watch.set` current state + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
-| 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象与 native Sidecar scope；H 按主人签署的私有启用记录及自有 Agent 当前资格确定 desired roster，独立 MLS 直接绑定 Sidecar | Sidecar 不是普通 Circle、Circle profile、Direct Conversation 或第四个 Track。 |
+| 用户与自己 AI Agents 的 Realm-context 私密工作区 | 独立 `Agent Sidecar` 对象与 native Sidecar scope；H 按主人签署的私有启用记录及自有 Agent 当前资格确定 desired roster，独立 MLS 直接绑定 Sidecar | Sidecar 不是Direct Conversation 或第四个 Track。 |
 
 ## 2. Strand 是统一协作对象
 
@@ -81,19 +81,11 @@ Realm membership、Strand 更新权限与 discussion timeline 可见性使用统
 
 - `ak.member.state` 控制 Realm membership
 - `ak.strand.*` 控制 Strand 自身与工作流位置
-- Track 不携带独立 access（单点承载见 [`../models/strand-and-message.md` §4](../models/strand-and-message.md)）；整 Strand 共享单一 effective scope（`Strand.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
-- 需要让 Strand 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把 `Strand.scope_circle_id` 指向一个 Circle；`ak.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
-- Strand 可见性按整 Strand 单一 scope 判定：`scope_circle_id=null` 按 Realm-default policy；`scope_circle_id` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
-- Strand 可读不代表 Strand synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。
+- Strand 的所有 track 共用所属 Realm 的成员资格、历史和投递边界。写入还须具备对应 action。
 
 ## 7. E2EE 边界
 
-MLS 加密可绑定到 Realm 或 Realm 内的 MLS-backed Circle:
-
-- 默认（`Strand.scope_circle_id=null`）：Strand 落在 Realm-default scope；若 Realm 为 MLS-backed，则该 Realm-default MLS group 覆盖此 Strand。
-- 独立 Strand access：`Strand.scope_circle_id` 指向某 Circle 时，整个 Strand 落在该 Circle 的独立成员 / 独立 history sharing / 投递裁剪；若 Circle 为 `mls_rfc9420`，则使用该 Circle 的独立 MLS group。密钥派生禁令见 [`../models/circle.md` §10](../models/circle.md)。
-- MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 MLS-backed Circle 加密。不存在 "track-internal MLS group"。
-- 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 MLS rotate amplification 与缓解策略）。
+普通 Strand 使用所属 Realm 的 MLS group；启用加密须有该 Realm 已接纳的 MLS Genesis。个人 Sidecar 由主人 Station 管理，并使用绑定该 Sidecar 的独立 MLS group。
 
 ## 8. Agent 结果落点
 
@@ -125,7 +117,7 @@ Arkret v1 的统一读法是：
 | 自定义字段 | `fields` + Realm schema/profile | 字段名、类型、必填性与迁移由 schema 声明；facet 只做 UI hint。 |
 | 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化以 signed Event 落地，而不是只写投影缓存。 |
 | Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
-| Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |
+| Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm scope 判断，再叠加通知偏好。 |
 
 
 ## 普通聊天的最短路径

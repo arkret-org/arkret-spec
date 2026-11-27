@@ -64,7 +64,7 @@
       "name": "foreign_or_invisible_selector_is_non_enumerating",
       "variants": [
         "foreign_watcher",
-        "invisible_circle_strand",
+        "unreadable_strand",
         "unknown_strand"
       ],
       "expected": {
@@ -495,17 +495,16 @@
       "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': '4', 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}} is not valid under any of the given schemas"
     },
     {
-      "name": "peer_authorized_circle_never_written",
+      "name": "peer_second_realm_never_written",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "never_written",
-        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
         "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            "kind": "realm",
+            "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
           },
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
@@ -525,17 +524,16 @@
       "expect_valid": true
     },
     {
-      "name": "peer_authorized_circle_clear_current",
+      "name": "peer_second_realm_clear_current",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentResponseBody",
       "instance": {
         "status": "current",
-        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
         "governance_generation": "4",
         "stream_head": {
           "stream_ref": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            "kind": "realm",
+            "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
           },
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
@@ -553,9 +551,8 @@
             }
           },
           "source_stream_ref": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            "kind": "realm",
+            "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
           },
           "revision": {
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
@@ -883,27 +880,24 @@
       "expected": "revision_unavailable"
     },
     {
-      "name": "authorized_circle_self_read",
+      "name": "authorized_second_realm_self_read",
       "input": {
-        "scope_kind": "circle",
         "confirmed_head": {
           "stream_ref": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            "kind": "realm",
+            "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
           },
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
         "response": {
           "status": "never_written",
-          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
           "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-              "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+              "kind": "realm",
+              "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
             },
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
@@ -921,36 +915,43 @@
           }
         },
         "scope_stream_ref": {
-          "kind": "circle",
-          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          "kind": "realm",
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+        },
+        "request": {
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
         }
       },
       "expected": "never_written"
     },
     {
-      "name": "parent_membership_cannot_read_hidden_circle",
+      "name": "source_realm_membership_cannot_read_other_realm_watch",
       "input": {
         "readable_scope": false,
-        "scope_kind": "circle",
         "confirmed_head": {
           "stream_ref": {
-            "kind": "circle",
-            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            "kind": "realm",
+            "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
           },
           "stream_position": 12,
           "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
         },
         "response": {
           "status": "never_written",
-          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
           "governance_generation": "4",
           "stream_head": {
             "stream_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-              "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+              "kind": "realm",
+              "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
             },
             "stream_position": 12,
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
@@ -968,10 +969,21 @@
           }
         },
         "scope_stream_ref": {
-          "kind": "circle",
-          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-          "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
-        }
+          "kind": "realm",
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+        },
+        "request": {
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        },
+        "readable_realm": false
       },
       "expected": "not_found"
     },

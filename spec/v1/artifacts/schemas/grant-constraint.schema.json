@@ -498,14 +498,6 @@
       },
       "uniqueItems": true
     },
-    "allowed_circle_ids": {
-      "type": "array",
-      "description": "Limits Circle-scoped capability actions to the listed Circle ids. Used by ak.circle.manage / ak.circle.member.manage style grants; unconstrained Realm-wide Circle management grants are not a normal permission shape.",
-      "items": {
-        "$ref": "./common-ids.schema.json#/$defs/circle_id"
-      },
-      "uniqueItems": true
-    },
     "allowed_session_ids": {
       "type": "array",
       "description": "Limits applet interop-session operations to the listed applet-defined session correlation ids.",

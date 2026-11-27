@@ -57,7 +57,7 @@
             "message",
             "morph"
           ],
-          "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports circle/space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object.",
+          "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object.",
           "x-arkret-value-ownership": {
             "class": "owned_symbol",
             "authority": "read-receipt.schema.json#/properties/read_scope/properties/kind",

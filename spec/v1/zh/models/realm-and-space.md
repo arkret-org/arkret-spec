@@ -25,7 +25,7 @@ updated: 2026-11-15
 
 Realm 之间只允许显式 link graph（governance / discoverability / import-export / confidential-extension 等关系），详见 [`realm-links.md`](./realm-links.md)。Space 层级与跨 Realm 导航见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
-Realm 治理域与 Realm-default 内容 scope 的区别，以及 Realm / Circle / Sidecar / Space / Strand 的
+Realm 治理域与 Realm-default 内容 scope 的区别，以及 Realm / Sidecar / Space / Strand 的
 设置继承、上限求交、资格约束、retention / legal hold 与明文服务适用矩阵，统一见
 [`scope-settings.md`](../governance/scope-settings.md)。嵌套或导航关系不构成通用策略继承。
 
@@ -52,27 +52,16 @@ Realm 治理域与 Realm-default 内容 scope 的区别，以及 Realm / Circle 
 
 ### 2.2 Realm 与 MLS group
 
-Realm 创建时没有加密 profile、content scheme 或 encryption floor。Realm-default 与每个 Circle
-初始为 plaintext；各自首个 accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420。
-Sidecar 固定要求自己的独立 MLS，未完成激活／readiness 时不提供明文业务降级。
+普通 Realm 在首个 accepted `ak.mls.genesis` 后不可逆地启用 RFC 9420。个人 Sidecar 使用主人归属站接纳的独立 MLS 组，未就绪时拒绝业务内容。
 
-**canonical effective scope key bytes（normative）**：`effective_scope` 是 `realm` / `circle` / `sidecar`
-三分支封闭 `oneOf`，它的 canonical key bytes 固定为
+**canonical effective scope key bytes（normative）** 根据签名范围的判别值唯一编码。
 
 ```text
 realm:    UTF8(realm_id)
-circle:   UTF8(circle_id)
 sidecar:  UTF8(realm_id) || 0x1F || UTF8(sidecar_id)
 ```
 
-RealmId 与 CircleId 都是全局唯一的 typed ID，自带互不相同的 kind 前缀且定长
-（`^ak:<kind>:[A-Za-z0-9_-]{44}$`），因此它们各自单独就已经确定了一个 scope，重复 `realm_id`
-不增加任何区分度；Sidecar 分支保留 `realm_id` 前缀，是因为 Sidecar 的 scope key 早于本节就按
-`RealmId || 0x1F || SidecarId` 定义，且 `0x1F` 不可能出现在两个分量内部。三条分支的字节串因 kind
-前缀与长度互不重叠，该编码整体单射。实现 MUST NOT 改用 JCS、字段序或任何带长度前缀的变体，
-MUST NOT 给 `circle` 分支补上 `realm_id`，也 MUST NOT 省略 `sidecar` 分支的 `realm_id`——三者都会
-改变 `group_id`，并同时改变以同一字节串为 context 的 MLS-Exporter 派生（见
-[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）。
+`0x1F` 不属于两种 typed ID 的字符集。实现 MUST 使用上述字节计算组标识与 MLS-Exporter context。
 
 **MLS `group_id` 的唯一派生式（normative）**：RFC 9420 原生 `group_id` bytes 固定为
 
@@ -97,7 +86,6 @@ transcript：旧 group 只能整体重建。本派生**不**承诺隐藏同一 g
 `ak.vector.mls.group_id_reversible_formula_rejected.v1`，材料在
 [`mls-group-id-derivation-fixture.json`](../../artifacts/fixtures/mls-group-id-derivation-fixture.json)。
 
-Realm-default group 与每个 MLS-backed Circle group 完全独立。Realm policy 不提供 Circle group/secret/counter fallback。
 `history_access` 是 Realm 自有的单向安全 ratchet：create 初始化为二态之一，之后仅允许
 `all_history_for_current_members → since_join`，永久禁止放宽；MLS激活支持这两个值；获权历史必须有实际解密材料。
 它只约束历史交付，不进入 MLS key-access revision。具体 T0/T1 与恢复规则见
@@ -126,7 +114,7 @@ Schema id: `ak.schema.realm.v1`
 | `encryption_backup_strategy` | yes | registered strategy id | create-locked；从genesis `initial_encryption_backup_strategy`投影。 | 内容备份／恢复策略，独立于消息encryption_scheme。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
-| `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；仅具备交接资格的 materialized Realm 由连续 handoff chain 派生当前值；Direct Conversation 永久保持 genesis Station 与 generation 0。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
+| `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；仅具备交接资格的 materialized Realm 由连续 handoff chain 派生当前值；Direct Conversation 永久保持 genesis Station 与 generation 0。 | 当前治理 Station；该 Station 为 Realm及归属本治理域的个人 Sidecar 的独立 stream 签发 RealmCommit。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无有限上界来源本次签发 required-finite child 时的最大 TTL；finite parent 的原上界保持不变。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
@@ -355,7 +343,7 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 排列的
 完整 `EventAdmissionSubmission[]`；每项保留原 caller-signed Event bytes，所需
 `approval_signatures` 仍只在该项唯一的 transport sidecar，不进入 Event preimage。
-这不是 caller 可任意选择成员的通用原子 batch，也不授权跨 Realm、Circle 或
+这不是 caller 可任意选择成员的通用原子 batch，也不授权跨 Realm 或
 Sidecar stream 的共同 position／事务。旧 `EventsSubmitBatchRequestBody` 不属于
 此 self operation 的请求合同。
 
@@ -386,7 +374,7 @@ Authz 含义：
 
 - 同批 facet 在 creator member slot 生效前依赖 staged authority-root proof，而不是 create 隐式 membership。批次外的授权不得回退到 envelope actor、create author 或服务本地 owner mirror。
 - `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存或 identity_link 的 `policy_revision` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS key-access revision 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
-- **加密激活不可逆（normative）**：scope 在其唯一 `ak.mls.genesis` 被接受之前是明文 scope；该 Genesis 的 accepted RealmCommit 把 scope 不可逆地激活为 standard RFC 9420。协议不提供任何把已激活 scope 退回明文的 Event、policy 字段或 reducer 路径；激活后到达的明文内容写入 MUST `failed_precondition`，reason=`mls_activation_required`。Realm 与 Circle 各自独立激活，Circle 侧规则见 [`circle.md` §7](./circle.md)。
+- **加密激活不可逆（normative）**：scope 在其唯一 `ak.mls.genesis` 被接受之前是明文 scope；该 Genesis 的 accepted RealmCommit 把 scope 不可逆地激活为 standard RFC 9420。协议不提供任何把已激活 scope 退回明文的 Event、policy 字段或 reducer 路径；激活后到达的明文内容写入 MUST `failed_precondition`，reason=`mls_activation_required`。
 - 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up，最后是创建者显式 join；slot 数量、kind 或顺序不符按 closed request schema 以 `schema_violation` 整组零写入拒绝。human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束；其顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
 - byte-identical unit retry 返回原 accepted identity/receipt，不产生第二个 Realm 或副作用；不同 canonical bytes 声称同一 Realm id 时 MUST `realm_already_exists` 或 collision quarantine。
 
@@ -453,7 +441,6 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 按 federation §4.1.1 的 accepted view 目标集、持久 intent 与发送前重验规则，推送到仍具该 Event 完整 canonical bytes 复制资格的 peer Station。历史持有、旧 route 或 endpoint 可达不构成终态专属复制权；最后一名 effective joined 托管成员退出后的站不再接收后继终态 Commit。仍具资格的 peer 必须按既有连续链／授权 snapshot 修复缺口，验证 exact Event、RealmCommit 与治理绑定后，在安装终态的同一耐久事务内持久化 live fence，标记 `realm_terminal_state` 和相同 `terminal_kind`；不得为终态跳过 predecessor 或导入未获授权历史。离站副本按 federation §4.1.1 在终止 membership Commit（含）关闭 live 资格，保留的是最后已验证的历史状态，MUST NOT 宣称获知后续 Realm lifecycle，也不得伪造 `realm_terminal_state`。历史读取继续按已有授权关闭规则处理，任何历史导入都不得触发新 live 效果。跨站 hard erasure 的独立通知义务仍按 §2.6.2 执行。
 6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm parent 禁止；普通外部引用不得进入 canonical placement 或 Space 删除依赖集合。
-7. **Circle scope cascade**：父 Realm tombstone 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle current state 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`，不输出 reserved `realm_terminal_state` reason）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Station Erasure Receipt Fanout（normative）
 
@@ -481,7 +468,7 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 
 Invite 过期只推进 `invite_lifecycle`，不写共享 member current state。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member current state；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
-共享表未列出的 transition MUST `failed_precondition`，reason_code=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+共享表未列出的 transition MUST `failed_precondition`，reason_code=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。
 
 `parent_membership` 只是在目标 join 接纳时读取同一 current governing Station 所持有的 source Realm authoritative
 `member_state`，不是持续继承关系。接受后的目标 `member_state` 是独立的 Realm-local current state；后续 source
@@ -575,7 +562,7 @@ Direct Conversation Realm MUST：
 - genesis `purpose="direct_conversation"`；reducer 据此投影只读的 `fields.collaboration_role="direct_conversation"`（[§2.3.A](#23a-字段-carrier-inventorynormative)）。`schema_refs` 不承载该角色，`ak.profile.direct_conversation_realm.v1` 的适用条件是该 genesis `purpose`。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于身份控制类 Realm。
 - `found` 且可发送时 active member count 等于 2；任一 participant 离开、被移除或其它 gate 失败时，同一稳定 DM 投影为 `suspended`，恢复时仍使用原 Realm。向 DM Realm 加第三人 MUST 被拒绝。binding 或 membership 投影不能解析为恰好两个 distinct principal participant 时，新写入 MUST fail closed，reason 为 `direct_conversation_member_count_invalid`；既有稳定会话投影为 `suspended` 而不是被替换。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy。**这里必须区分三件事（normative）**：（a）**bootstrap peer join**——Realm bootstrap batch 内由 creator 写入的第二个成员（pair 的另一方）是 DM Realm 成立的必要步骤，MUST 被接受；它走 authorized-writer 分支（creator 在同批 genesis unit 内使用 staged authority-root proof 取得的 effective `ak.realm.owner`，见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)），属于 [`../governance/join-policy.md` §4](../governance/join-policy.md) `closed` 行的封闭豁免列表第 3 项。（b）**pair 外 invite/join**——候选 Actor 不属于 immutable pair 时，MUST 先以 `direct_conversation_third_party_member_forbidden` 拒绝；即使同一请求也是 invite，也不得改报 invite reason。（c）**pair 内 active-DM invite**——候选属于 immutable pair、但请求仍试图走 invite flow 时，MUST 以 `direct_conversation_invite_forbidden` 拒绝。实现 MUST NOT 把（a）当成（b）或（c）拒掉，否则 1:1 私聊永远只有 1 个成员，违反“active member count 等于 2”。
-- 稳定 binding 后允许 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 登记的 root Topic Space(kind=topic)、Strand.topic 唯一分类与额外普通 discussion Strand；逐目标 participant evaluator 必须完整通过。其它 Space kinds、Circle、parent 拓扑、field_access 与 bootstrap 结构扩展均拒绝，不改变 binding 指定的默认 main Strand。
+- 稳定 binding 后允许 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 登记的 root Topic Space(kind=topic)、Strand.topic 唯一分类与额外普通 discussion Strand；逐目标 participant evaluator 必须完整通过。其它 Space kinds、parent 拓扑、field_access 与 bootstrap 结构扩展均拒绝，不改变 binding 指定的默认 main Strand。
 - 通过一次性 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 `(trust_domain,pair_key)` 只有一组永久坐标，且由 founder 一次 author 的四 Event atomic unit 自身派生（见 [`../identity/contact-and-direct-conversation.md` §5.5](../identity/contact-and-direct-conversation.md)）；不存在服务端预分配 ID、reserved/materializing draft、第二候选或 winner tie-break。
 - DM Realm 继续只有一个技术 authority-root controller，但 root 的 operational owner aggregate MUST 与 `ak.profile.direct_conversation_realm.v1` 的 phase mask 求交。founding 之外的普通消息、成员、policy、grant 与 terminal 写不得借 owner 绕过；双方日常写统一从 `ak.authority.direct_conversation_participant.v1` 求值。
 - participant authority 只在 immutable binding、恰好两个 stable participant、actor active membership、conversation 未 suspended、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
@@ -594,7 +581,7 @@ Space 是用户和产品层可见的结构容器。它可以表达：
 - document outline group / page group
 - 任意 profile 注册的结构节点
 
-Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。Space metadata 及 canonical parent / placement 结构子资源 MUST 使用同一个实际 `realm_id`。Circle、对象 scope 和 capability 仍独立验证。跨 Realm 内容仅通过显式 View / 普通引用聚合。
+Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。Space metadata 及 canonical parent / placement 结构子资源 MUST 使用同一个实际 `realm_id`。对象 scope 和 capability 仍独立验证。跨 Realm 内容仅通过显式 View / 普通引用聚合。
 
 ### 3.2 Schema id 与字段
 
@@ -605,8 +592,7 @@ Schema id: `ak.schema.space.v1`
 | `id` | yes | `id:space` | 以 `ak:space:` 开头。 | Space ID。 |
 | `schema` | yes | `ak.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `ak:realm:`。 | Space metadata 的 home Realm。 |
-| `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
-| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement 的 reducer-enforced 约束。 |
+| `child_scope_policy` | no | `boolean` | true 要求目标 Realm 已激活 MLS。 | 约束创建子资源和放入容器的操作。 |
 | `parent_space_id` | no | `id:space` | MUST 指向同一实际 Realm 的 Space；不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`、`topic`；profile 可注册新 kind。 | Space 类型。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
@@ -628,25 +614,31 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 ### 3.2.1 Space metadata 的 MLS 载体（normative）
 
-Space 的用户 metadata 明文形状为 `space.schema.json#/$defs/space_metadata`：必填 `title`，可选 `summary`、`labels`、`fields`、`avatar_blob_ref`，字段集封闭，依次沿用上表约束。未激活 scope MLS 时以这些顶层字段表示；一旦该 scope 的 `ak.mls.genesis` accepted，create 与 update MUST 使用唯一完整 `encrypted_metadata: EncryptedEnvelope`，解密 plaintext MUST 符合该形状，purpose 为既有 `metadata`，按冻结外层 Event 的 kind／scope／event identity 构造 AAD，复用同一 Realm／Circle 的 RFC 9420 application message。MUST NOT 往 title 塞 ciphertext、加密整条结构 Event、保留旧用户明文镜像或回退 plaintext。
+Space 的用户 metadata 明文形状为 `space.schema.json#/$defs/space_metadata`：必填 `title`，可选 `summary`、`labels`、`fields`、`avatar_blob_ref`，字段集封闭，依次沿用上表约束。未激活 scope MLS 时以这些顶层字段表示；一旦该 scope 的 `ak.mls.genesis` accepted，create 与 update MUST 使用唯一完整 `encrypted_metadata: EncryptedEnvelope`，解密 plaintext MUST 符合该形状，purpose 为既有 `metadata`，按冻结外层 Event 的 kind／scope／event identity 构造 AAD，复用同一 Realm 的 RFC 9420 application message。MUST NOT 往 title 塞 ciphertext、加密整条结构 Event、保留旧用户明文镜像或回退 plaintext。
 
-`id/schema/realm_id/scope_circle_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `max_active_strand_count/active_strand_count_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
+`id/schema/realm_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `max_active_strand_count/active_strand_count_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
 
 create 原子写 space／space_parent／space_child_scope_policy；密文作为 space 的唯一用户 metadata 被 current/read/snapshot/replica 原样保留。update 沿用 `ak.space.update.patch`，加密 metadata 只能整体 set `encrypted_metadata`，不得 patch envelope 子路径或产生明密文双份；普通 `rank` 与独立 child policy 合同不变。客户端在获授权且验证 accepted cut 后解密到个人显示缓存；服务 API、搜索索引、通知预览与服务缓存 MUST NOT 生成用户明文副本。非 participant 的查询／枚举裁剪不因结构可见字段放宽。
 
-Topic 使用独立的 `Space.kind=topic`，与 `list`、`board` 并列；不是 List 的显示别名或 Board 列。当前 Direct Conversation 的注册用途由 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 锁定：同 Realm root Topic 通过唯一 `Strand.topic` 分类 Chat，复用 Space ID、加密 metadata、rank 与 lifecycle。MUST NOT 将 List 或 Board 接纳为 Topic，MUST NOT 对 Topic 执行 Board-scoped Strand placement、List WIP 或 List 专属字段政策。该 subtype 不扩展通用 `ak.strand.move/reorder` 的载体或位置语义。
+Topic 使用独立的 `Space.kind=topic`，与 `list`、`board` 并列；不是 List 的显示别名或 Board 列。普通 Realm 的 Chat 可按 [Strand and Message §9.4.6](./strand-and-message.md#946-普通-realm-的-chat-分类与-topic-排序) 加入同 Realm 的 root Topic，归属与排序落在 Chat 的 scope 内。稳定 Direct Conversation 的用途由 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 锁定：同 Realm root Topic 通过唯一 `Strand.topic` 分类 Chat，复用 Space ID、加密 metadata、rank 与 lifecycle。MUST NOT 将 List 或 Board 接纳为 Topic，MUST NOT 对 Topic 执行 Board-scoped Strand placement、List WIP 或 List 专属字段政策。该 subtype 不扩展通用 `ak.strand.move/reorder` 的载体或位置语义。
+
+**Boards 选择器的共享顺序（normative）。** 在同一 Realm 的 Boards 选择器内，先按请求者的可见范围筛选 `Space.kind=board`，再按以下二元组升序排列。标题、语言和本地加载次序均不参与排序。
+
+1. 有顶层 `Space.rank` 时，使用其原值作为排序键。已有 Board 缺少该字段时，取其规范 Space ID 去掉 `ak:space:` 的 44 个 ASCII 字符，将这些字符的原始字节逐个编码为两位**大写十六进制**，拼成 88 字符的临时排序键。例如后缀以 `Az` 开头时，排序键以 `417A` 开头。此键与显式 rank 按同一 ASCII 字典序比较；两块都缺 rank 的 Board 因而按 Space ID 排列。读取不回写旧 Board，改名不改变位置。
+2. 排序键相同时，按完整 Space ID 的 canonical bytewise 升序。此规则同样覆盖并发创建取得相同 rank，以及显式 rank 恰好等于另一块 Board 临时键的情况。
+
+客户端从选择器新建 Board 时，MUST 在同一 `ak.space.create` 的 `object.rank` 写入最后一个可见 Board 的排序键与末尾哨兵之间的合法 rank（[Encoding §9.1](../conformance/encoding.md)）；空列表使用首尾哨兵。本机已排队的新建操作也计入尾部。并发客户端可以选择相同 rank，接纳后的顺序由上述二元组唯一确定。
+
+拖动时先从列表移除被移动项，再对落点两侧可见相邻项的排序键调用 `rank_between`（首尾使用哨兵），通过 `ak.space.update` 仅对被移动 Board 整体 set 顶层 `rank`。旧 Board 首次被移动时由此获得显式 rank。落回原位无需写入；若相邻键相同或区间已耗尽，未能产生严格介于两端的 rank 时不得提交该移动，须先调整相邻项再重试。更新沿用目标 Space 的现有写权限、scope 与生命周期规则；同一选择器中的排序不改变任何 Board 的 parent或成员。
 
 ### 3.3 行为规则
 
 - **授权**：任何对 Space 的写入（`ak.space.create` / `ak.space.update` / `ak.space.archive` / `ak.space.restore` / `ak.space.tombstone` / `ak.space.parent`）都在 `realm_id` 指向的 home Realm 内授权。
-- **同步与联邦**：Space metadata 跟随 home Realm 同步。parent 与 child MUST 属于同一 authority-committed Realm state；Circle 裁剪不等于依赖不存在。
-- **加密 / scope**：Space 没有自己的 membership 或 MLS group。Space metadata 默认落在 home Realm 的 scope，并跟随该 scope 当前的 MLS 激活状态；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与该 Circle 自己的 MLS 激活状态。
+- **同步与联邦**：Space metadata 跟随 home Realm 同步。parent 与 child MUST 属于同一 authority-committed Realm state。
+- **加密**：Space metadata 与结构事实绑定其所属 Realm，由该 Realm 的 MLS 激活状态决定内容保护。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；新资源 MUST 使用当前 Space 的 `realm_id`；scope MUST 在该 Realm 中独立授权。
-- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation 或 capability registry 时才创建新的 Realm。
-
-Space 自身 `scope_circle_id` 与子资源 `child_scope_policy` 的区别及 reducer 责任以
-[`circle.md` §6.3](./circle.md) 为唯一规范来源；二者不可互相替代。
+- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` ；新资源 MUST 使用当前 Space 的 `realm_id`；scope MUST 在该 Realm 中独立授权。
+- **加密放置约束**：`child_scope_policy=true` 时，接纳方 MUST 在放置的同一事务中验证目标 Realm 已接受 MLS Genesis。该规则覆盖 Strand 创建、移动、Space 初始 parent 与改挂，以及 structural contains。缺少有效证据时拒绝写入。false 解除约束。创建省略该字段时，独立的 `space_child_scope_policy` current 记录 null；更新省略时保持原值，显式布尔通过 `ak.space.update` 的专用成员写入。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 
@@ -654,9 +646,11 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 
 - `ak.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ak.space.restore`：仅允许 `archived -> active`；不级联 restore。
-- `ak.space.tombstone`：不可逆；在它自己签名的 accepted RealmCommit basis 中存在 non-tombstoned child Space 或 non-redacted Strand 的有效 canonical `contains` placement 时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent current state 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical typed results。
-- 上述准入检查 MUST 使用指定 accepted RealmCommit basis 的完整 canonical parent / position / lifecycle 状态；可见列表、Circle 裁剪、缓存未命中、unresolved current state 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
+- `ak.space.tombstone`：不可逆；在它自己签名的 accepted RealmCommit basis 中存在 non-tombstoned child Space、non-redacted Strand 的有效 canonical `contains` placement，或 non-redacted Strand 对该 Topic 的 canonical `topic.space_id` 引用时 MUST `failed_precondition / space_has_live_dependents`。archived 子项仍是依赖；tombstoned child 的历史 parent current state 和 redacted Strand 的历史 position 不算活依赖。必须先显式移出或终结已观察到的子项，禁止隐式级联或清空 canonical typed results。
+- 上述准入检查 MUST 使用指定 accepted RealmCommit basis 的完整 canonical parent / position / Strand.topic / lifecycle 状态；可见列表、权限裁剪、缓存未命中、unresolved current state 均不能证明无依赖。缺少完整可验证状态时 MUST fail closed。
 - v1 不为 Space lifecycle 与所有可能指向它的 parent/position current state 新建跨 current state 事务或全 Realm dependency-lock。普通 reparent/placement Event 可能在尚未知道目标 Space tombstone 时合法创作；两条 canonical Event/current state 历史事实都保留，但派生结构边只有在当前 confirmed lifecycle 非 `tombstoned` 时才有效。目标已 tombstoned 时，该 parent/position 不得形成 `contains`、不得把目标复活、不得被投影成 root，也不得授予导航或写入能力；客户端/服务端必须把它显示为待显式 reparent/move 的不可用结构引用。后续修复写使用原 parent/position current state 的唯一 current source。该规则由已确认安全状态与普通因果状态共同唯一决定，与接收顺序无关，也不新增 recovery Event。
+
+同一 accepted basis 规则适用于并发的 Topic 分类和 tombstone。未观察到 tombstone 的合法分类保留原 strand current，已 tombstoned 的目标不形成有效 Topic 列表项；后续显式 unset 或换 Topic 使用该 Strand 前像。对无权读取依赖的调用者，拒绝删除不得披露依赖 Chat 的标识、数量或位置。
 
 错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。
 
@@ -681,7 +675,7 @@ metadata 投影排除 `parent_space_id`，所以真源是本 family 而不是 Sp
 
 先取每个 Space 的当前 parent——该 stream 上最后一个被接受的 parent 写入，次序只由 `stream_position` 给出；再将有向环内的所有 current parent 边标记为领域 `unresolved`。该环诊断不得反向重选寄存器值，不得伪装 root，也不得产生有效 contains。后续有权写引用各自 current source 后可修复。指向不可见、终态或不兼容 scope 的目标不产生 live navigation，但保留原始因果事实。
 
-parent 只是导航关系，不授予读取权，不修改 `scope_circle_id`、Realm、creator 或安全 policy。普通对象 archive/restore 的写权限来自独立安全授权；restore 不能要求对象先 active。terminal 仍不可逆，不能通过 reparent 复活。
+parent 只是导航关系，不授予读取权，不修改 Realm、creator 或安全 policy。普通对象 archive/restore 的写权限来自独立安全授权；restore 不能要求对象先 active。terminal 仍不可逆，不能通过 reparent 复活。
 
 ### 3.6 Strand 位置
 

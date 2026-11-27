@@ -52,7 +52,7 @@
     "push_route_token": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._~-]{22,512}$",
-      "description": "Opaque service-generated routing token. It MUST NOT contain, encode, or be reversibly derived from a DID, DID URL, Realm id, Circle id, Strand id, Message id, Event id, handle, platform push token, or stable cross-context correlation key."
+      "description": "Opaque service-generated routing token. It MUST NOT contain, encode, or be reversibly derived from a DID, DID URL, Realm id, Strand id, Message id, Event id, handle, platform push token, or stable cross-context correlation key."
     },
     "registration_id": {
       "type": "string",
@@ -125,7 +125,7 @@
         },
         "scope_route_token": {
           "$ref": "#/$defs/push_route_token",
-          "description": "Opaque token for the effective Realm or Circle scope of this wakeup."
+          "description": "Opaque token for the effective Realm scope of this wakeup."
         }
       },
       "additionalProperties": false

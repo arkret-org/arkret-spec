@@ -16,7 +16,7 @@ admits shared writes, assigns order within each visibility stream, and signs
 RealmCommits. Other Stations forward submissions and replicate authorized
 records; federation does not imply multi-writer consensus.
 
-MLS end-to-end encryption protects content in enabled Realm, Circle, and
+MLS end-to-end encryption protects content in enabled Realm and
 Agent Sidecar scopes. Routing and activity metadata remain visible to
 carrying services. Clients check producer proofs, user intent, and content
 cryptography while relying on their Account Station and the Realm's current

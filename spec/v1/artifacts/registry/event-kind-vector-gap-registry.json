@@ -20,11 +20,6 @@
       "rationale": "Erasure receipt authority-commit coverage is pending."
     },
     {
-      "event_kind": "ak.circle.history_access",
-      "priority": "high",
-      "rationale": "Circle history-access transition lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.moderation.decision",
       "priority": "high",
       "rationale": "Moderation decision lacks a directly searchable vector."

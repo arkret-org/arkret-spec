@@ -145,7 +145,7 @@ Blob GC 仍按 [media-and-blob.md](../crypto-media/media-and-blob.md) §8 执行
 
 File transfer 是 holder-private inbox，不是可共享附件对象。把文件转发到 Realm / Strand / Message 时，客户端 MUST 选择下列路径之一：
 
-- 为目标 Realm / Circle 重新加密并上传新的 Realm-bound Blob，然后在新的 `ak.message.create` 或其它共享 Event 中引用该 Blob。
+- 为目标 Realm 重新加密并上传新的 Realm-bound Blob，然后在新的 `ak.message.create` 或其它共享 Event 中引用该 Blob。
 - 若 policy 明确允许复用同一 ciphertext Blob，生成新的共享 Event 只引用目标授权所需的 Blob descriptor，并重新包装目标 recipient 能解开的内容 key；不得复用 file-transfer account-data 的 `content_key` 字段。
 
 任何情况下，共享 Event MUST NOT 引用 `ak.file_transfer.v1:<transfer_key>`，也不得泄露 file-transfer `transfer_id`、origin local path、私有 state 或 account-data ciphertext。

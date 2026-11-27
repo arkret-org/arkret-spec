@@ -488,7 +488,7 @@ founder **MUST** 一次提交恰好四条 Event：
 1. ak.realm.create        携 §5.4 的 critical ref；不承载 membership 边
 2. ak.member.state{join}  subject 为 founder 自身；bootstrap no-basis shape
 3. ak.member.state{join}  subject 为另一 participant 的显式 canonical membership
-4. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
+4. ak.strand.create       main Strand，primary discussion track
 ```
 
 四条注册为 `ak.profile.direct_conversation_realm.v1` 的 closed atomic founding unit：按 wire 顺序验证，同一事务零项或四项接受。create-alone、缺 peer join、缺 Strand、缺 founder join、乱序、不同 actor/pair/profile/Realm 或出现第五条 Event **MUST** 拒绝整组。四条 **MUST** 由 founder author，并使用同一分支 context（`direct_conversation_contact_round` 或 `direct_conversation_agent_provision`，exact XOR），叠加同批 staged authority-root proof。
@@ -647,7 +647,7 @@ controller/Agent Account pair、accepted 且仍 current 的 provision/controller
 
 ### 8.3.1 Chat 与平铺 Topic 的结构动作（normative）
 
-Direct Conversation 保留 stable pair／唯一 DM Realm／binding。Main Chat 是 immutable main_strand_id；Chat 是同 Realm、non-Circle、active primary discussion 的普通 Strand。Topic 是同 Realm root Space(kind=topic)，parent_space_id MUST 省略；不建立 Collection、Board 容器、嵌套 Topic 或额外 MLS group。默认只创建 Main Chat，不自动创建 Topic，不新增 ChatId／TopicId；topic 是与 list、board 并列的独立 Space kind。
+Direct Conversation 保留 stable pair／唯一 DM Realm／binding。Main Chat 是 immutable main_strand_id；Chat 是同 Realm、active primary discussion 的普通 Strand。Topic 是同 Realm root Space(kind=topic)，parent_space_id MUST 省略；不建立 Collection、Board 容器、嵌套 Topic 或额外 MLS group。默认只创建 Main Chat，不自动创建 Topic，不新增 ChatId／TopicId；topic 是与 list、board 并列的独立 Space kind。
 
 每个 Chat 至多一个 Topic，分类唯一真相是 strand current 的可选 topic={space_id,rank}；rank 为 1..128 位 ASCII 字母数字。省略 topic 表示未分类。Main Chat 可分类但身份不变。Topic 只影响共享导航，不承载消息，不改变成员、历史资格、Realm default pointer 或模型会话。MUST NOT 为 DM 分类写 Board-scoped position 或 contains Relation。
 
@@ -655,10 +655,10 @@ Direct Conversation 保留 stable pair／唯一 DM Realm／binding。Main Chat �
 
 | 动作 | 精确 target、字段与生命周期 |
 | --- | --- |
-| Strand create | active 同 Realm non-Circle primary discussion；仅单 discussion track，无 description、stage、schema 扩展、Agent ceiling 或初始 topic；标题使用 encrypted_metadata。 |
-| Strand update | 同 Realm active Chat；仅整体 set encrypted_metadata，或 topic 的显式整体 set／unset。不得写 topic 子路径、直接值、null、tracks、content、stage、scope 或 metadata 明文。每次 topic 变更 MUST 带 expected_state_digest，等于完整前像 strand current canonical JSON 的 SHA-256；不匹配按现行 CAS 零写入拒绝。set 的 Topic 必须是同 Realm active non-Circle root Topic Space。unset 必须已有 topic，可解除归档 Topic 的引用。标题更新不要求分类 CAS；二者同写时仍要求 CAS。 |
+| Strand create | active 同 Realm primary discussion；仅单 discussion track，无 description、stage、schema 扩展、Agent ceiling 或初始 topic；标题使用 encrypted_metadata。 |
+| Strand update | 同 Realm active Chat；仅整体 set encrypted_metadata，或 topic 的显式整体 set／unset。不得写 topic 子路径、直接值、null、tracks、content、stage、scope 或 metadata 明文。每次 topic 变更 MUST 带 expected_state_digest，等于完整前像 strand current canonical JSON 的 SHA-256；不匹配按现行 CAS 零写入拒绝。set 的 Topic 必须是同 Realm active root Topic Space。unset 必须已有 topic，可解除归档 Topic 的引用。标题更新不要求分类 CAS；二者同写时仍要求 CAS。 |
 | Strand archive/restore | 仅额外 Chat，沿用 active→archived／archived→active；不得 archive/redact main 或破坏 main 锚点。分类保留，不级联 Topic lifecycle。 |
-| Space create | 仅同 Realm non-Circle root Topic Space，无父容器、schema 扩展、用户明文 metadata、fields 或 child_scope_policy；metadata 必须加密。 |
+| Space create | 仅同 Realm root Topic Space，无父容器、schema 扩展、用户明文 metadata、fields 或 child_scope_policy；metadata 必须加密。 |
 | Space update | 同 Realm root Topic Space；仅整体 set encrypted_metadata 或合法 rank；不得写 kind、scope、schema、WIP、parent 或 child policy。 |
 | Space archive/restore/tombstone | 独立 Space lifecycle，无隐式分类迁移；tombstone 必须无有效 topic 引用，archived Chat 的引用同样属于活依赖，拒绝 reason=space_has_live_dependents，零写入。 |
 
@@ -670,7 +670,7 @@ Chat／Topic 用户 metadata 使用同一 Realm group 下的完整 encrypted_met
 
 ### 8.3.2 每个 Chat 的个人通知设置（normative）
 
-稳定 participant authority 的单 Event 动作 allowlist 另包含 `ak.strand.watch.set`，它不是 §8.3.1 的结构动作。仅允许 participant 写自己的完整 `(strand_id, watcher_actor_id)` cell：`payload.watcher_actor_id` MUST 逐字等于 envelope 的完整 `actor_id`，target MUST 是同一 DM Realm 内 non-Circle Chat 的实际 Strand。必须携带既有 participant authorization_ref 与合法 accepted binding confirmation ref；bootstrap source、technical root、普通 grant 和 founder 身份不授予该动作。
+稳定 participant authority 的单 Event 动作 allowlist 另包含 `ak.strand.watch.set`，它不是 §8.3.1 的结构动作。仅允许 participant 写自己的完整 `(strand_id, watcher_actor_id)` cell：`payload.watcher_actor_id` MUST 逐字等于 envelope 的完整 `actor_id`，target MUST 是同一 DM Realm 内 Chat 的实际 Strand。必须携带既有 participant authorization_ref 与合法 accepted binding confirmation ref；bootstrap source、technical root、普通 grant 和 founder 身份不授予该动作。
 
 该权限不包含 `ak.strand.watch.set.others`，包括写 pair 中另一 participant 的 cell；失败按 closed participant evaluator 折叠为 `direct_conversation_participant_authority_denied`，零 durable 写入。membership、Contact／owned-Agent controller、MLS、device、executor delegation 与实际 target lifecycle gates 均继续适用。合法 authority 后保留 Strand watch whole-value CAS、读回与本人私有披露规则；未写 cell 的默认 mentions-only 不变。通知按实际 Strand 路由，不按 Main Chat 或 Topic 汇总后冒充目标。
 

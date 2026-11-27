@@ -51,7 +51,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 因此，看到 `ak:` 先按“typed ref / special-form ref”解析，对声明为 registry symbol / namespaced key 的 `ak.` 值按所属符号词法解析。领域 current-state selector 始终按其 closed JSON schema 解析，不编码成第三种字符串命名空间。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；缺席于当前 registry/schema 的前缀、selector kind 或拼写都不是 alias，parser MUST fail closed。
 
-需要安全域分离的固定字符串 label 使用所属 primitive registry 明确登记的精确字节；它们即使以 `ak.` 开头，也不因此成为普通 catalog symbol。既有 exporter label、account-data HMAC domain、device-pairing digest domain 与 account-authority subject domain 可有其专属的 hyphen、slash 或 framing 语法，MUST 原样使用 owning registry／规范 preimage，不能按通用 symbol 词法重命名或正规化；涉及安全域变更须按所属 profile 合同处理并重建相应KAT，而不是增加别名。`proof-context-registry.json` 的 `contexts[].context` 与 `domain_separations[].domain` 统一使用 `ak.<symbol-path>.v1`：`.` 分隔命名层级、层级内复合词使用 snake_case。两类 label 不靠分隔符编码语义，而由其所属数组及 `primitive` 唯一决定；同一 label MUST NOT 同时登记于两类中。历史 `ak.<kebab-case>-proof-v1` 拼写无效且不是 alias；调用点 MUST 逐字使用所属 registry 行。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。它唯一承载一个 deterministic-CBOR map：所有 scope 共有 `effective_scope`、`base_group_state_ref`、`previous_epoch`、`next_epoch`、`key_access_revision` 五个公共成员，仅 Sidecar scope 另外必需 `participant_authority_digest`，Realm／Circle 携带它即 `schema_violation`。Sidecar 摘要的唯一五成员原像与 H/G 职责见 `sidecar.md` §6；它绑定本人/自有 Agent 的成员世代，不是 native/current 或 effective 证明。不承载 authority 引用数组，也不保留旧形状解码。外层 key 的编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、`base_group_state_ref`、`participant_authority_digest`（缺席成员直接跳过）；三个整数均为 `0..2^64-1`，其中 `key_access_revision` 是单调计数器而非摘要。精确 decoder 上限与拒绝条件见 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)。
+需要安全域分离的固定字符串 label 使用所属 primitive registry 明确登记的精确字节；它们即使以 `ak.` 开头，也不因此成为普通 catalog symbol。既有 exporter label、account-data HMAC domain、device-pairing digest domain 与 account-authority subject domain 可有其专属的 hyphen、slash 或 framing 语法，MUST 原样使用 owning registry／规范 preimage，不能按通用 symbol 词法重命名或正规化；涉及安全域变更须按所属 profile 合同处理并重建相应KAT，而不是增加别名。`proof-context-registry.json` 的 `contexts[].context` 与 `domain_separations[].domain` 统一使用 `ak.<symbol-path>.v1`：`.` 分隔命名层级、层级内复合词使用 snake_case。两类 label 不靠分隔符编码语义，而由其所属数组及 `primitive` 唯一决定；同一 label MUST NOT 同时登记于两类中。历史 `ak.<kebab-case>-proof-v1` 拼写无效且不是 alias；调用点 MUST 逐字使用所属 registry 行。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。它唯一承载一个 deterministic-CBOR map：所有 scope 共有 `effective_scope`、`base_group_state_ref`、`previous_epoch`、`next_epoch`、`key_access_revision` 五个公共成员，仅 Sidecar scope 另外必需 `participant_authority_digest`，Realm 携带它即 `schema_violation`。Sidecar 摘要的唯一五成员原像与 H/G 职责见 `sidecar.md` §6；它绑定本人/自有 Agent 的成员世代，不是 native/current 或 effective 证明。不承载 authority 引用数组，也不保留旧形状解码。外层 key 的编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、`base_group_state_ref`、`participant_authority_digest`（缺席成员直接跳过）；三个整数均为 `0..2^64-1`，其中 `key_access_revision` 是单调计数器而非摘要。精确 decoder 上限与拒绝条件见 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)。
 
 字段默认规则：
 
@@ -291,7 +291,7 @@ expected_<role>_<kind>_id
 - canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `strand_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
 - Realm State Snapshot 是签名协议 artifact，自身使用 closed `snapshot_id`；其它对象如需引用它必须使用各自 schema 登记的 typed ref。v1 不登记独立 Snapshot chunk payload 或由 `realm_state_snapshot_ref` 构造的泛化引用层。
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
-- 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
+- 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 的 carrier 与可验证主体类别必须同时反映在字段名：principal/service/Station/hardware module 的 `DidCoreId` 分别使用 `<role>_principal_id` / `<role>_service_id` / `<role>_station_id` / `<role>_hardware_module_id`；完整 account 使用 `<role>_account_id: AccountId`；account/service/realm actor 使用 `<role>_actor_id: ActorId`。`actor_id`、`principal_id`、`agent_id` 等主体词本身已闭合 carrier 的既有 canonical 字段继续保留。
 - `DidCoreId` 只提供稳定 core carrier，不证明它属于 principal、Station、其它 service 或 hardware module。主体类别必须先由 schema/registry 与 admission evidence 闭合，字段名随后如实表达；需要实际解析 DID 时另用 `<role>_did`。`holder` / `controller` 是高风险责任角色，必须使用上述显式形态，禁止裸名。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
@@ -359,7 +359,7 @@ Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`�
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `ActorId` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
-| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, accepting_committed_at)`，其中 `accepting_committed_at` 来自直接接受该 Event 的确切 RealmCommit；所有 shared durable Event 都有该值。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, accepting_committed_at)`，其中 `accepting_committed_at` 来自直接接受该 Event 的确切 RealmCommit；所有 shared durable Event 都有该值。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ak.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
@@ -405,32 +405,32 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 - **Lifecycle**：物理生命周期（active / archived / tombstoned / ...），与 `ak.<kind>.archive` / `restore` / `tombstone` 系列 event 配对。
 - **Progress**：业务进度（v1 仅 Strand / Morph），与 `ak.<kind>.stage.set` event 配对。
 
-| 字段 | 组 | Realm | Circle | Space | Strand | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile | Sidecar |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `blob_ref`，§3.2 第 2 类） | Y | Y | Y | Y | Y | Y |
-| `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | Y | O | O | O | Y | Y | O | O | Y |
-| `created_by` | Authorship | Y | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer_id`) | — (see `inviter_account_id`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) | — (see `controller_account_id`，见附注) |
-| `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `issued_at`，§3.2） | Y | —（仅 `updated_at`，见 §3.2） | Y | Y | Y |
-| `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O | — |
-| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | Y | O | O | O |
-| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | O | — | — | — | Y（流程状态轴，见附注） | — | Y（actor-private 处理轴，见附注） | — (see `status`，mirrors account status) | Y（reducer 派生轴，含 `suspended`，见附注） |
-| `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | R when state≠active |
-| `stage` | Progress | — | — | — | O | — | O | — | — | — | — | — | — | — | — | — | — |
-| `stage_changed_at` | Progress | — | — | — | R per `ak.strand.stage.set` | — | R per `ak.morph.stage.set` | — | — | — | — | — | — | — | — | — | — |
-| `labels` | Universal | — | — | O | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | O (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) | — |
+| 字段 | 组 | Realm | Space | Strand | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile | Sidecar |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `blob_ref`，§3.2 第 2 类） | Y | Y | Y | Y | Y | Y |
+| `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | O | O | O | Y | Y | O | O | Y |
+| `created_by` | Authorship | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer_id`) | — (see `inviter_account_id`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) | — (see `controller_account_id`，见附注) |
+| `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `issued_at`，§3.2） | Y | —（仅 `updated_at`，见 §3.2） | Y | Y | Y |
+| `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | — | — | O | — |
+| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | Y | O | O | O |
+| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | O | O | Y | O | O | O | — | — | — | Y（流程状态轴，见附注） | — | Y（actor-private 处理轴，见附注） | — (see `status`，mirrors account status) | Y（reducer 派生轴，含 `suspended`，见附注） |
+| `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | R when state≠active |
+| `stage` | Progress | — | — | O | — | O | — | — | — | — | — | — | — | — | — | — |
+| `stage_changed_at` | Progress | — | — | R per `ak.strand.stage.set` | — | R per `ak.morph.stage.set` | — | — | — | — | — | — | — | — | — | — |
+| `labels` | Universal | — | O | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| `fields` / `metadata.fields` | Universal | O | O | O (`metadata.fields`) | O (`metadata.fields`) | O (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) | — |
 
 附注：
 
 - Realm 使用通用 `created_by` 字段；其额外语义是 Realm create event 的 authorizing principal，并作为 genesis member bootstrap 主体（见 §4.1 / §4.2 与 [`realm-and-space.md` §2.5](./realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)）。
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer_id` / `inviter_account_id` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
 - Read Cursor / Notification 是 actor-private 状态：`realm_id` 在 Read Cursor 上必填（`read-cursor.schema.json` 列入 `required[]`），在 Notification 上可选（允许 actor-scoped 视图省略）；`updated_by` 均不适用——这些对象由系统派生或 actor 本人推进。
-- **`state_changed_at` reducer-derived 总括 MUST（单一真源）**：任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Strand / Message / Morph / Relation / View）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段一律 **reducer-derived，actor MUST NOT 携带**。安全转换使用 §3 定义的 `max(Event.created_at, accepting RealmCommit.committed_at)`，普通转换只使用 `Event.created_at`；actor wire 值 MUST 被忽略（详见 §5.1）。各对象专属文件的 `state_changed_at` 行不必重复声明该 reducer-derived 约束，以本条为权威。本条不适用于 Notification / Invite 的 `state` 轴——它们由 Arkret 推进但不属于 §5.1 通用 lifecycle 状态机（见下条）。
-- **`state` 必填性差异（Circle=Y vs Space/Strand/Morph=O）**：Circle 的 `state` 为必填（`circle.schema.json` 列入 `required[]`），而 Space / Strand / Morph 为可选（缺省语义 `active`）。理由：Circle 是独立的 scoped event boundary，其 lifecycle（`active` / `archived` / `tombstoned`）直接决定该 scope 内对象能否继续写入与投递裁剪（见 [`circle.md` §9.2](./circle.md)），故 reducer / projection 必须能从 Circle 对象直接读出确定 state，不容许 "缺省即 active" 的隐式解释带来 scope 可写性歧义；Space / Strand / Morph 的缺省 `active` 不影响其它对象的 scope 边界，省略时按 `active` 解释是安全且省 wire 的取舍。两类对象的 `state` 转换真源仍统一为 §5.1 的 reducer-input lifecycle event，必填性差异只影响 wire 上是否允许省略该字段。
+- **`state_changed_at` reducer-derived 总括 MUST（单一真源）**：任何承载物理 lifecycle `state` 轴的对象（Space / Strand / Message / Morph / Relation / View）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段一律 **reducer-derived，actor MUST NOT 携带**。安全转换使用 §3 定义的 `max(Event.created_at, accepting RealmCommit.committed_at)`，普通转换只使用 `Event.created_at`；actor wire 值 MUST 被忽略（详见 §5.1）。各对象专属文件的 `state_changed_at` 行不必重复声明该 reducer-derived 约束，以本条为权威。本条不适用于 Notification / Invite 的 `state` 轴——它们由 Arkret 推进但不属于 §5.1 通用 lifecycle 状态机（见下条）。
+- Space、Strand 与 Morph 的可选 `state` 缺省时解释为 `active`；状态转换由 §5.1 的 lifecycle Event 决定。
 - Notification 的 `state` 是 schema required 字段（enum `unread / read / dismissed / archived`）：它承载 actor-private 的通知处理轴，属于 §5 的对象当前状态，**不是命名例外**；Notification 无 `state_changed_at`。Invite 的 `state` 同为 schema required，承载邀请流程的当前状态（见 [`governance-objects.md` §5](./governance-objects.md)）。二者各自服从所属领域合同，不从共用 `state` 名称推导通用 lifecycle 状态机。
 - `stage_changed_at` 仅 Strand / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
-- `labels` 仅适用于 Space。Realm / Circle / Strand / Message / Morph / Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 的标签语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）或扩展容器承担，避免与 Space labels 投影冲突。
+- `labels` 仅适用于 Space。Realm / Strand / Message / Morph / Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 的标签语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）或扩展容器承担，避免与 Space labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Strand / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 终态复用 update**：共享 View 通过 `ak.view.update` patch `state="tombstoned"` 进入 durable terminal state；不另注册平行的 `ak.view.tombstone` event kind。Reducer 派生 `state_changed_at`，终态后的 update / reconcile 用 `view_already_terminal` 拒绝；见 [`views.md` §3.1](./views.md)。
 - **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由各自的领域 Event 与 current state 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at`。读取面 MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 区分 successor 迁移与永久关闭；不得把该显示状态写回 Realm 对象。
@@ -442,9 +442,9 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 
 按结构角色把对象分三类，各自的顺序如下：
 
-1. **canonical materialized object**（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 SHOULD 为：
+1. **canonical materialized object**（Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 SHOULD 为：
    1. identity：`id`、`schema`
-   2. scope / container：`realm_id`、`space_id`、`strand_id`、其它 parent refs（如 `parent_space_id`、`scope_circle_id`）
+   2. scope / container：`realm_id`、`space_id`、`strand_id`、其它 parent refs（如 `parent_space_id`）
    3. object discriminator / 引用：`kind`、`rank`、`schema_refs`
    4. content / config：`title`、`metadata`、`fields`、policy / config 字段
    5. lifecycle：`state`、`state_changed_at`、`stage`、`stage_changed_at`
@@ -554,7 +554,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 
 `did ≅ did_core_id + method-specific resolution` 只是 adapter 语义，不是字符串拼接格式。只有已登记 DID method adapter 可以从 `did` 投影 `did_core_id`；普通业务代码 MUST NOT 自行拆解或反向构造。一个 `did` 投影到的 `did_core_id` 必须唯一。DID URL 不属于 `did`：`verification_method` 等 DID URL 必须在验证 `did` 后由相同 adapter 处理，禁止把 fragment 直接拼到 `did_core_id`。实现 MUST NOT 以字符串前缀判断 DID URL controller；比较前必须由 adapter 解析 DID URL，并验证其 base `did` 到目标 `did_core_id` 的唯一投影关系。
 
-`did_core_id` 是 Arkret 的稳定主体标识，`did` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
+`did_core_id` 是 Arkret 的稳定主体标识，`did` 是其当前 DID resolution material；二者都不是普通协作对象 ID。标准协作对象（Realm / Space /
 Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用
 `ak:<kind>:` typed ID 作为对象 ID；设备也不是 actor 主体，其标识是
 `device_id`（`ak:device:<uuidv7>`），没有设备 DID。
@@ -630,7 +630,7 @@ Account／Service 换 service core 会形成不同身份；Realm 治理交接不
 
 ### 4.4 `agent_participation` wire 形态（normative）
 
-Realm、Circle、Strand 的 `agent_participation` policy component 使用
+Realm、Strand 的 `agent_participation` policy component 使用
 `{agent:{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}}`；
 controller-private selection 直接使用同一个五位 inner object。五个 boolean 全部 required，两个 object 都 closed；
 任一位缺失或出现未知位均 `schema_violation`，不得默认补齐。外层 axis 为其它 actor family 保留，不同
@@ -640,13 +640,13 @@ family 使用独立 sibling key。
 Reducer逐层AND，同名位内层true必须蕴含父层true，放宽返回
 `agent_participation_ceiling_widen`。任一required layer在本次admission应存在却missing/unknown/stale/fork时按
 全deny，不按“无声明=放宽”。实际动作的 participation gate 为 target deployment safety、
-Realm/Circle/Strand governance 与 Account Authority 当前 controller selection 的逐位交集；普通 capability、
+Realm/Strand governance 与 Account Authority 当前 controller selection 的逐位交集；普通 capability、
 session scope、membership 和 lifecycle 是并列的独立 admission 条件，不复制进 participation record；详见
 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。
 
 ### 4.5 Membership FSM（normative）
 
-Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock / leave / ban`，`initial_state=leave`；
+Realm 的 materialized membership 共用唯一状态集 `join / knock / leave / ban`，`initial_state=leave`；
 不存在 `none` 或 `invite`。Invite 是独立 pending workflow，只有 exact target ActorId 的有效 acceptance 才把 membership
 从 `leave` 推进到 `join`。same-state transition 一律非法；endpoint、transport 或 Station 变化不得伪装成
 `join -> join`。
@@ -654,7 +654,7 @@ Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock
 | from | to | wire event kind | guard / writer |
 | --- | --- | --- | --- |
 | `leave` | `knock` | scope membership state | target ActorId 自著，且 join rule 允许 |
-| `leave` | `join` | `ak.member.state` 或 exact invite acceptance | Realm：target ActorId 自著 / bootstrap creator 或 exact target invite acceptance；Circle：public self-join 或持有 `ak.circle.member.add.others` 的管理员显式加入，并同批 audit |
+| `leave` | `join` | `ak.member.state` 或 exact invite acceptance | Realm：target ActorId 自著 / bootstrap creator 或 exact target invite acceptance |
 | `knock` | `join` | scope membership state | 已授权 reviewer/admin |
 | `knock` | `leave` | scope membership state | target ActorId 或已授权 reviewer/admin |
 | `join` | `leave` | scope membership state | target ActorId 或已授权管理员 |
@@ -676,7 +676,7 @@ common 只定义 `state` 与 `stage` 两个共享概念。`state` 是所属对�
 
 ### 5.1 对象状态的权威入口
 
-合法操作由对象自己的定义定位到 event-kind registry 的 effect、领域迁移校验与组合规则，不得根据字段名或 Event 拼写推断，也不得把业务状态机复制成 current state 状态模型或第二份可逆性标签。Realm 见 [realm-and-space §2.6](./realm-and-space.md)，Strand/Message 见 [strand-and-message](./strand-and-message.md)，其它对象分别见 [circle](./circle.md)、[morph](./morph.md)、[relation](./relation.md)、[views](./views.md)、[sidecar](./sidecar.md)。存在 `state` 不意味着支持 archive/restore。
+合法操作由对象自己的定义定位到 event-kind registry 的 effect、领域迁移校验与组合规则，不得根据字段名或 Event 拼写推断，也不得把业务状态机复制成 current state 状态模型或第二份可逆性标签。Realm 见 [realm-and-space §2.6](./realm-and-space.md)，Strand/Message 见 [strand-and-message](./strand-and-message.md)，其它对象分别见 [morph](./morph.md)、[relation](./relation.md)、[views](./views.md)、[sidecar](./sidecar.md)。存在 `state` 不意味着支持 archive/restore。
 
 `state_changed_at` 仍是 reducer-derived：安全转换取 `max(Event.created_at, accepting RealmCommit.committed_at)`，其中 accepting RealmCommit 是唯一确认序列里直接接受该命令的确切位置；普通转换只取 `created_at`。actor 不得通过 payload 改写它。对象缺失不表示 active；缺 create/依赖时按同步规则保留 pending_causal_apply/replay 并按目标建索引，不得成功丢弃操作。依赖、snapshot 或可验证 visibility 材料到达后重新执行同一校验；证明永久不可见时沿 dependency_missing / capability_denied / history_not_visible 报告，不得记为 applied。
 
@@ -846,7 +846,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / ...）。schema 内联约束，无需引用独立对象。Event／RealmCommit 的 content-address suite 不是 profile 字段，而是 current-v1 全局固定合同。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 current state state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`ak:policy:<uuid>`）的 ID，pattern `^ak:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
-- **`_floor` 不构成通用加密／隐私策略轴**：current-v1 不定义 Realm encryption profile 与 Circle encryption / metadata floor 的继承或取严算法。Realm-default / Circle 分别由自己的 Genesis 激活 MLS，Sidecar 固定独立 MLS；Space 只表达 placement 谓词。已登记 `readable_floor` 等历史读取下界按其专章定义，不能据后缀推导其它 floor 字段或策略传播；设置矩阵见 [`scope-settings.md`](../governance/scope-settings.md)。
+- **`_floor` 不构成通用加密／隐私策略轴**：Realm 的 MLS 由自己的 Genesis 激活，Sidecar 固定独立 MLS；Space 只表达 placement 谓词。已登记 `readable_floor` 等历史读取下界按其专章定义，不能据后缀推导其它 floor 字段或策略传播；设置矩阵见 [`scope-settings.md`](../governance/scope-settings.md)。
 
 判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。
 

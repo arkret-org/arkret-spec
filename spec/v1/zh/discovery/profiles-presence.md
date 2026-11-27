@@ -294,7 +294,7 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
   成员集合安全加密时不得发送，不能降级为服务端可读的明文筛选。
 
 recipient MUST 消费 [Signal §3.1](../sync/signal.md#31-三层准入职责) 的单帧
-`product_authority`，对解密出的 exact Strand、discussion track、外层 Realm/Circle 与完整 sender
+`product_authority`，对解密出的 exact Strand、discussion track、外层 Realm 与完整 sender
 求值 `ak.typing.broadcast`。原 `sent_at` 和当前时刻 MUST 分别通过完整 qualified grants，且同一
 授权 source 在两 cut 均有效；适用 deny、quarantine、require_review 与未知约束优先拒绝。
 同帧完整 access／moderation Policy 也须在两个时刻独立通过；grant、owner 或 participant allow

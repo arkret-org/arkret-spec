@@ -315,20 +315,16 @@ class RealmActorBackupContractTest(unittest.TestCase):
         bad=copy.deepcopy(successor);bad["backup_id"]="ak:backup:019a0000-0000-7000-8000-000000000013";self.sign_packet(bad)
         with self.assertRaises(ValueError):store.put(bad,current,pointer,self.public())
 
-    def test_private_circle_scope_series_counter_does_not_cross_scope(self):
-        packet,current,pointer=self.inputs()
-        first={"kind":"circle","realm_id":current["effective_scope"]["realm_id"],"circle_id":token("circle",71)}
-        second={**first,"circle_id":token("circle",72)}
-        pointer["effective_scope"]=first;self.sign_pointer(pointer)
-        current["effective_scope"]=first
-        select_series(pointer,None,current,unb64(self.f["test_material"]["manager_public_base64url"]))
-        independent=copy.deepcopy(pointer);independent["effective_scope"]=second;self.sign_pointer(independent)
-        current["effective_scope"]=second
-        select_series(independent,None,current,unb64(self.f["test_material"]["manager_public_base64url"]))
-        with self.assertRaises(ValueError):select_series(independent,pointer,current,unb64(self.f["test_material"]["manager_public_base64url"]))
-        self.assertNotEqual(series_key(packet["actor_id"],first),series_key(packet["actor_id"],second))
-        store=ArchiveReference();store.packets[packet["backup_id"]]=packet
-        self.assertEqual(store.list_exact_scope(packet["actor_id"],second),[])
+    def test_series_rejects_cross_realm_substitution_even_when_resigned(self):
+        packet, current, pointer = self.inputs()
+        foreign = {"kind": "realm", "realm_id": token("realm", 72)}
+        pointer["effective_scope"] = foreign
+        self.sign_pointer(pointer)
+        current["effective_scope"] = foreign
+        with self.assertRaises(ValueError):
+            select_series(pointer, None, current, unb64(self.f["test_material"]["manager_public_base64url"]))
+        with self.assertRaises(ValueError):
+            series_key(packet["actor_id"], foreign)
 
     def test_manager_series_signature_and_counter_cas_are_real(self):
         _,current,pointer=self.inputs();public=unb64(self.f["test_material"]["manager_public_base64url"])
@@ -367,10 +363,11 @@ class RealmActorBackupContractTest(unittest.TestCase):
         preimage,key=derive_native_series_current_key(actor,scope,"secret_storage")
         self.assertEqual(preimage,b"ak.current_key.realm_actor_key_backup_active_series.v1\n"+canonical([actor,scope,"secret_storage"]))
         other_actor={**actor,"principal_id":"ak:did_core:webvh:zDifferentActor"}
-        circle={"kind":"circle","realm_id":scope["realm_id"],"circle_id":token("circle",21)}
-        sibling={**circle,"circle_id":token("circle",22)}
-        outputs=[derive_native_series_current_key(a,b,"secret_storage")[1] for a,b in [(actor,scope),(other_actor,scope),(actor,circle),(actor,sibling)]]
-        self.assertEqual(len(set(outputs)),4)
+        foreign = {"kind":"realm", "realm_id":token("realm",22)}
+        moved_actor = {**actor, "realm_id":foreign["realm_id"]}
+        outputs = [derive_native_series_current_key(a,b,"secret_storage")[1]
+                   for a,b in [(actor,scope),(other_actor,scope),(moved_actor,foreign)]]
+        self.assertEqual(len(set(outputs)),3)
         old_domain=b"ak.current_key.key_backup_active_series.v1\n"
         self.assertNotEqual(b64(hashlib.sha256(old_domain+canonical([actor,"secret_storage"])).digest()),key)
         for wrong_actor,wrong_scope,kind in [(self.f["native_packet"]["actor_id"],scope,"secret_storage"),
@@ -476,15 +473,15 @@ class RealmActorBackupContractTest(unittest.TestCase):
             errors=list(schema_validator(ART/"schemas/keys-operations.schema.json","#/$defs/"+name).iter_errors(value))
             self.assertEqual([error.message[:250] for error in errors],[],name)
 
-    def test_device_replies_never_disclose_sibling_circle_authorization(self):
+    def test_device_replies_never_disclose_raw_authorization(self):
         from tools.artifact_lint.core import schema_validator
-        sibling=self.f["native_source"]["device_authorization"]["event"]["payload"]["scopes"][1]["effective_scope"]["circle_id"]
-        self.assertIn(sibling,canonical(self.f["native_source"]).decode())
+        private_material=self.f["native_source"]["device_authorization"]["event"]["payload"]["hpke_key"]
+        self.assertIn(private_material,canonical(self.f["native_source"]).decode())
         for name,definition in [("native_put_response","keys_backups_replace_response_body"),
                 ("device_head_response","realm_actor_backup_series_head_response_body"),("device_unlock_response","realm_actor_backup_unlock_response_body")]:
             value=self.f[name];validator=schema_validator(ART/"schemas/keys-operations.schema.json","#/$defs/"+definition)
             validator.validate(value)
-            self.assertNotIn(sibling,canonical(value).decode())
+            self.assertNotIn(private_material,canonical(value).decode())
             bad=copy.deepcopy(value);bad["native_source"]=self.f["native_source"]
             self.assertFalse(validator.is_valid(bad),name)
         schema_validator(ART/"schemas/keys-operations.schema.json","#/$defs/realm_actor_archive_unlock_response_body").validate(self.f["manager_unlock_response"])

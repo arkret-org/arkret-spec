@@ -119,200 +119,6 @@
       "expected": "accepted_two_commits"
     },
     {
-      "name": "circle_manage_pair_accepted",
-      "input": {
-        "events": [
-          {
-            "event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-            "kind": "ak.circle.member.state",
-            "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "scope_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-            },
-            "actor_id": {
-              "kind": "account",
-              "account_id": {
-                "principal_id": "ak:did_core:web:writer.example",
-                "station_id": "ak:did_core:web:station.example"
-              }
-            },
-            "created_at": "2026-10-14T00:00:00.000Z",
-            "payload": {
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-              "member_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:target.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "membership": "leave"
-            },
-            "producer_proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-              "event_digest": "sha256:57fa254b6c70b2660441e510262b15e0860e1e9dbf2dfce350821d92d40c6f0f",
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-            }
-          },
-          {
-            "event_id": "ak:event:ASmin8oet1qerGCLgW-6qfHRbCymQmMGV8_OOQccExIp",
-            "kind": "ak.audit.accessed",
-            "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "scope_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-            },
-            "actor_id": {
-              "kind": "account",
-              "account_id": {
-                "principal_id": "ak:did_core:web:writer.example",
-                "station_id": "ak:did_core:web:station.example"
-              }
-            },
-            "created_at": "2026-10-14T00:00:00.000Z",
-            "payload": {
-              "access_kind": "circle_member_set_others",
-              "writer_actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:writer.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "target_actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:target.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "target_ref": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-              "paired_event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-              "purpose": "authorized member removal",
-              "accessed_at": "2026-10-14T00:00:00.000Z"
-            },
-            "semantic_refs": [
-              {
-                "id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-                "role": "audit_pair",
-                "critical": true
-              }
-            ],
-            "producer_proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-              "event_digest": "sha256:29a29fca1eb75a9eac608b816fbaa9f1d16c2ca642630657cfce39071c131229",
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-            }
-          }
-        ]
-      },
-      "expected": "accepted_two_commits"
-    },
-    {
-      "name": "circle_others_pair_accepted",
-      "input": {
-        "events": [
-          {
-            "event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-            "kind": "ak.circle.member.state",
-            "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "scope_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-            },
-            "actor_id": {
-              "kind": "account",
-              "account_id": {
-                "principal_id": "ak:did_core:web:writer.example",
-                "station_id": "ak:did_core:web:station.example"
-              }
-            },
-            "created_at": "2026-10-14T00:00:00.000Z",
-            "payload": {
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-              "member_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:target.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "membership": "leave"
-            },
-            "producer_proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-              "event_digest": "sha256:57fa254b6c70b2660441e510262b15e0860e1e9dbf2dfce350821d92d40c6f0f",
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-            }
-          },
-          {
-            "event_id": "ak:event:ASmin8oet1qerGCLgW-6qfHRbCymQmMGV8_OOQccExIp",
-            "kind": "ak.audit.accessed",
-            "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-            "scope_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-            },
-            "actor_id": {
-              "kind": "account",
-              "account_id": {
-                "principal_id": "ak:did_core:web:writer.example",
-                "station_id": "ak:did_core:web:station.example"
-              }
-            },
-            "created_at": "2026-10-14T00:00:00.000Z",
-            "payload": {
-              "access_kind": "circle_member_set_others",
-              "writer_actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:writer.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "target_actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:target.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "target_ref": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-              "paired_event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-              "purpose": "authorized member removal",
-              "accessed_at": "2026-10-14T00:00:00.000Z"
-            },
-            "semantic_refs": [
-              {
-                "id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-                "role": "audit_pair",
-                "critical": true
-              }
-            ],
-            "producer_proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-              "event_digest": "sha256:29a29fca1eb75a9eac608b816fbaa9f1d16c2ca642630657cfce39071c131229",
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-            }
-          }
-        ]
-      },
-      "expected": "accepted_two_commits"
-    },
-    {
       "name": "missing_audit",
       "input": {
         "events": [
@@ -926,9 +732,8 @@
             "kind": "ak.audit.accessed",
             "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
             "scope_ref": {
-              "kind": "circle",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
+              "kind": "realm",
+              "realm_id": "ak:realm:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
             },
             "actor_id": {
               "kind": "account",
@@ -1625,8 +1430,6 @@
     "read_authorized": true,
     "audit_authorized": true,
     "realm_member": true,
-    "scope_member": true,
-    "scoped_circle_audit": false,
     "target_scope_matches": true,
     "namespace_complete": true,
     "replay_material_available": true,
@@ -1675,19 +1478,11 @@
       "expected": "not_found"
     },
     {
-      "name": "nonmember_without_circle_audit",
+      "name": "nonmember",
       "input": {
-        "scope_member": false
+        "realm_member": false
       },
       "expected": "not_found"
-    },
-    {
-      "name": "scoped_circle_auditor",
-      "input": {
-        "scope_member": false,
-        "scoped_circle_audit": true
-      },
-      "expected": "audit_commit_and_never_written"
     },
     {
       "name": "wrong_scope_read",
@@ -1883,109 +1678,6 @@
                 "kind": "detached_jws",
                 "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
                 "event_digest": "sha256:3b43747896eef75f5f926050c279a323998d87b84bb8edd20fae2e17c25e6d5a",
-                "created_at": "2026-10-14T00:00:00.000Z",
-                "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-              }
-            }
-          }
-        ]
-      },
-      "expect_valid": true
-    },
-    {
-      "name": "closed_circle_pair",
-      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_unit_submission",
-      "instance": {
-        "unit_kind": "audit_paired_event",
-        "events": [
-          {
-            "event": {
-              "event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-              "kind": "ak.circle.member.state",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "scope_ref": {
-                "kind": "circle",
-                "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-                "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-              },
-              "actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:writer.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "payload": {
-                "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-                "member_id": {
-                  "kind": "account",
-                  "account_id": {
-                    "principal_id": "ak:did_core:web:target.example",
-                    "station_id": "ak:did_core:web:station.example"
-                  }
-                },
-                "membership": "leave"
-              },
-              "producer_proof": {
-                "kind": "detached_jws",
-                "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-                "event_digest": "sha256:57fa254b6c70b2660441e510262b15e0860e1e9dbf2dfce350821d92d40c6f0f",
-                "created_at": "2026-10-14T00:00:00.000Z",
-                "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
-              }
-            }
-          },
-          {
-            "event": {
-              "event_id": "ak:event:ASmin8oet1qerGCLgW-6qfHRbCymQmMGV8_OOQccExIp",
-              "kind": "ak.audit.accessed",
-              "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-              "scope_ref": {
-                "kind": "circle",
-                "realm_id": "ak:realm:ARQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
-                "circle_id": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW"
-              },
-              "actor_id": {
-                "kind": "account",
-                "account_id": {
-                  "principal_id": "ak:did_core:web:writer.example",
-                  "station_id": "ak:did_core:web:station.example"
-                }
-              },
-              "created_at": "2026-10-14T00:00:00.000Z",
-              "payload": {
-                "access_kind": "circle_member_set_others",
-                "writer_actor_id": {
-                  "kind": "account",
-                  "account_id": {
-                    "principal_id": "ak:did_core:web:writer.example",
-                    "station_id": "ak:did_core:web:station.example"
-                  }
-                },
-                "target_actor_id": {
-                  "kind": "account",
-                  "account_id": {
-                    "principal_id": "ak:did_core:web:target.example",
-                    "station_id": "ak:did_core:web:station.example"
-                  }
-                },
-                "target_ref": "ak:circle:ARYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW",
-                "paired_event_id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-                "purpose": "authorized member removal",
-                "accessed_at": "2026-10-14T00:00:00.000Z"
-              },
-              "semantic_refs": [
-                {
-                  "id": "ak:event:AVf6JUtscLJmBEHlECYrFeCGDh6dvy3841CCHZLUDG8P",
-                  "role": "audit_pair",
-                  "critical": true
-                }
-              ],
-              "producer_proof": {
-                "kind": "detached_jws",
-                "verification_method": "did:web:writer.example#ak:device:01904100-0000-7000-8000-000000000001",
-                "event_digest": "sha256:29a29fca1eb75a9eac608b816fbaa9f1d16c2ca642630657cfce39071c131229",
                 "created_at": "2026-10-14T00:00:00.000Z",
                 "jws": "eyJhbGciOiJFZDI1NTE5IiwiYjY0IjpmYWxzZSwiY3JpdCI6WyJiNjQiXX0..AA"
               }

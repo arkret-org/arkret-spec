@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Closed producer-signed Event. Shared persistent Events become final only when the current Realm governance Station issues a RealmCommit in the derived Realm, Circle, or Sidecar stream.",
+  "description": "Closed producer-signed Event. Shared persistent Events become final only when the current Realm governance Station issues a RealmCommit in the derived Realm or Sidecar stream.",
   "type": "object",
   "required": [
     "event_id",
@@ -44,13 +44,6 @@
         "ak.capability.grant",
         "ak.capability.relinquish",
         "ak.capability.revoke",
-        "ak.circle.archive",
-        "ak.circle.create",
-        "ak.circle.history_access",
-        "ak.circle.member.state",
-        "ak.circle.restore",
-        "ak.circle.tombstone",
-        "ak.circle.update",
         "ak.consent.replace",
         "ak.contact.accepted",
         "ak.contact.rejected",
@@ -190,13 +183,6 @@
           "ak.capability.grant",
           "ak.capability.relinquish",
           "ak.capability.revoke",
-          "ak.circle.archive",
-          "ak.circle.create",
-          "ak.circle.history_access",
-          "ak.circle.member.state",
-          "ak.circle.restore",
-          "ak.circle.tombstone",
-          "ak.circle.update",
           "ak.consent.replace",
           "ak.contact.accepted",
           "ak.contact.rejected",
@@ -317,7 +303,7 @@
     },
     "scope_ref": {
       "$ref": "#/$defs/scope_ref",
-      "description": "Required producer-signed security scope. The closed union is ordinary existing realm, circle, or native sidecar scope plus the create-only realm_genesis exception. It enters proof.event_digest and E2EE AAD. Reducers independently derive the exact scope from schema-validated payload and accepted references; missing dependencies, nonexistent scope, realm_id mismatch, omitted sidecar_id, substituting circle for sidecar, or any unequal field is fail closed. Sidecar domain Event kinds remain Extension-owned; recognizing this native security shape does not make Kernel interpret the Sidecar reducer. Exact product targets remain inside recipient-visible ciphertext."
+      "description": "Required producer-signed security scope. The closed union is ordinary existing realm or native sidecar scope plus the create-only realm_genesis exception. It enters proof.event_digest and E2EE AAD. Reducers independently derive the exact scope from schema-validated payload and accepted references; missing dependencies, nonexistent scope, realm_id mismatch, omitted sidecar_id, substituting Realm scope for Sidecar scope, or any unequal field is fail closed. Sidecar domain Event kinds remain Extension-owned; recognizing this native security shape does not make Kernel interpret the Sidecar reducer. Exact product targets remain inside recipient-visible ciphertext."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/actor_id",
@@ -1404,200 +1390,11 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.circle.archive",
+            "const": "ak.consent.replace",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
               "authority": "event-envelope.schema.json#/allOf/27/if/properties/kind",
               "owner": "event-envelope.schema.json#/allOf/27/if/properties/kind",
-              "values": [
-                "ak.circle.archive"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.create",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/28/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/28/if/properties/kind",
-              "values": [
-                "ak.circle.create"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/circle_create_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.history_access",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/29/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/29/if/properties/kind",
-              "values": [
-                "ak.circle.history_access"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/circle_history_access_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.member.state",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/30/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/30/if/properties/kind",
-              "values": [
-                "ak.circle.member.state"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.restore",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/31/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/31/if/properties/kind",
-              "values": [
-                "ak.circle.restore"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.tombstone",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/32/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/32/if/properties/kind",
-              "values": [
-                "ak.circle.tombstone"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.circle.update",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/33/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/33/if/properties/kind",
-              "values": [
-                "ak.circle.update"
-              ]
-            }
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/circle_patch_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.consent.replace",
-            "x-arkret-value-ownership": {
-              "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/34/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/34/if/properties/kind",
               "values": [
                 "ak.consent.replace"
               ]
@@ -1623,8 +1420,8 @@
             "const": "ak.contact.accepted",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/35/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/35/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/28/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/28/if/properties/kind",
               "values": [
                 "ak.contact.accepted"
               ]
@@ -1650,8 +1447,8 @@
             "const": "ak.contact.rejected",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/36/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/36/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/29/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/29/if/properties/kind",
               "values": [
                 "ak.contact.rejected"
               ]
@@ -1677,8 +1474,8 @@
             "const": "ak.contact.requested",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/37/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/37/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/30/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/30/if/properties/kind",
               "values": [
                 "ak.contact.requested"
               ]
@@ -1704,8 +1501,8 @@
             "const": "ak.contact.scope.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/38/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/38/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/31/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/31/if/properties/kind",
               "values": [
                 "ak.contact.scope.update"
               ]
@@ -1731,8 +1528,8 @@
             "const": "ak.contact.tombstone",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/39/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/39/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/32/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/32/if/properties/kind",
               "values": [
                 "ak.contact.tombstone"
               ]
@@ -1758,8 +1555,8 @@
             "const": "ak.device.authorize",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/40/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/40/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/33/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/33/if/properties/kind",
               "values": [
                 "ak.device.authorize"
               ]
@@ -1785,8 +1582,8 @@
             "const": "ak.device.push_route",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/41/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/41/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/34/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/34/if/properties/kind",
               "values": [
                 "ak.device.push_route"
               ]
@@ -1812,8 +1609,8 @@
             "const": "ak.device.reanchor",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/42/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/42/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/35/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/35/if/properties/kind",
               "values": [
                 "ak.device.reanchor"
               ]
@@ -1839,8 +1636,8 @@
             "const": "ak.device.revoke",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/43/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/43/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/36/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/36/if/properties/kind",
               "values": [
                 "ak.device.revoke"
               ]
@@ -1866,8 +1663,8 @@
             "const": "ak.direct_conversation.bound",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/44/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/44/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/37/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/37/if/properties/kind",
               "values": [
                 "ak.direct_conversation.bound"
               ]
@@ -1893,8 +1690,8 @@
             "const": "ak.identity.accountability_grant",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/45/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/45/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/38/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/38/if/properties/kind",
               "values": [
                 "ak.identity.accountability_grant"
               ]
@@ -1920,8 +1717,8 @@
             "const": "ak.identity.resolution.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/46/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/46/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/39/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/39/if/properties/kind",
               "values": [
                 "ak.identity.resolution.update"
               ]
@@ -1947,8 +1744,8 @@
             "const": "ak.invite.accept",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/47/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/47/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/40/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/40/if/properties/kind",
               "values": [
                 "ak.invite.accept"
               ]
@@ -1974,8 +1771,8 @@
             "const": "ak.invite.cancel",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/48/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/48/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/41/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/41/if/properties/kind",
               "values": [
                 "ak.invite.cancel"
               ]
@@ -2001,8 +1798,8 @@
             "const": "ak.invite.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/49/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/49/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/42/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/42/if/properties/kind",
               "values": [
                 "ak.invite.create"
               ]
@@ -2028,8 +1825,8 @@
             "const": "ak.invite.revoke",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/50/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/50/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/43/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/43/if/properties/kind",
               "values": [
                 "ak.invite.revoke"
               ]
@@ -2055,8 +1852,8 @@
             "const": "ak.key_backup.active_series",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/51/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/51/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/44/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/44/if/properties/kind",
               "values": [
                 "ak.key_backup.active_series"
               ]
@@ -2081,8 +1878,8 @@
                   "const": "ak.key_backup.active_series",
                   "x-arkret-value-ownership": {
                     "class": "namespaced_symbol",
-                    "authority": "event-envelope.schema.json#/allOf/51/then/allOf/0/if/properties/kind",
-                    "owner": "event-envelope.schema.json#/allOf/51/then/allOf/0/if/properties/kind",
+                    "authority": "event-envelope.schema.json#/allOf/44/then/allOf/0/if/properties/kind",
+                    "owner": "event-envelope.schema.json#/allOf/44/then/allOf/0/if/properties/kind",
                     "values": [
                       "ak.key_backup.active_series"
                     ]
@@ -2118,8 +1915,8 @@
                           "const": "service",
                           "x-arkret-value-ownership": {
                             "class": "owned_symbol",
-                            "authority": "event-envelope.schema.json#/allOf/51/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
-                            "owner": "event-envelope.schema.json#/allOf/51/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
+                            "authority": "event-envelope.schema.json#/allOf/44/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
+                            "owner": "event-envelope.schema.json#/allOf/44/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
                             "values": [
                               "service"
                             ]
@@ -2179,8 +1976,8 @@
             "const": "ak.member.identity.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/52/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/52/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/45/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/45/if/properties/kind",
               "values": [
                 "ak.member.identity.update"
               ]
@@ -2206,8 +2003,8 @@
             "const": "ak.member.state",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/53/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/53/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/46/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/46/if/properties/kind",
               "values": [
                 "ak.member.state"
               ]
@@ -2233,8 +2030,8 @@
             "const": "ak.message.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/54/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/54/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/47/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/47/if/properties/kind",
               "values": [
                 "ak.message.create"
               ]
@@ -2260,8 +2057,8 @@
             "const": "ak.message.redact",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/55/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/55/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/48/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/48/if/properties/kind",
               "values": [
                 "ak.message.redact"
               ]
@@ -2287,8 +2084,8 @@
             "const": "ak.message.revise",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/56/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/56/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/49/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/49/if/properties/kind",
               "values": [
                 "ak.message.revise"
               ]
@@ -2314,8 +2111,8 @@
             "const": "ak.mimi.room_binding",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/57/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/57/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/50/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/50/if/properties/kind",
               "values": [
                 "ak.mimi.room_binding"
               ]
@@ -2341,8 +2138,8 @@
             "const": "ak.mls.commit",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/58/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/58/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/51/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/51/if/properties/kind",
               "values": [
                 "ak.mls.commit"
               ]
@@ -2368,8 +2165,8 @@
             "const": "ak.mls.genesis",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/59/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/59/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/52/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/52/if/properties/kind",
               "values": [
                 "ak.mls.genesis"
               ]
@@ -2395,8 +2192,8 @@
             "const": "ak.moderation.decision",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/60/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/60/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/53/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/53/if/properties/kind",
               "values": [
                 "ak.moderation.decision"
               ]
@@ -2422,8 +2219,8 @@
             "const": "ak.moderation.decision.lift",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/61/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/61/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/54/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/54/if/properties/kind",
               "values": [
                 "ak.moderation.decision.lift"
               ]
@@ -2449,8 +2246,8 @@
             "const": "ak.morph.archive",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/62/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/62/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/55/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/55/if/properties/kind",
               "values": [
                 "ak.morph.archive"
               ]
@@ -2476,8 +2273,8 @@
             "const": "ak.morph.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/63/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/63/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/56/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/56/if/properties/kind",
               "values": [
                 "ak.morph.create"
               ]
@@ -2503,8 +2300,8 @@
             "const": "ak.morph.restore",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/64/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/64/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/57/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/57/if/properties/kind",
               "values": [
                 "ak.morph.restore"
               ]
@@ -2530,8 +2327,8 @@
             "const": "ak.morph.stage.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/65/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/65/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/58/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/58/if/properties/kind",
               "values": [
                 "ak.morph.stage.set"
               ]
@@ -2557,8 +2354,8 @@
             "const": "ak.morph.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/66/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/66/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/59/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/59/if/properties/kind",
               "values": [
                 "ak.morph.update"
               ]
@@ -2584,8 +2381,8 @@
             "const": "ak.organization.moderation_policy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/67/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/67/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/60/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/60/if/properties/kind",
               "values": [
                 "ak.organization.moderation_policy"
               ]
@@ -2611,8 +2408,8 @@
             "const": "ak.pin.add",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/68/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/68/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/61/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/61/if/properties/kind",
               "values": [
                 "ak.pin.add"
               ]
@@ -2638,8 +2435,8 @@
             "const": "ak.pin.remove",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/69/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/69/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/62/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/62/if/properties/kind",
               "values": [
                 "ak.pin.remove"
               ]
@@ -2665,8 +2462,8 @@
             "const": "ak.pin.reorder",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/70/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/70/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/63/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/63/if/properties/kind",
               "values": [
                 "ak.pin.reorder"
               ]
@@ -2692,8 +2489,8 @@
             "const": "ak.policy.action",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/71/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/71/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/64/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/64/if/properties/kind",
               "values": [
                 "ak.policy.action"
               ]
@@ -2719,8 +2516,8 @@
             "const": "ak.policy.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/72/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/72/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/65/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/65/if/properties/kind",
               "values": [
                 "ak.policy.set"
               ]
@@ -2746,8 +2543,8 @@
             "const": "ak.profile.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/73/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/73/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/66/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/66/if/properties/kind",
               "values": [
                 "ak.profile.create"
               ]
@@ -2773,8 +2570,8 @@
             "const": "ak.profile.realm_override",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/74/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/74/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/67/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/67/if/properties/kind",
               "values": [
                 "ak.profile.realm_override"
               ]
@@ -2800,8 +2597,8 @@
             "const": "ak.profile.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/75/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/75/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/68/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/68/if/properties/kind",
               "values": [
                 "ak.profile.update"
               ]
@@ -2827,8 +2624,8 @@
             "const": "ak.reaction.add",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/76/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/76/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/69/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/69/if/properties/kind",
               "values": [
                 "ak.reaction.add"
               ]
@@ -2854,8 +2651,8 @@
             "const": "ak.reaction.remove",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/77/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/77/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/70/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/70/if/properties/kind",
               "values": [
                 "ak.reaction.remove"
               ]
@@ -2881,8 +2678,8 @@
             "const": "ak.read_cursor.advance",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/78/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/78/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/71/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/71/if/properties/kind",
               "values": [
                 "ak.read_cursor.advance"
               ]
@@ -2908,8 +2705,8 @@
             "const": "ak.realm.alias",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/79/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/79/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/72/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/72/if/properties/kind",
               "values": [
                 "ak.realm.alias"
               ]
@@ -2935,8 +2732,8 @@
             "const": "ak.realm.archive",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/80/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/80/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/73/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/73/if/properties/kind",
               "values": [
                 "ak.realm.archive"
               ]
@@ -2962,8 +2759,8 @@
             "const": "ak.realm.asset_privacy_policy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/81/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/81/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/74/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/74/if/properties/kind",
               "values": [
                 "ak.realm.asset_privacy_policy"
               ]
@@ -2989,8 +2786,8 @@
             "const": "ak.realm.authority.reset",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/82/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/82/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/75/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/75/if/properties/kind",
               "values": [
                 "ak.realm.authority.reset"
               ]
@@ -3016,8 +2813,8 @@
             "const": "ak.realm.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/83/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/83/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/76/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/76/if/properties/kind",
               "values": [
                 "ak.realm.create"
               ]
@@ -3043,8 +2840,8 @@
             "const": "ak.realm.destroy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/84/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/84/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/77/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/77/if/properties/kind",
               "values": [
                 "ak.realm.destroy"
               ]
@@ -3070,8 +2867,8 @@
             "const": "ak.realm.discovery",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/85/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/85/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/78/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/78/if/properties/kind",
               "values": [
                 "ak.realm.discovery"
               ]
@@ -3097,8 +2894,8 @@
             "const": "ak.realm.freeze",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/86/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/86/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/79/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/79/if/properties/kind",
               "values": [
                 "ak.realm.freeze"
               ]
@@ -3124,8 +2921,8 @@
             "const": "ak.realm.governance_station.change",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/87/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/87/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/80/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/80/if/properties/kind",
               "values": [
                 "ak.realm.governance_station.change"
               ]
@@ -3151,8 +2948,8 @@
             "const": "ak.realm.history_access",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/88/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/88/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/81/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/81/if/properties/kind",
               "values": [
                 "ak.realm.history_access"
               ]
@@ -3178,8 +2975,8 @@
             "const": "ak.realm.join_rule",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/89/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/89/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/82/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/82/if/properties/kind",
               "values": [
                 "ak.realm.join_rule"
               ]
@@ -3205,8 +3002,8 @@
             "const": "ak.realm.link",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/90/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/90/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/83/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/83/if/properties/kind",
               "values": [
                 "ak.realm.link"
               ]
@@ -3232,8 +3029,8 @@
             "const": "ak.realm.media_service",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/91/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/91/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/84/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/84/if/properties/kind",
               "values": [
                 "ak.realm.media_service"
               ]
@@ -3259,8 +3056,8 @@
             "const": "ak.realm.organization",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/92/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/92/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/85/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/85/if/properties/kind",
               "values": [
                 "ak.realm.organization"
               ]
@@ -3286,8 +3083,8 @@
             "const": "ak.realm.owner.transfer",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/93/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/93/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/86/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/86/if/properties/kind",
               "values": [
                 "ak.realm.owner.transfer"
               ]
@@ -3313,8 +3110,8 @@
             "const": "ak.realm.plaintext_visible_services",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/94/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/94/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/87/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/87/if/properties/kind",
               "values": [
                 "ak.realm.plaintext_visible_services"
               ]
@@ -3340,8 +3137,8 @@
             "const": "ak.realm.policy_bundle",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/95/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/95/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/88/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/88/if/properties/kind",
               "values": [
                 "ak.realm.policy_bundle"
               ]
@@ -3367,8 +3164,8 @@
             "const": "ak.realm.preview_policy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/96/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/96/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/89/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/89/if/properties/kind",
               "values": [
                 "ak.realm.preview_policy"
               ]
@@ -3394,8 +3191,8 @@
             "const": "ak.realm.profile",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/97/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/97/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/90/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/90/if/properties/kind",
               "values": [
                 "ak.realm.profile"
               ]
@@ -3421,8 +3218,8 @@
             "const": "ak.scope.read_receipt_policy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/98/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/98/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/91/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/91/if/properties/kind",
               "values": [
                 "ak.scope.read_receipt_policy"
               ]
@@ -3451,8 +3248,8 @@
             "const": "ak.realm.restore",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/99/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/99/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/92/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/92/if/properties/kind",
               "values": [
                 "ak.realm.restore"
               ]
@@ -3478,8 +3275,8 @@
             "const": "ak.realm.schema",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/100/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/100/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/93/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/93/if/properties/kind",
               "values": [
                 "ak.realm.schema"
               ]
@@ -3505,8 +3302,8 @@
             "const": "ak.realm.search_policy",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/101/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/101/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/94/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/94/if/properties/kind",
               "values": [
                 "ak.realm.search_policy"
               ]
@@ -3532,8 +3329,8 @@
             "const": "ak.realm.set_default_strand",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/102/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/102/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/95/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/95/if/properties/kind",
               "values": [
                 "ak.realm.set_default_strand"
               ]
@@ -3559,8 +3356,8 @@
             "const": "ak.realm.tombstone",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/103/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/103/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/96/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/96/if/properties/kind",
               "values": [
                 "ak.realm.tombstone"
               ]
@@ -3586,8 +3383,8 @@
             "const": "ak.realm.unfreeze",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/104/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/104/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/97/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/97/if/properties/kind",
               "values": [
                 "ak.realm.unfreeze"
               ]
@@ -3613,8 +3410,8 @@
             "const": "ak.redaction",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/105/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/105/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/98/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/98/if/properties/kind",
               "values": [
                 "ak.redaction"
               ]
@@ -3640,8 +3437,8 @@
             "const": "ak.relation.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/106/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/106/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/99/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/99/if/properties/kind",
               "values": [
                 "ak.relation.create"
               ]
@@ -3667,8 +3464,8 @@
             "const": "ak.relation.tombstone",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/107/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/107/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/100/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/100/if/properties/kind",
               "values": [
                 "ak.relation.tombstone"
               ]
@@ -3694,8 +3491,8 @@
             "const": "ak.relation.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/108/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/108/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/101/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/101/if/properties/kind",
               "values": [
                 "ak.relation.update"
               ]
@@ -3721,8 +3518,8 @@
             "const": "ak.rsvp.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/109/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/109/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/102/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/102/if/properties/kind",
               "values": [
                 "ak.rsvp.set"
               ]
@@ -3748,8 +3545,8 @@
             "const": "ak.schema.define",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/110/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/110/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/103/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/103/if/properties/kind",
               "values": [
                 "ak.schema.define"
               ]
@@ -3775,8 +3572,8 @@
             "const": "ak.self.agent.deactivate",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/111/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/111/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/104/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/104/if/properties/kind",
               "values": [
                 "ak.self.agent.deactivate"
               ]
@@ -3802,8 +3599,8 @@
             "const": "ak.self.agent.pause",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/112/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/112/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/105/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/105/if/properties/kind",
               "values": [
                 "ak.self.agent.pause"
               ]
@@ -3829,8 +3626,8 @@
             "const": "ak.self.agent.resume",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/113/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/113/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/106/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/106/if/properties/kind",
               "values": [
                 "ak.self.agent.resume"
               ]
@@ -3856,8 +3653,8 @@
             "const": "ak.sidecar.context.attach",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/114/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/114/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/107/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/107/if/properties/kind",
               "values": [
                 "ak.sidecar.context.attach"
               ]
@@ -3883,8 +3680,8 @@
             "const": "ak.sidecar.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/115/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/115/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/108/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/108/if/properties/kind",
               "values": [
                 "ak.sidecar.create"
               ]
@@ -3910,8 +3707,8 @@
             "const": "ak.space.archive",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/116/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/116/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/109/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/109/if/properties/kind",
               "values": [
                 "ak.space.archive"
               ]
@@ -3937,8 +3734,8 @@
             "const": "ak.space.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/117/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/117/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/110/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/110/if/properties/kind",
               "values": [
                 "ak.space.create"
               ]
@@ -3964,8 +3761,8 @@
             "const": "ak.space.parent",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/118/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/118/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/111/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/111/if/properties/kind",
               "values": [
                 "ak.space.parent"
               ]
@@ -3991,8 +3788,8 @@
             "const": "ak.space.restore",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/119/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/119/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/112/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/112/if/properties/kind",
               "values": [
                 "ak.space.restore"
               ]
@@ -4018,8 +3815,8 @@
             "const": "ak.space.tombstone",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/120/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/120/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/113/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/113/if/properties/kind",
               "values": [
                 "ak.space.tombstone"
               ]
@@ -4045,8 +3842,8 @@
             "const": "ak.space.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/121/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/121/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/114/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/114/if/properties/kind",
               "values": [
                 "ak.space.update"
               ]
@@ -4072,8 +3869,8 @@
             "const": "ak.strand.archive",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/122/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/122/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/115/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/115/if/properties/kind",
               "values": [
                 "ak.strand.archive"
               ]
@@ -4099,8 +3896,8 @@
             "const": "ak.strand.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/123/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/123/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/116/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/116/if/properties/kind",
               "values": [
                 "ak.strand.create"
               ]
@@ -4126,8 +3923,8 @@
             "const": "ak.strand.move",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/124/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/124/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/117/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/117/if/properties/kind",
               "values": [
                 "ak.strand.move"
               ]
@@ -4153,8 +3950,8 @@
             "const": "ak.strand.reorder",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/125/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/125/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/118/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/118/if/properties/kind",
               "values": [
                 "ak.strand.reorder"
               ]
@@ -4180,8 +3977,8 @@
             "const": "ak.strand.restore",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/126/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/126/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/119/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/119/if/properties/kind",
               "values": [
                 "ak.strand.restore"
               ]
@@ -4207,8 +4004,8 @@
             "const": "ak.strand.stage.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/127/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/127/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/120/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/120/if/properties/kind",
               "values": [
                 "ak.strand.stage.set"
               ]
@@ -4234,8 +4031,8 @@
             "const": "ak.strand.tracks.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/128/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/128/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/121/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/121/if/properties/kind",
               "values": [
                 "ak.strand.tracks.update"
               ]
@@ -4261,8 +4058,8 @@
             "const": "ak.strand.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/129/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/129/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/122/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/122/if/properties/kind",
               "values": [
                 "ak.strand.update"
               ]
@@ -4288,8 +4085,8 @@
             "const": "ak.strand.watch.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/130/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/130/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/123/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/123/if/properties/kind",
               "values": [
                 "ak.strand.watch.set"
               ]
@@ -4315,8 +4112,8 @@
             "const": "ak.view.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/131/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/131/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/124/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/124/if/properties/kind",
               "values": [
                 "ak.view.create"
               ]
@@ -4342,8 +4139,8 @@
             "const": "ak.view.reconcile",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/132/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/132/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/125/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/125/if/properties/kind",
               "values": [
                 "ak.view.reconcile"
               ]
@@ -4369,8 +4166,8 @@
             "const": "ak.view.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/133/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/133/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/126/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/126/if/properties/kind",
               "values": [
                 "ak.view.update"
               ]
@@ -4396,8 +4193,8 @@
             "const": "ak.agent.interaction.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/134/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/134/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/127/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/127/if/properties/kind",
               "values": [
                 "ak.agent.interaction.set"
               ]
@@ -4419,8 +4216,8 @@
                 "const": "realm",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "event-envelope.schema.json#/allOf/134/then/properties/scope_ref/properties/kind",
-                  "owner": "event-envelope.schema.json#/allOf/134/then/properties/scope_ref/properties/kind",
+                  "authority": "event-envelope.schema.json#/allOf/127/then/properties/scope_ref/properties/kind",
+                  "owner": "event-envelope.schema.json#/allOf/127/then/properties/scope_ref/properties/kind",
                   "values": [
                     "realm"
                   ]
@@ -4434,8 +4231,8 @@
                 "const": "account",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "event-envelope.schema.json#/allOf/134/then/properties/actor_id/properties/kind",
-                  "owner": "event-envelope.schema.json#/allOf/134/then/properties/actor_id/properties/kind",
+                  "authority": "event-envelope.schema.json#/allOf/127/then/properties/actor_id/properties/kind",
+                  "owner": "event-envelope.schema.json#/allOf/127/then/properties/actor_id/properties/kind",
                   "values": [
                     "account"
                   ]
@@ -4459,8 +4256,8 @@
             "const": "ak.realm.actor.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/135/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/135/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/128/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/128/if/properties/kind",
               "values": [
                 "ak.realm.actor.create"
               ]
@@ -4489,8 +4286,8 @@
             "const": "ak.realm.actor.control.update",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/136/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/136/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/129/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/129/if/properties/kind",
               "values": [
                 "ak.realm.actor.control.update"
               ]
@@ -4519,8 +4316,8 @@
             "const": "ak.realm.actor.status.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/137/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/137/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/130/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/130/if/properties/kind",
               "values": [
                 "ak.realm.actor.status.set"
               ]
@@ -4549,8 +4346,8 @@
             "const": "ak.realm.actor.devices.reset",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/138/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/138/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/131/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/131/if/properties/kind",
               "values": [
                 "ak.realm.actor.devices.reset"
               ]
@@ -4579,8 +4376,8 @@
             "const": "ak.realm.actor.manager.change",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/139/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/139/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/132/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/132/if/properties/kind",
               "values": [
                 "ak.realm.actor.manager.change"
               ]
@@ -4633,8 +4430,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/140/then/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/140/then/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/133/then/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/133/then/properties/kind",
               "values": [
                 "ak.realm.actor.create",
                 "ak.realm.actor.control.update",
@@ -4664,8 +4461,8 @@
                   "const": "ak.key_backup.active_series",
                   "x-arkret-value-ownership": {
                     "class": "namespaced_symbol",
-                    "authority": "event-envelope.schema.json#/allOf/140/then/allOf/0/if/properties/kind",
-                    "owner": "event-envelope.schema.json#/allOf/140/then/allOf/0/if/properties/kind",
+                    "authority": "event-envelope.schema.json#/allOf/133/then/allOf/0/if/properties/kind",
+                    "owner": "event-envelope.schema.json#/allOf/133/then/allOf/0/if/properties/kind",
                     "values": [
                       "ak.key_backup.active_series"
                     ]
@@ -4689,8 +4486,8 @@
                           "const": "service",
                           "x-arkret-value-ownership": {
                             "class": "owned_symbol",
-                            "authority": "event-envelope.schema.json#/allOf/140/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
-                            "owner": "event-envelope.schema.json#/allOf/140/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
+                            "authority": "event-envelope.schema.json#/allOf/133/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
+                            "owner": "event-envelope.schema.json#/allOf/133/then/allOf/0/then/properties/actor_id/allOf/1/properties/kind",
                             "values": [
                               "service"
                             ]
@@ -4750,8 +4547,8 @@
             "const": "ak.realm.actor.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/141/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/141/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/134/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/134/if/properties/kind",
               "values": [
                 "ak.realm.actor.create"
               ]
@@ -4770,8 +4567,8 @@
                 "const": "service",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "event-envelope.schema.json#/allOf/141/then/properties/actor_id/properties/kind",
-                  "owner": "event-envelope.schema.json#/allOf/141/then/properties/actor_id/properties/kind",
+                  "authority": "event-envelope.schema.json#/allOf/134/then/properties/actor_id/properties/kind",
+                  "owner": "event-envelope.schema.json#/allOf/134/then/properties/actor_id/properties/kind",
                   "values": [
                     "service"
                   ]
@@ -4806,8 +4603,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/142/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/142/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/135/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/135/if/properties/kind",
               "values": [
                 "ak.realm.actor.control.update",
                 "ak.realm.actor.devices.reset",
@@ -4842,8 +4639,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/143/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/143/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/136/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/136/if/properties/kind",
               "values": [
                 "ak.realm.actor.status.set"
               ]
@@ -4863,8 +4660,8 @@
                   "const": "owner",
                   "x-arkret-value-ownership": {
                     "class": "owned_symbol",
-                    "authority": "event-envelope.schema.json#/allOf/143/then/if/properties/payload/properties/gate",
-                    "owner": "event-envelope.schema.json#/allOf/143/then/if/properties/payload/properties/gate",
+                    "authority": "event-envelope.schema.json#/allOf/136/then/if/properties/payload/properties/gate",
+                    "owner": "event-envelope.schema.json#/allOf/136/then/if/properties/payload/properties/gate",
                     "values": [
                       "owner"
                     ]
@@ -4897,8 +4694,8 @@
                       "const": "account",
                       "x-arkret-value-ownership": {
                         "class": "owned_symbol",
-                        "authority": "event-envelope.schema.json#/allOf/143/then/else/properties/actor_id/allOf/1/properties/kind",
-                        "owner": "event-envelope.schema.json#/allOf/143/then/else/properties/actor_id/allOf/1/properties/kind",
+                        "authority": "event-envelope.schema.json#/allOf/136/then/else/properties/actor_id/allOf/1/properties/kind",
+                        "owner": "event-envelope.schema.json#/allOf/136/then/else/properties/actor_id/allOf/1/properties/kind",
                         "values": [
                           "account"
                         ]
@@ -4934,8 +4731,8 @@
                 ],
                 "x-arkret-value-ownership": {
                   "class": "namespaced_symbol",
-                  "authority": "event-envelope.schema.json#/allOf/144/if/allOf/0/properties/kind",
-                  "owner": "event-envelope.schema.json#/allOf/144/if/allOf/0/properties/kind",
+                  "authority": "event-envelope.schema.json#/allOf/137/if/allOf/0/properties/kind",
+                  "owner": "event-envelope.schema.json#/allOf/137/if/allOf/0/properties/kind",
                   "values": [
                     "ak.device.authorize",
                     "ak.device.revoke",
@@ -4976,8 +4773,8 @@
             "const": "ak.realm.actor.recovery.begin",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/145/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/145/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/138/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/138/if/properties/kind",
               "values": [
                 "ak.realm.actor.recovery.begin"
               ]
@@ -5006,8 +4803,8 @@
             "const": "ak.realm.actor.control.reset",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/146/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/146/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/139/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/139/if/properties/kind",
               "values": [
                 "ak.realm.actor.control.reset"
               ]
@@ -5036,8 +4833,8 @@
             "const": "ak.realm.actor.recovery.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/147/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/147/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/140/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/140/if/properties/kind",
               "values": [
                 "ak.realm.actor.recovery.set"
               ]
@@ -5069,8 +4866,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/148/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/148/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/141/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/141/if/properties/kind",
               "values": [
                 "ak.realm.actor.recovery.begin",
                 "ak.realm.actor.control.reset"
@@ -5095,8 +4892,8 @@
                     "const": "service",
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "event-envelope.schema.json#/allOf/148/then/properties/actor_id/allOf/1/properties/kind",
-                      "owner": "event-envelope.schema.json#/allOf/148/then/properties/actor_id/allOf/1/properties/kind",
+                      "authority": "event-envelope.schema.json#/allOf/141/then/properties/actor_id/allOf/1/properties/kind",
+                      "owner": "event-envelope.schema.json#/allOf/141/then/properties/actor_id/allOf/1/properties/kind",
                       "values": [
                         "service"
                       ]
@@ -5113,8 +4910,8 @@
             ],
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/148/then/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/148/then/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/141/then/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/141/then/properties/kind",
               "values": [
                 "ak.realm.actor.recovery.begin",
                 "ak.realm.actor.control.reset"
@@ -5151,8 +4948,8 @@
             "const": "ak.realm.actor.recovery.set",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/149/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/149/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/142/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/142/if/properties/kind",
               "values": [
                 "ak.realm.actor.recovery.set"
               ]
@@ -5176,8 +4973,8 @@
                     "const": "account",
                     "x-arkret-value-ownership": {
                       "class": "owned_symbol",
-                      "authority": "event-envelope.schema.json#/allOf/149/then/properties/actor_id/allOf/1/properties/kind",
-                      "owner": "event-envelope.schema.json#/allOf/149/then/properties/actor_id/allOf/1/properties/kind",
+                      "authority": "event-envelope.schema.json#/allOf/142/then/properties/actor_id/allOf/1/properties/kind",
+                      "owner": "event-envelope.schema.json#/allOf/142/then/properties/actor_id/allOf/1/properties/kind",
                       "values": [
                         "account"
                       ]
@@ -5206,8 +5003,8 @@
             "const": "ak.applet.registration",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/150/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/150/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/143/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/143/if/properties/kind",
               "values": [
                 "ak.applet.registration"
               ]
@@ -5226,8 +5023,8 @@
                 "const": "realm",
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
-                  "authority": "event-envelope.schema.json#/allOf/150/then/properties/scope_ref/properties/kind",
-                  "owner": "event-envelope.schema.json#/allOf/150/then/properties/scope_ref/properties/kind",
+                  "authority": "event-envelope.schema.json#/allOf/143/then/properties/scope_ref/properties/kind",
+                  "owner": "event-envelope.schema.json#/allOf/143/then/properties/scope_ref/properties/kind",
                   "values": [
                     "realm"
                   ]
@@ -5245,8 +5042,8 @@
             "const": "ak.realm_invite_link.create",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/151/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/151/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/144/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/144/if/properties/kind",
               "values": [
                 "ak.realm_invite_link.create"
               ]
@@ -5272,8 +5069,8 @@
             "const": "ak.realm_invite_link.revoke",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/152/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/152/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/145/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/145/if/properties/kind",
               "values": [
                 "ak.realm_invite_link.revoke"
               ]
@@ -5299,8 +5096,8 @@
             "const": "ak.realm_invite_link.accept",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/153/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/153/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/146/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/146/if/properties/kind",
               "values": [
                 "ak.realm_invite_link.accept"
               ]
@@ -5326,8 +5123,8 @@
             "const": "ak.mls.history_grant",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/154/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/154/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/147/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/147/if/properties/kind",
               "values": [
                 "ak.mls.history_grant"
               ]
@@ -5353,8 +5150,8 @@
             "const": "ak.mls.history_request",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/155/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/155/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/148/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/148/if/properties/kind",
               "values": [
                 "ak.mls.history_request"
               ]
@@ -5394,8 +5191,8 @@
             "const": "ak.mls.history_recovery",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/156/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/156/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/149/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/149/if/properties/kind",
               "values": [
                 "ak.mls.history_recovery"
               ]
@@ -5436,8 +5233,8 @@
             "const": "ak.key_backup.active_series",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/157/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/157/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/150/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/150/if/properties/kind",
               "values": [
                 "ak.key_backup.active_series"
               ]
@@ -5494,8 +5291,8 @@
             "const": "ak.sidecar.member.state",
             "x-arkret-value-ownership": {
               "class": "namespaced_symbol",
-              "authority": "event-envelope.schema.json#/allOf/158/if/properties/kind",
-              "owner": "event-envelope.schema.json#/allOf/158/if/properties/kind",
+              "authority": "event-envelope.schema.json#/allOf/151/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/151/if/properties/kind",
               "values": [
                 "ak.sidecar.member.state"
               ]
@@ -5611,34 +5408,6 @@
           "required": [
             "kind",
             "realm_id",
-            "circle_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/1/properties/kind",
-                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/1/properties/kind",
-                "values": [
-                  "circle"
-                ]
-              }
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id",
             "sidecar_id"
           ],
           "properties": {
@@ -5646,8 +5415,8 @@
               "const": "sidecar",
               "x-arkret-value-ownership": {
                 "class": "owned_symbol",
-                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/2/properties/kind",
-                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/2/properties/kind",
+                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/1/properties/kind",
+                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/1/properties/kind",
                 "values": [
                   "sidecar"
                 ]
@@ -5661,7 +5430,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Native controller-and-owned-Agents private scope. It is not a Circle and has no editable membership."
+          "description": "Native controller-and-owned-Agents private scope. Its participants follow the signed private roster."
         },
         {
           "type": "object",
@@ -5673,8 +5442,8 @@
               "const": "realm_genesis",
               "x-arkret-value-ownership": {
                 "class": "owned_symbol",
-                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/3/properties/kind",
-                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/3/properties/kind",
+                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/2/properties/kind",
+                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/2/properties/kind",
                 "values": [
                   "realm_genesis"
                 ]
@@ -5695,8 +5464,8 @@
               "const": "realm_control",
               "x-arkret-value-ownership": {
                 "class": "owned_symbol",
-                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/4/properties/kind",
-                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/4/properties/kind",
+                "authority": "event-envelope.schema.json#/$defs/scope_ref/oneOf/3/properties/kind",
+                "owner": "event-envelope.schema.json#/$defs/scope_ref/oneOf/3/properties/kind",
                 "values": [
                   "realm_control"
                 ]
@@ -10850,13 +10619,6 @@
                 "ak.capability.grant",
                 "ak.capability.relinquish",
                 "ak.capability.revoke",
-                "ak.circle.archive",
-                "ak.circle.create",
-                "ak.circle.history_access",
-                "ak.circle.member.state",
-                "ak.circle.restore",
-                "ak.circle.tombstone",
-                "ak.circle.update",
                 "ak.consent.replace",
                 "ak.contact.accepted",
                 "ak.contact.rejected",
@@ -10993,13 +10755,6 @@
                   "ak.capability.grant",
                   "ak.capability.relinquish",
                   "ak.capability.revoke",
-                  "ak.circle.archive",
-                  "ak.circle.create",
-                  "ak.circle.history_access",
-                  "ak.circle.member.state",
-                  "ak.circle.restore",
-                  "ak.circle.tombstone",
-                  "ak.circle.update",
                   "ak.consent.replace",
                   "ak.contact.accepted",
                   "ak.contact.rejected",
@@ -11149,13 +10904,6 @@
             "ak.capability.grant",
             "ak.capability.relinquish",
             "ak.capability.revoke",
-            "ak.circle.archive",
-            "ak.circle.create",
-            "ak.circle.history_access",
-            "ak.circle.member.state",
-            "ak.circle.restore",
-            "ak.circle.tombstone",
-            "ak.circle.update",
             "ak.consent.replace",
             "ak.contact.accepted",
             "ak.contact.rejected",
@@ -11298,13 +11046,6 @@
               "ak.capability.grant",
               "ak.capability.relinquish",
               "ak.capability.revoke",
-              "ak.circle.archive",
-              "ak.circle.create",
-              "ak.circle.history_access",
-              "ak.circle.member.state",
-              "ak.circle.restore",
-              "ak.circle.tombstone",
-              "ak.circle.update",
               "ak.consent.replace",
               "ak.contact.accepted",
               "ak.contact.rejected",
@@ -11434,14 +11175,7 @@
       "description": "Stable manual sort position under the registered ak.rank.lexofractional.v1 profile: 1..128 characters from the fixed base62 alphabet, compared character by character in ASCII order. It is a producer-chosen ordering token, not a derived or causal value; see zh/conformance/encoding.md section 9.1 for the grammar, rank_between and rebalance rules."
     },
     "read_receipt_policy_scope_ref": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/scope_ref/oneOf/0"
-        },
-        {
-          "$ref": "#/$defs/scope_ref/oneOf/1"
-        }
-      ]
+      "$ref": "#/$defs/scope_ref/oneOf/0"
     }
   },
   "additionalProperties": false

@@ -18,9 +18,9 @@ see_also:
 
 ## 1. 目标（Goals）
 
-Arkret v1 定义可互操作的 identity、authority commit、account sync、snapshot、Directory、Blob 与 invite surface。producer-signed Event 只有在其所属 Realm/Circle/Sidecar stream 的**当前治理 Station**签发 `RealmCommit` 后才成为共享 accepted 事实。
+Arkret v1 定义可互操作的 identity、authority commit、account sync、snapshot、Directory、Blob 与 invite surface。producer-signed Event 只有在其所属 Realm/Sidecar stream 的**当前治理 Station**签发 `RealmCommit` 后才成为共享 accepted 事实。
 
-Realm、每个 Circle、每个 Sidecar 各有独立 stream；不存在 Realm 总链或跨 stream position。Account-private 数据、DeviceMessage、Signal 和 Blob bytes 不进入这些 stream。
+Realm 与每个 Sidecar 各有独立 stream；不存在 Realm 总链或跨 stream position。Account-private 数据、DeviceMessage、Signal 和 Blob bytes 不进入这些 stream。
 
 ## 2. 基本原则
 
@@ -51,7 +51,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 | 角色 | 职责 |
 | --- | --- |
 | Account Station | 认证本地账号，保存 signed draft，转发到 current authority，向自己的客户端提供 trusted current/sync。 |
-| Realm governance Station | 对 Realm、每个 Circle、每个 Sidecar 的独立 stream 分配 position、签 RealmCommit、执行 typed reducer、生成 snapshot 与复制 outbox。 |
+| Realm governance Station | 对 Realm 与每个 Sidecar 的独立 stream 分配 position、签 RealmCommit、执行 typed reducer、生成 snapshot 与复制 outbox。 |
 | Consumer Station | 验证 authority chain/Commit 连续性并向本地成员提供获准结果。 |
 | Directory | 返回 discovery projection 与 authority locator；不执行 join，不选择 authority。 |
 | Blob/Media/Push 等 | 仅在各自委托边界工作，不取得 Realm commit authority。 |
@@ -170,7 +170,7 @@ Events API 接收 producer-signed Event，并返回 authority commit 状态。`q
 
 ### 4.1 描述 Events API
 
-Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 Station另声明 peer submit、per-stream scan 和 committed exact resolve。每个 stream selector 都是 closed `stream_ref`，Circle/Sidecar position 不得通过 Realm stream 暴露。
+Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 Station另声明 peer submit、per-stream scan 和 committed exact resolve。每个 stream selector 都是 closed `stream_ref`，Sidecar position 不得通过 Realm stream 暴露。
 
 ### 4.2 提交 Event
 
@@ -199,15 +199,15 @@ proof，随后把 exact bytes 交给已验证 current authority；未取得 auth
 
 ### 4.5 列出 / 回填 Event
 
-`ak.self.committed_event.read.scan.v1` 与 `ak.peer.committed_event.read.scan.v1` 按**单个获准 stream**的连续 position 分页。每页不得把多个 Circle/Sidecar 拼成 Realm 总序，也不得用隐藏 stream 的 position gap 暗示其活动。历史可见性、membership join floor 和 retention 可以裁剪可读起点。
+`ak.self.committed_event.read.scan.v1` 与 `ak.peer.committed_event.read.scan.v1` 按**单个获准 stream**的连续 position 分页。每页不得把多个 Sidecar 拼成 Realm 总序，也不得用隐藏 stream 的 position gap 暗示其活动。历史可见性、membership join floor 和 retention 可以裁剪可读起点。
 
 ### 4.6 获取 stream head
 
-每条获准 stream 以 `{head_commit_ref, next_position}` 表示当前进度。公开 authority bundle只披露 Realm stream head；私有 Circle/Sidecar heads 只进入获权 snapshot 或 handoff manifest。
+每条获准 stream 以 `{head_commit_ref, next_position}` 表示当前进度。公开 authority bundle只披露 Realm stream head；私有 Sidecar heads 只进入获权 snapshot 或 handoff manifest。
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account aggregate 是自己的 Station提供的受信投影。它可以聚合多个 Realm，但必须保留每条 Realm/Circle/Sidecar stream 的独立 cursor/position；聚合 cursor 只是 Station-local resume token，不是 RealmCommit predecessor。
+Account aggregate 是自己的 Station提供的受信投影。它可以聚合多个 Realm，但必须保留每条 Realm/Sidecar stream 的独立 cursor/position；聚合 cursor 只是 Station-local resume token，不是 RealmCommit predecessor。
 
 ### 5.1 Account 自服务与描述
 
@@ -243,7 +243,7 @@ moderation lift 必须取得 `present`。任何 CAS 冲突都要求重新读取�
 MLS 未激活的 scope 是明文 scope，治理 Station可见内容；这必须向用户披露。MLS 激活后治理 Station仍可见 sender、scope、时间、大小、routing 和 group churn，但不持有 group secret。Directory、Push 与未授权投影服务不得接收正文。
 
 Sidecar 固定要求独立 MLS，未完成激活／readiness 不提供明文业务降级。Realm 明文服务名单的唯一作者、
-exact scope 授权与合法内容交付的组合，以及不授予 Circle / Sidecar / account-private 读取或历史密钥的边界，
+exact scope 授权与合法内容交付的组合，以及不授予 Sidecar / account-private 读取或历史密钥的边界，
 统一见 [`scope-settings.md` §5](../governance/scope-settings.md#5-明文服务的跨-scope-适用边界)。
 
 ## 6. Search / Projection Semantics
@@ -327,7 +327,7 @@ Agent 继续使用自身 producer key、controller authorization 和 Account Sta
 
 ## 11. Realm Bootstrap Strand
 
-新加入者自己的 Station从当前治理 Station取得 nonce-bound authority bundle、签名 typed snapshot 与获准 stream tails。默认不从邀请人 Station、genesis Station或任意 member Station拉全历史。`since_join`、private Circle 与 retention floor 必须在 snapshot/history floor 中体现。
+新加入者自己的 Station从当前治理 Station取得 nonce-bound authority bundle、签名 typed snapshot 与获准 stream tails。默认不从邀请人 Station、genesis Station或任意 member Station拉全历史。`since_join`、与 retention floor 必须在 snapshot/history floor 中体现。
 
 ## 12. 新鲜度与多服务并存
 
@@ -351,7 +351,7 @@ retryable throttle 不产生 pending Realm state；重试必须复用 exact Even
 
 ## 15. 设计决定
 
-v1 选择单治理 Station、逐 Realm/Circle/Sidecar 独立 authority stream，以实现简单、可判定的顺序、撤销、bootstrap 与 handoff。代价是 authority 的审查权与写可用性单点；Base v1 不提供自动选主或 Byzantine 共识。
+v1 选择单治理 Station、逐 Realm/Sidecar 独立 authority stream，以实现简单、可判定的顺序、撤销、bootstrap 与 handoff。代价是 authority 的审查权与写可用性单点；Base v1 不提供自动选主或 Byzantine 共识。
 
 ## 16. HTTP/JSON Binding
 

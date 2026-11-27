@@ -32,7 +32,7 @@ see_also:
 | 一次 authority submit | 1 Event | v1 不定义通用 Event batch原子提交。 |
 | stream scan page | 1,000 Commits | 一次仅一个 `stream_ref`。 |
 | authority generation | unsigned 64-bit | 严格单调；不能回滚。 |
-| stream position | unsigned 64-bit | 每条 Realm/Circle/Sidecar stream各自从 0 连续递增。 |
+| stream position | unsigned 64-bit | 每条 Realm/Sidecar stream各自从 0 连续递增。 |
 | canonical JSON/CBOR嵌套深度 | 64 | 超限 `structure_depth_exceeded`。 |
 | deterministic CBOR单 map/array项数 | 65,536 | 解码器在分配前检查。 |
 | cursor decoded payload | 64 KiB | cursor 还同时受 transport上限。 |
@@ -117,10 +117,9 @@ Authority commit 预算如下：
 | --- | ---: | --- |
 | 单 stream并发 head CAS | 1 winner | 相同 predecessor并发提交只有一个成功。 |
 | 单 position有效 Commit | 1 | 两个不同有效签名为 authority equivocation，冻结该 Realm/stream。 |
-| Realm active Circle数 | 1,000 | Circle各有独立 stream。 |
 | Realm active Sidecar数 | 10,000 | Sidecar各有独立 stream；部署可收紧。 |
 | Realm State Snapshot inline response | 8 MiB | `ak.self.realm_state_snapshot.read.manifest_head.v1` 属于 non-streaming JSON；超限必须 fail closed，不得截断 `current_state_entries[]`、visible heads 或 floors；v1 未登记 chunk/paging fallback。治理 Station 必须把可向任一 caller 披露的最大 closed signed snapshot 的 RFC 8785 canonical bytes 作为 Realm 硬容量预算。 |
-| snapshot manifest streams | 11,001 | Realm + 上述 Circle/Sidecar理论上限；只返回 caller获准的 streams。 |
+| snapshot manifest streams | 11,001 | Realm + 上述 Sidecar理论上限；只返回 caller获准的 streams。 |
 | handoff manifest streams | 同上 | 私有传输覆盖全部 stream heads，不公开隐藏 stream。 |
 
 ### 4.1 Realm Snapshot 硬容量预算
@@ -154,8 +153,6 @@ Account baseline 的账号分页不提供 Realm 同 cut 状态承诺，不能作
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | active Space / Realm | 5,000 | 超限分页或拒绝创建。 |
-| active Circle / Realm | 1,000 | 每个 Circle独立 stream。 |
-| active MLS-backed Circle / Actor | 256 | 控制 epoch churn与 fanout。 |
 | active Relation / object | 10,000 | projection必须分页。 |
 | View page | 1,000 | cursor绑定 selector与 current revision。 |
 | Message attachments | 32 | 大内容走 Blob。 |

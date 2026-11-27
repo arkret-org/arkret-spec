@@ -26,10 +26,9 @@ see_also:
 每个 Realm 在任一时刻恰有一个当前治理 Station。该 Station 分别维护：
 
 - 一条 Realm stream；
-- 每个 Circle 各一条 Circle stream；
 - 仅主人的 Human PCR 治理坐标还可覆盖本人私有的 Sidecar stream。该流由 H 签收；来源项目没有此流或其 head。
 
-三类 stream 彼此没有全局 position，也没有跨 stream 总序。实现可在内部使用同一数据库 WAL，但不得把内部序号暴露为协议顺序。这样，无权读取某个 Circle 或 Sidecar 的主体不会从 Realm-wide position 缺口推断隐藏活动。
+各独立 stream 彼此没有全局 position，也没有跨 stream 总序。实现可在内部使用同一数据库 WAL，但不得把内部序号暴露为协议顺序。这样，无权读取某个 Sidecar 的主体不会从 Realm-wide position 缺口推断隐藏活动。
 
 Realm membership、policy 和 authority 变更只提交到 Realm stream。治理 Station 在处理子 stream Event 时，必须先在内部读取已经提交的 Realm current state；该授权 revision 是接纳事务内部输入，不是 producer 可提供或替换的证明。
 
@@ -63,7 +62,7 @@ key；`verification_method` 必须属于该 exact service identity。验证方�
 - 每条 stream 的 position 从 0 开始严格加一；
 - position 0 的 `previous_commit_ref` 必须为 null；
 - 其它 position 必须引用同一 stream 的 position - 1 Commit；
-- predecessor 不得引用另一 Realm、Circle 或 Sidecar stream；
+- predecessor 不得引用另一 Realm 或 Sidecar stream；
 - `commit_id` 是去掉 signature 后 closed body 的 content-addressed typed ID；
 - signature 只能由 `governance_generation` 对应的治理 Station service key 产生。
 
@@ -107,7 +106,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义已登记的 `expected_commit_id`（具名多目标 guard 按各自名称），只与锁定 exact current row 的 covering Commit ID 相等比较。读侧 revision 仍为 `{commit_id, stream_position}`，Commit ID 的内容地址已唯一绑定 position；写条件不重复该坐标。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
 
-跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
+跨 stream 不提供原子提交。跨 Realm/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
 `exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
 消费 Station 与独立审计 verifier 仍必须验证 Commit 签名与 authority chain；普通客户端按
@@ -138,7 +137,7 @@ transport-only producer evidence 刷新不改变内层 signed unit；peer 外层
 不能把缺记录当成首次写。恢复／handoff 必须保留可验证原件、完整 unit 接纳关系、业务 fence 与适用私密审计；
 尚不能重建原 outcome 时只可失败关闭，MUST NOT 重新执行。
 
-所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm 和同一 Realm／Circle／Sidecar stream；
+所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm 和同一 Realm／Sidecar stream；
 读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
 Recovery／SecurityRotation 是 durable workflow，不能包装成单笔「全部回滚」的 Event 单元或通用 Saga DSL。
 
@@ -151,7 +150,7 @@ Recovery／SecurityRotation 是 durable workflow，不能包装成单笔「全�
 
 `audit_paired_event_unit_submission` 固定为 `{unit_kind:"audit_paired_event",events:[business_submission,audit_submission]}`；
 每个 slot 均是既有 `EventAdmissionSubmission`，保留各自 producer proof 与 required approval signatures。
-第一 slot 仅允许登记的跨 actor `ak.strand.watch.set` 或 `ak.circle.member.state`，第二 slot 恰一条 `ak.audit.accessed`。
+第一 slot 仅允许登记的跨 actor `ak.strand.watch.set`，第二 slot 恰一条 `ak.audit.accessed`。
 二者的 `realm_id`、derived effective scope／stream、完整 `actor_id`、actual producer（`executed_by` 存在时取它）
 及签名 key MUST 一致；各自委托、当前授权、key/session/provision ceiling 与 approval 仍独立成立。
 同一锁定 origin cut 可支持两个 slot，但不可用只绑定 business Event 的证明替代 audit Event 证明；
@@ -162,8 +161,8 @@ Device 的 `event_authorization.event_id` 分别等于该 slot Event ID；`forwa
 不得携顶层单 Event 的 producer evidence，不能省掉任何 slot 的历史／当前检查。
 
 audit payload 的 `writer_actor_id` MUST 等于 business 的完整 actor；`target_actor_id` 与 `target_ref` 按
-`atomic_unit_registry.audit_pairs` 从业务 payload 派生，分别是 Watch 的 watcher／Strand 或 Circle 的 member／Circle。
-`access_kind` 分别为 `watch_set_others`／`circle_member_set_others`；`paired_event_id` 和唯一 critical
+`atomic_unit_registry.audit_pairs` 从业务 payload 派生，为 Watch 的 watcher／Strand。
+`access_kind` 为 `watch_set_others`；`paired_event_id` 和唯一 critical
 `semantic_refs{role:"audit_pair"}` 的 id MUST 等于 business Event ID，且其内嵌 digest 与业务 canonical digest 一致。
 business MUST NOT 反向引用 audit；先构造 business，再构造 audit，避免 ID 原像循环。
 当前 caller 必须同时满足业务权限与 `ak.audit.accessed`；配对记录不提供新权限、不替代 CAS，也不携 caller 自报的结果 head。
@@ -172,9 +171,7 @@ Watcher／member MUST 与 writer 完整 ActorId 不相等；本人操作保留�
 已单独接纳的 Event 不能补配后再次接纳或占据新位置。
 
 Watch `.others` 的 level 仅可为 `mentions_only|participating|all`，不得清空／代写 `muted` 或 `level_public=true`，
-整值 CAS 规则保持。Circle 跨 actor成员改写统一走此单元：`ak.circle.member.manage` 或
-`ak.circle.member.add.others` 必须按自身 constraints／risk／approval 合法授权，且均不得绕过审计；
-父 Realm join revision、FSM、Circle 当前资格和精确 scope 门保持，不隐式授予成员资格或历史 key。
+整值 CAS 规则保持。
 缺 slot、多 slot、乱序、未登记 kind、错配、跨 scope、混 producer/key、缺 approval 或 CAS 冲突均整组零写拒绝。
 
 `atomic_submission` 的跨站首次接纳必须使用 §5.1 的 authority-forward 角色及每次新鲜 device／Agent evidence；
@@ -196,9 +193,7 @@ Realm、Strand 与 watcher 唯一取自 Event 的 `realm_id`、`payload.target_r
 
 current governor 在一个事务 cut 中检查完整 auditor 的当前父 Realm membership、Strand 当前 lifecycle／scope、
 `ak.realm.notification.audit` 与 `ak.audit.accessed` 两种权限、所有当前 producer／controller／Agent／Applet／approval 门，
-以及 Watch 原件／durable current 完整性。Circle 下还必须是当前 effective member，或明确持有约束到该 Circle 的
-`ak.circle.audit`。后一情形仅为本 command 的 `watch_audit_read` audit Event 提供记录这次获授权读取的受控接纳例外；
-不授予普通 Circle Event 写入、membership、内容历史或 MLS key。普通 Event 提交／projection 不得复用此例外。
+以及 Watch 原件／durable current 完整性。
 授权、scope、完整性或 audit 接纳失败时不写 audit、不释放值。成功在同事务接纳一条 audit、签一个 RealmCommit，
 并耐久冻结该 exact Watch observation 与 canonical self request 绑定；事务提交后才释放 `watch_audit_read_response_body`。
 其 `audit_commit` 逐字绑定请求 Event；`current` 复用 `StrandWatchCurrentResponseBody`，保留 never_written 与 current:null，
@@ -236,7 +231,7 @@ peer 以 S2S signature、完整 auditor Account Station 和新鲜 actual-produce
 5. Event producer proof 正确；
 6. `stream_ref` 与 Event effective scope 一致。
 
-消费方只能证明自己获准读取的 stream 没有缺口。它不能、也不得要求证明无权查看的 Circle/Sidecar 是否完整；这是一条明确的隐私边界。治理 Station 仍可在接纳前扣留 Event，因此 base v1 不提供独立 omission proof。
+消费方只能证明自己获准读取的 stream 没有缺口。它不能、也不得要求证明无权查看的 Sidecar 是否完整；这是一条明确的隐私边界。治理 Station 仍可在接纳前扣留 Event，因此 base v1 不提供独立 omission proof。
 
 ## 7. Snapshot 与 join bootstrap
 
@@ -251,7 +246,7 @@ Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.j
 4. 只有 membership Commit 成功后才获得可见性；
 5. 申请人的 Station 从当前治理 Station 拉取签名 Snapshot 和获准 stream 的 tail。
 
-不得默认从邀请人 Station、初始治理 Station 或 genesis 开始拉取全部 Event。历史范围必须同时受 `history_access`、join position、Circle membership、retention 和 MLS epoch 可读性限制。
+不得默认从邀请人 Station、初始治理 Station 或 genesis 开始拉取全部 Event。历史范围必须同时受 `history_access`、join position、retention 和 MLS epoch 可读性限制。
 
 **创世原件的成员站保管（normative）**：既有 `ak.peer.realm_join.read.bootstrap.v1` 响应在
 `authority_bundle` 后携可选 `producer_signer_fact`，只对应 bundle 中的 exact Genesis Event／Commit。
@@ -343,14 +338,14 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 | 独立组织权威创建的 Organization PCR | 仅在 §8.1 验证独立 accepted 组织来源后可计划交接 | PCR governor 可改变，hosting AccountId 不变；组织管理登录／普通 SSO／用户 Agent 不产生资格；全部 native 私态与原件必须完整导入 |
 | 普通 Collaboration Realm | 可按 §8 计划交接 | 旧方在线、current controller、generation／head CAS、全状态冻结导入、双签；原 Realm ID、stream、成员授权和 MLS group 不变 |
 | Direct Conversation Realm（全部创建／materialization／bound 阶段） | 不可交接 | accepted genesis governor 固定、generation0；participant／root／双站签名不能解锁 |
-| Circle 及项目 Space／Strand 内容 | 随所属项目合法交接 | 携带项目原件、head、floor 和必要公开 MLS 来源。 |
+| 项目 Space／Strand 内容 | 随所属项目合法交接 | 携带项目原件、head、floor 和必要公开 MLS 来源。 |
 | 个人 Sidecar | 固定在主人的账号 Station H | 项目交接清单及接受回执不得包含其标识、私聊、MLS、备份或关联。 |
 | Realm Bot／Ghost 及 realm_control | 无独立 Account／PCR 可迁；随所属 Realm 的合法交接延续治理 | 完整 Realm ActorId、原 Applet／DID／Device 归属不变；控制流、原签事实、current、审批／恢复 ledger 完整迁入；Applet 私钥与成员 MLS 私态不随治理交接搬运 |
 | Agent runtime 换进程／设备／主机及重新配对 | 可按 current controller 与 key／pairing 合同重新接入；不迁 Agent PCR | 不改变 Agent Account、controller Station 或 PCR governor；旧授权不能复活；新端仍需当前授权及原能力边界 |
 | 客户端本地密钥／MLS 状态备份与恢复 | 仅按对应密钥／备份合同转移本端已合法持有的状态 | 不转移服务端写权；仅按content-history.md恢复获权专用内容根，不克隆原始MLS私态，不授予membership／Device／Agent权限；Realm handoff 永不携成员 private MLS state |
 | DID 方法原生 key 轮换／恢复／portable relocation | 仅按该方法与角色已登记合同执行；不等价于账号或治理迁移 | 不改 AccountId.station_id，不重判 Human／Agent 来源，不继承旧账号权限；服务 endpoint hint 不是 current governor 授权 |
 | Handle／authority domain 变更或重新绑定 | 可按 [Handle 合同](../identity/identity-handles.md) 更新可读标签和 claim | 不改完整 AccountId、历史作者或 membership；新持有者不继承旧持有者授权 |
-| Realm owner／admin／组织关系或 Applet manager 转交、authority reset | 仅按各自原签／current／CAS 合同改变控制或授权 | 不等于 Station 交接；新 owner 不成为用户 Agent 的 controller；不自动加入 Circle／Sidecar、不取得旧 MLS secrets；reset 与 owner transfer 的授权失效范围分别求值 |
+| Realm owner／admin／组织关系或 Applet manager 转交、authority reset | 仅按各自原签／current／CAS 合同改变控制或授权 | 不等于 Station 交接；新 owner 不成为用户 Agent 的 controller；不自动加入 Sidecar、不取得旧 MLS secrets；reset 与 owner transfer 的授权失效范围分别求值 |
 | 已接受消息／对象 scope、历史、membership／grant 向另一 Realm 或 Account 搬运 | 不可改写原件归属或自动继承权限 | 导出／导入、mirror、Realm link、successor 不改变原作者、scope 或历史访问边界；新业务对象／加入／授权仍须各自合法接纳 |
 | Push Gateway registration handoff、controller-device HPKE content handoff | 仅按各自登记合同交付精确路由或候选内容 | 不搬迁账号或 PCR，不转交用户 session／授权账本，不扩大接收者资格；保留原来源、终局撤销与幂等约束 |
 | 媒体 P2P→SFU、ICE restart／TURN allocation 或传输连接变化 | 仅按媒体／传输合同切换路径 | 不改治理站、成员或内容权限；不产生未登记的 in-session focus migration、自动治理选主或失效凭据续权 |
@@ -362,7 +357,7 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 
 治理 Station 只跟踪 MLS 公开状态，不持有成员 secret。共享 Event 只保留 `ak.mls.genesis` 与 `ak.mls.commit`。Proposal 内联于 Commit；Welcome 是 recipient delivery；KeyPackage/claim 是专用 ledger；失败是本地诊断。
 
-每个 MLS effective scope 属于其对应 Realm、Circle 或 Sidecar stream。`key_access_revision` 只由该 scope stream 上改变 current joined 成员集合的 membership Event 在同一事务加一；endpoint authorization 与 policy 变化不推进它，已撤销 endpoint 的发送由 send gate 同 cut 拒绝。encrypted application Event 的 epoch、group state ref 和 key-access revision 必须都等于 current，否则拒绝。
+每个 MLS effective scope 属于其对应 Realm 或 Sidecar stream。`key_access_revision` 只由该 scope stream 上改变 current joined 成员集合的 membership Event 在同一事务加一；endpoint authorization 与 policy 变化不推进它，已撤销 endpoint 的发送由 send gate 同 cut 拒绝。encrypted application Event 的 epoch、group state ref 和 key-access revision 必须都等于 current，否则拒绝。
 
 Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-signed Welcome deliveries。治理 Station 在同一事务中提交 Commit、更新 public state、写本站 recipient queues 和 outbox；跨站 recipient 的 Welcome 写入指向其 routing service 的 outbox intent，随 Commit 的 committed-replication item 由成员站在同一 replica 事务按本地 claim ledger 复核入队；任一本站可判定的 Welcome 无效则零写入。Handoff 迁移 public tree、epoch、revision、claim 状态和 Welcome queues，但不迁移任何成员 private MLS state。
 Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，必须按

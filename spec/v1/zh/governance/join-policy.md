@@ -33,7 +33,7 @@ Join Policy 定义加入 Realm 前由当前治理 Station在 commit admission �
 
 `join_rule` 与 `join_policy` 的一致性由 reducer 强制：`join_rule` 为 `restricted` 或 `knock_restricted` 时，`join_policy` MUST 含至少一个自动 gate（`claim_required` / `challenge_response` / `parent_membership`），且 `combinator` 不得使评估结果与声明的入口模式矛盾：只含 `principal_admission` / `cooldown` 硬门时，按 §4 规则 2-3 的求值顺序 `restricted` 的可通过集合与 `public` 完全相同，`knock_restricted` 则退化为 `restricted`。`restricted` 未配任何自动 gate、或 `knock_restricted` 的 gate 组合实际退化为 `restricted` 时，写入 `ak.realm.join_rule` / `ak.realm.policy_bundle` 的 reducer MUST 以 `failed_precondition`、`reason_code=join_rule_policy_mismatch` 拒绝，不接受互相矛盾的入口声明。
 
-首次跨站引导只授权本次 intent 必需且 policy 允许披露的认证事实。申请人的 Station先验证 nonce-bound `RealmAuthorityBundle`，再把 exact signed Event提交给当前治理 Station；Realm join/knock 不授予 private Circle、Sidecar、其它成员身份、普通消息、附件或 MLS secrets 的额外读取权。成功后 bootstrap 只返回签名 typed snapshot 和获准 stream tails，不默认拉全历史。
+首次跨站引导只授权本次 intent 必需且 policy 允许披露的认证事实。申请人的 Station先验证 nonce-bound `RealmAuthorityBundle`，再把 exact signed Event提交给当前治理 Station；Realm join/knock 不授予 Sidecar、其它成员身份、普通消息、附件或 MLS secrets 的额外读取权。成功后 bootstrap 只返回签名 typed snapshot 和获准 stream tails，不默认拉全历史。
 
 ## 3. 数据模型
 

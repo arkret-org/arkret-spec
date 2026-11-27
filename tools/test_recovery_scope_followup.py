@@ -208,28 +208,27 @@ class RecoveryScopeFollowupTest(unittest.TestCase):
             self.assertIn('existing removed/terminated terminal remains readable after rejoin', row['description'])
             self.assertIn('already finalized as rekeyed', row['description'])
 
-    def test_child_scopes_follow_their_native_parent_realm_handoff(self):
+    def test_sidecar_uses_its_native_governance_handoff(self):
         parent = self.entry['effective_scope']['realm_id']
-        for ordinal, kind in enumerate(['circle', 'sidecar'], 220):
-            target = {'kind': kind, 'realm_id': parent,
-                      kind + '_id': 'ak:' + kind + ':' + m.b64(b'\x01' + bytes([ordinal]) * 32)}
-            entry = {**self.entry, 'effective_scope': target,
-                     'genesis_event_ref': 'ak:event:' + m.b64(b'\x01' + bytes([ordinal + 2]) * 32)}
-            f = m.fixture(self.inventory['replacement'], entry, self.inventory['pcr_cut'],
-                          terminal_source_ref=self.historical['scope_cut'])
-            after = f['handoff']
-            with self.subTest(kind=kind):
-                self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body',
-                              after['self_deliveries']['removed'])
-                m.verify_self_retirement(after['self_deliveries']['removed'], after['authorization'], f['inventory'],
-                    entry, f['reader_authority'], f['historical_completion_basis'], after['current_delivery'],
-                    '2026-11-09T00:06:02.000Z')
-                self.assertEqual(f['inventory']['pcr_cut'], self.inventory['pcr_cut'])
-                wrong = copy.deepcopy(after['current_delivery'])
-                wrong['scope_authority']['effective_scope']['realm_id'] = self.inventory['pcr_cut']['stream_ref']['realm_id']
-                with self.assertRaisesRegex(ValueError, 'no exact accepted native origin'):
-                    m.qualify_source(after['authorization'], f['inventory'], entry, f['reader_authority'], wrong,
-                                     '2026-11-09T00:06:02.000Z')
+        target = {'kind': 'sidecar', 'realm_id': parent,
+                  'sidecar_id': 'ak:sidecar:' + m.b64(b'\x01' + bytes([221]) * 32)}
+        entry = {**self.entry, 'effective_scope': target,
+                 'genesis_event_ref': 'ak:event:' + m.b64(b'\x01' + bytes([223]) * 32)}
+        f = m.fixture(self.inventory['replacement'], entry, self.inventory['pcr_cut'],
+                      terminal_source_ref=self.historical['scope_cut'])
+        after = f['handoff']
+        self.validate('content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body',
+                      after['self_deliveries']['removed'])
+        m.verify_self_retirement(after['self_deliveries']['removed'], after['authorization'], f['inventory'],
+            entry, f['reader_authority'], f['historical_completion_basis'], after['current_delivery'],
+            '2026-11-09T00:06:02.000Z')
+        self.assertEqual(f['inventory']['pcr_cut'], self.inventory['pcr_cut'])
+        wrong = copy.deepcopy(after['current_delivery'])
+        wrong['scope_authority']['effective_scope']['realm_id'] = self.inventory['pcr_cut']['stream_ref']['realm_id']
+        with self.assertRaisesRegex(ValueError, 'no exact accepted native origin'):
+            m.qualify_source(after['authorization'], f['inventory'], entry, f['reader_authority'], wrong,
+                             '2026-11-09T00:06:02.000Z')
+
 
     def test_upstream_terminal_sources_are_native_qualified_and_remain_private(self):
         target = {'kind': 'sidecar', 'realm_id': self.entry['effective_scope']['realm_id'],

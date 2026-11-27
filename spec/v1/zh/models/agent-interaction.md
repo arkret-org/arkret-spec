@@ -14,7 +14,7 @@ updated: 2026-10-04
 
 Agent 在每个 Realm 具有独立的 `interaction_mode=private|public`。它不是 Agent 身份子类、lifecycle、
 selector visibility 或 participation selection。完整 AccountId 的两个分量 MUST 一起比较。
-Circle／Strand MUST 继承所属 Realm 的模式，不提供局部覆盖；其读取授权、membership、MLS 与 participation
+Strand MUST 继承所属 Realm 的模式，不提供局部覆盖；其读取授权、membership、MLS 与 participation
 ceiling 仍各自求交，只能进一步拒绝动作。公开只表示该实际 scope 的授权成员可读，不表示全网公开。
 
 唯一写入 Event 为 Realm-scoped `ak.agent.interaction.set`，唯一 current family 为 `agent_interaction`，
@@ -61,7 +61,7 @@ MUST NOT 伪装成 private，MUST 阻止需模式判定的发送／执行。首�
 
 ## 2. 成员与披露
 
-模式 MUST NOT 修改 Realm／Circle membership 或 [Sidecar §5](./sidecar.md#5-参与者与有效访问) 的派生集合。
+模式 MUST NOT 修改 Realm membership 或 [Sidecar §5](./sidecar.md#5-参与者与有效访问) 的派生集合。
 Sidecar 的主人可在 H 为本私聊显式启用或撤回自有 Agent。H 将仍具有效所有权、活跃生命周期和运行端授权的已启用 Agent 纳入目标集合。项目公开模式与项目成员资格独立求值。
 desired 不等于 effective，实际访问继续受独立 Sidecar MLS readiness、历史读取权与 key 可达性约束。
 
@@ -86,7 +86,7 @@ mention 也不能唤醒它，应另写 Sidecar 请求；不因作者是主人而
 读取授权：Agent MAY 读取获准群上下文供主人私有协作，但 MUST NOT 从 history scan、watch、reply、
 assignment、调度或工具入口把外部请求变成对外交互。
 
-普通共享 Realm／Circle scope 的 Agent producer／executor MUST 在接纳时为当前 public；private／unknown
+普通共享 Realm scope 的 Agent producer／executor MUST 在接纳时为当前 public；private／unknown
 MUST 拒绝其共享消息创建／编辑、reaction、共享对象／Relation／assignment 修改及对外通知、Signal 或工具
 副作用。`actor_id=controller,executed_by=agent` 同样受此门约束，不能用代行隐藏 Agent。请求、执行与回复
 必须保持原 scope。主人自著的普通群消息不受此 Agent 出站门影响；私人 Agent 仍可在 Sidecar 或主人独立
@@ -150,8 +150,6 @@ session、旧 addressed targets 或 last verified request 均不得隐式填入�
 用户删除／解绑私人 Agent mention 后，无 Agent mention 的新消息恢复原 Strand 路由与受众提示。
 已接纳 Sidecar 私密历史保持私密，只供原获授权参与者读取；改变新草稿路由不发布或迁移旧历史。
 
-Circle composer 中主人向私人 Agent 的交互 MUST 阻止；不得把 Circle 请求、引用、附件或上下文转到
-Realm Sidecar。公开 Agent 在 Circle 仍须本 Circle 读取／membership／MLS 门；父 Realm join 不替代这些门。
 独立 Direct 保持独立 scope，私人 Agent 只接受主人获授权请求，外部 Direct 不构成绕过入口。
 
 Message accepted 后 scope immutable。新增 mention 的 revise、reply、reaction、quote／forward／export、
@@ -172,7 +170,7 @@ AccountId、Realm、actual scope 和 request／exchange 隔离上下文、队列
 成员设置，但仅 Add／Join、Public 模式写入及 participation replace 仍 MUST NOT 自动生成 grant。
 
 “允许此 Agent 在此 scope 回复”是一个需明确确认的产品操作，而不是新的协议 operation 或授权
-预设。产品 MUST 在确认前绑定已获授权的完整 Agent AccountId，展示实际 Realm／Circle／Strand、
+预设。产品 MUST 在确认前绑定已获授权的完整 Agent AccountId，展示实际 Realm／Strand、
 拟授动作、有效期／限制和是否将 Agent 模式改为 public。默认只选择本次回复所需的
 `ak.message.create` 和最窄适用 scope；扩至整个 Realm 或增加 reaction／其它动作 MUST 明确展示
 并获确认。若使用 [capabilities §9.1](../authz/capabilities.md#91-agent-授权预设展开normative)

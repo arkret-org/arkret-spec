@@ -1,7 +1,7 @@
 {
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a current state, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
-    "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.circle_id`. The solution is per object: an object-specific ban constrains that object only and MUST NOT be collected into one shared set that other object kinds are then measured against. A consumer that flattens this file into a set of `path` strings reads `state` -- the single v1 exemption -- as a prohibition, and reads `resolution`, `stage`, `stage_changed_at`, `morph_kind`, `schema_refs`, `effective_scope`, `child_scope_policy`, `parent_space_id`, `scope_circle_id` and `mls_group_id` as prohibitions on every family that happens to declare a member of the same name. Both readings are wrong and both are refused by check_result_write_contracts.",
+    "The effective forbidden set of an object kind is universal_forbidden_patch_paths, restricted to the paths its object schema actually declares, minus that object's universal_exemptions, plus its own forbidden_patch_paths. A path and every dotted descendant of it are forbidden together: banning `effective_scope` also bans `effective_scope.realm_id`. The solution is per object: an object-specific ban constrains that object only and MUST NOT be collected into one shared set that other object kinds are then measured against. A consumer that flattens this file into a set of `path` strings reads `state` -- the single v1 exemption -- as a prohibition, and reads `resolution`, `stage`, `stage_changed_at`, `morph_kind`, `schema_refs`, `effective_scope`, `child_scope_policy`, `parent_space_id`, `mls_group_id` as prohibitions on every family that happens to declare a member of the same name. Both readings are wrong and both are refused by check_result_write_contracts.",
     "universal_forbidden_patch_paths is the general minimum set of zh/models/event-and-patch.md section 4.2.5 and MUST stay identical to the list that section spells out. Object-specific bans belong in the object's forbidden_patch_paths, never in the universal list.",
     "A universal_exemptions entry is a documented normative carve-out, not a relaxation of the general rule, and MUST name the clause that assigns the path to the generic update surface. v1 has exactly one: a shared View reaches its durable terminal state through an ak.view.update patch setting state=tombstoned (zh/models/views.md section 3.1), so `state` is authored on View while `state_changed_at` stays reducer-derived.",
     "Only object kinds whose update payload embeds event-payload.schema.json#/$defs/patch appear here. Message carries reducer-managed members too (`effective_scope`, `state_changed_at`), but it has no patch surface at all: ak.message.revise and ak.message.redact are dedicated payloads that are additionalProperties:false, so the ban is already decided by their schemas.",
@@ -181,106 +181,6 @@
       }
     },
     {
-      "object_kind": "circle",
-      "object_schema_ref": "schemas/circle.schema.json",
-      "state_family": "circle",
-      "value_schema_ref": "schemas/circle.schema.json",
-      "value_member_maintenance": {
-        "owner": "zh/models/circle.md sections 3 and 5; zh/models/common-fields.md sections 3.3 and 5.2",
-        "always_maintained": [
-          {
-            "path": "updated_by",
-            "derivation": "object_update_actor",
-            "justification": "Every accepted Circle object write records the accountable Event actor; authors cannot supply this universal reducer-managed member."
-          },
-          {
-            "path": "updated_at",
-            "derivation": "object_update_time",
-            "justification": "Every accepted Circle object write records the accepted Event time; authors cannot supply this universal reducer-managed member."
-          }
-        ],
-        "conditional_producers": [
-          {
-            "path": "state",
-            "derivation": "object_initial_state",
-            "producer_kinds": [
-              "ak.circle.create"
-            ],
-            "condition": "Circle create installs active."
-          },
-          {
-            "path": "state",
-            "derivation": "object_lifecycle_state",
-            "producer_kinds": [
-              "ak.circle.archive",
-              "ak.circle.restore",
-              "ak.circle.tombstone"
-            ],
-            "condition": "Accepted dedicated lifecycle transition."
-          },
-          {
-            "path": "state_changed_at",
-            "derivation": "object_state_transition_time",
-            "producer_kinds": [
-              "ak.circle.archive",
-              "ak.circle.restore",
-              "ak.circle.tombstone"
-            ],
-            "condition": "Produced with an actual lifecycle transition and absent on initial active create."
-          }
-        ],
-        "create_locked": [
-          {
-            "path": "schema",
-            "derivation": "object_schema_identifier",
-            "producer_kinds": [
-              "ak.circle.create"
-            ],
-            "justification": "The Circle schema identifier is fixed by the object kind."
-          },
-          {
-            "path": "realm_id",
-            "derivation": "object_realm_binding",
-            "producer_kinds": [
-              "ak.circle.create"
-            ],
-            "justification": "The parent Realm is the stream that accepted create, not an author assertion."
-          },
-          {
-            "path": "created_by",
-            "derivation": "object_create_actor",
-            "producer_kinds": [
-              "ak.circle.create"
-            ],
-            "justification": "The creator is the accepted create Event actor."
-          },
-          {
-            "path": "created_at",
-            "derivation": "object_create_time",
-            "producer_kinds": [
-              "ak.circle.create"
-            ],
-            "justification": "Creation time is the accepted create Event time."
-          }
-        ]
-      },
-      "update_payload_refs": [
-        "schemas/event-payload.schema.json#/$defs/circle_patch_payload"
-      ],
-      "universal_exemptions": [],
-      "forbidden_patch_paths": [
-        {
-          "path": "mls_group_id",
-          "basis": "reducer_derived",
-          "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "event_kind",
-          "owner": "ak.mls.genesis",
-          "schema_enforced": false,
-          "description": "Reference to the independent MLS group bound to (realm_id, circle_id). Populated by the accepted ak.mls.genesis reducer for the Circle scope and never actor-supplied on wire."
-        }
-      ]
-    },
-    {
       "object_kind": "morph",
       "object_schema_ref": "schemas/morph.schema.json",
       "state_family": "morph",
@@ -428,7 +328,7 @@
           "basis": "reducer_derived",
           "reason_code": "effective_scope_reducer_managed",
           "owner_kind": "reducer",
-          "owner": "Materialization of the verified Event.scope_ref after the receiver checks it against scope_circle_id and endpoint pre-state (zh/models/circle.md sections 6.1-6.2).",
+          "owner": "The receiver verifies the original signed Event scope against the target before materializing it in the read projection. See zh/models/relation.md.",
           "schema_enforced": true,
           "description": "Relation is the only patch-surface object whose schema declares effective_scope, so the generic patch surface is the only place an actor could still supply it. The materialized value is immutable across any later scope rebind."
         },
@@ -642,15 +542,6 @@
           "owner": "space_parent",
           "schema_enforced": true,
           "description": "Parent placement is a separate causal current state; generic metadata cannot overwrite it."
-        },
-        {
-          "path": "scope_circle_id",
-          "basis": "create_locked",
-          "reason_code": "patch_path_reducer_managed",
-          "owner_kind": "event_kind",
-          "owner": "ak.space.create",
-          "schema_enforced": true,
-          "description": "Privacy scope is fixed at creation; ordinary metadata edits cannot rebind it. The value arrives in ak.space.create's signed object (realm-and-space.md section 3.2) and no later Event kind writes it, so the owner is that create, not a current state family: no such family is registered and none is described anywhere in the prose."
         }
       ]
     },

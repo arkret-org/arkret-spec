@@ -22,7 +22,7 @@ sidebar:
 - capability 与授权派生规则
 - Station Events API / Station sync surface / E2EE / applet 关键接口
 
-Schema 依赖由注册 Event kind 与 closed payload schema 决定；Realm、Circle 与 Sidecar 使用固定 v1 领域 reducer。v1 不使用顶层 `space_version` wire 字段。
+Schema 依赖由注册 Event kind 与 closed payload schema 决定；Realm 与 Sidecar 使用固定 v1 领域 reducer。v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 
@@ -92,7 +92,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 - `authority-commit-fixture.json`、`cursor-negative-fixture.json` 与 `privacy-security-fixture.json`：独立 stream 顺序、分页缺口、snapshot、MLS 当前 epoch 与 decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `authority-commit-fixture.json`：独立 Realm/Circle/Sidecar authority stream、Event acceptance、state-changing Event RealmCommit finality、安全状态的唯一确认顺序与治理 Station handoff 向量。
+- `conformance-vectors.md` 与 `authority-commit-fixture.json`：独立 Realm/Sidecar authority stream、Event acceptance、state-changing Event RealmCommit finality、安全状态的唯一确认顺序与治理 Station handoff 向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Strand discussion track 不继承 Strand synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
@@ -165,7 +165,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 
 逐流窗口与位置化扫描另 MUST 执行同一 fixture 中的 `ak.vector.sync.window_start_basis.v1`、`ak.vector.sync.stream_scan_permitted_range.v1`、`ak.vector.sync.stream_enumeration_no_starvation.v1`、`ak.vector.sync.committed_event_view_integrity.v1` 与 `ak.vector.sync.zero_window_and_empty_stream.v1`：
 
-- window start basis：同一帧混合 Realm／Circle／Sidecar 起点，逐流声明覆盖范围；position 0 起始无 basis 且不是 preview，起点 > 0 缺 exact basis 时无论 `limited` 值都逐流 preview；`state_at_window_start` 是显示预览，MUST NOT 清除任何流的 `preview_only`；缺该流所需安全／MLS 上下文时只该流 `preview_only`。签名 snapshot、row、head、floor 或 tail 验证失败则拒绝整份 Account 帧且不推进聚合 cursor；verified scan 只有拿到 position 0 到目标 head 的完整链才能解除 preview，不能自建 typed current。
+- window start basis：同一帧混合 Realm／Sidecar 起点，逐流声明覆盖范围；position 0 起始无 basis 且不是 preview，起点 > 0 缺 exact basis 时无论 `limited` 值都逐流 preview；`state_at_window_start` 是显示预览，MUST NOT 清除任何流的 `preview_only`；缺该流所需安全／MLS 上下文时只该流 `preview_only`。签名 snapshot、row、head、floor 或 tail 验证失败则拒绝整份 Account 帧且不推进聚合 cursor；verified scan 只有拿到 position 0 到目标 head 的完整链才能解除 preview，不能自建 typed current。
 - scan 允许区间：`after_position` / `before_position` 各自的逐页结果、`truncated` 只反映获准可读的 Commit、`readable_floor` 在非零 floor 上给出可验证下端、空获准区间不等于空物理流，并在跨页上校验 `newer.previous_commit_ref == older.commit_id`。
 - 流枚举不饥饿：70 条可见流下枚举分页、显式 `stream_refs` 选择、第 65 条流在首页之后产生 Commit 仍能发现并续传、固定快照分页与每页权限重查。
 - CommittedEventView 完整性：full 分支的 `event.event_id` 与 `commit.event_ref` 不一致 MUST 拒绝；withheld 分支只允许 `{status:"withheld"}` 且不作为 reducer 输入；不得出现第三种 redacted／stub 形态。

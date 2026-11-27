@@ -30,7 +30,7 @@ Arkret/1 管理三个互相独立的维度：
 
 current-v1 的 canonical schema、registry、正文与 conformance vectors 共同构成唯一合同。规范发布前的修订直接替换这些真源并同步 SDK 与实现；不得增加别名、双读路径、第二套解释器或由 Realm 选择的状态语义。
 
-Realm、Circle 与 Sidecar 的共享状态使用 Arkret v1 固定的领域 reducer。Realm 对象、Event、snapshot、MLS binding 与 `ServiceDescribe` 均不携带可协商的 reducer 选择；实现也不得通过 header、query、私有字段或本地配置为同一组 canonical bytes 选择另一套状态解释。
+Realm 与 Sidecar 的共享状态使用 Arkret v1 固定的领域 reducer。Realm 对象、Event、snapshot、MLS binding 与 `ServiceDescribe` 均不携带可协商的 reducer 选择；实现也不得通过 header、query、私有字段或本地配置为同一组 canonical bytes 选择另一套状态解释。
 
 Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请求判定。构建 SHA、源码树摘要和生成文件摘要不得进入协议协商。
 
@@ -38,7 +38,7 @@ Spec、SDK 与服务实现的 SemVer 只管理发布制品，不参与联邦请�
 
 每个注册 Event kind 直接绑定其领域 payload、领域 reducer 与 current state。治理 Station只按 Event 所属 stream 的 `RealmCommit.stream_position` 顺序执行这些规则：
 
-- Realm、每个 Circle、每个 Sidecar 各自拥有独立 stream；不同 stream 不定义总序。
+- Realm 与每个 Sidecar 各自拥有独立 stream；不同 stream 不定义总序。
 - producer Event 不携带 predecessor、提交位置或治理方选择。
 - `previous_commit_ref` 只属于 `RealmCommit`，并且只可引用同 stream 的前一笔 Commit。
 - 需要排除陈旧意图的领域 Event 在 typed payload 中携带 `expected_commit_id`；新对象使用稳定领域 ID。

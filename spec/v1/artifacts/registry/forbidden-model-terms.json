@@ -69,7 +69,7 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Strand, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+      "notes": "Realm identifies the federation, membership and replication boundary. Space organizes the objects in a Realm. Strand carries collaboration content."
     },
     {
       "id": "Room visibility",
@@ -135,12 +135,12 @@
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Realm members (or Circle members, when Strand.scope_circle_id points at a Circle)",
+      "replacement": "Realm members",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Track does not carry independent membership; the entire Strand shares one effective scope (Strand.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Strand needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
+      "notes": "Every Track uses its Strand’s Realm. Independent membership and history require a separate Realm. See zh/models/strand-and-message.md."
     },
     {
       "id": "受控协作 Realm",

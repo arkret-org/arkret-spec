@@ -30,8 +30,8 @@ class ScopeReadReceiptPolicyTest(unittest.TestCase):
     def test_canonical_vectors_execute(self):
         self.assertEqual(self.run_gate(), [])
 
-    def test_missing_scope_subject_is_rejected(self):
-        self.writer()["state_writes"][0]["state_selector"] = None
+    def test_second_scope_coordinate_is_rejected(self):
+        self.writer()["state_writes"][0]["state_selector"] = {"kind": "field", "field": "envelope.scope_ref"}
         self.assertTrue(self.run_gate())
 
     def test_payload_merge_is_rejected(self):
@@ -45,10 +45,10 @@ class ScopeReadReceiptPolicyTest(unittest.TestCase):
         catalog["event_kind_registry"]["event_kinds"].append(duplicate)
         self.assertTrue(self.run_gate())
 
-    def test_parent_fallback_expectation_is_rejected(self):
+    def test_foreign_policy_fallback_is_rejected(self):
         fixture = self.documents[contract.FIXTURE]
         row = next(row for row in fixture["decision_cases"]
-                   if row["name"] == "realm_disabled_does_not_disable_circle")
+                   if row["name"] == "foreign_disabled_does_not_disable_target")
         row["expected"] = {"send": False, "display": False}
         self.assertTrue(self.run_gate())
 

@@ -7,6 +7,7 @@ import unicodedata
 from datetime import datetime
 
 from tools.reference_json import jcs_text
+from tools.mls_scope import canonical_mls_group_id
 
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -439,10 +440,7 @@ def verify_roster_keys(records, add_rows, recovery_rows):
                 replacement = event["payload"]["recovery_binding"]["replacement"]
                 if leaf["actor_id"] != event.get("executed_by", event["actor_id"]) or leaf["actor_id"] != replacement["actor_id"] or leaf["signature_key_base64url"] != row["public_key_base64url"] or leaf["signature_key_base64url"] != replacement["signature_key_base64url"]:
                     raise ValueError("original recovery fact differs from RFC path leaf")
-                scope = event["scope_ref"]
-                name = scope["kind"]
-                scope_key = scope["realm_id"] if name == "realm" else scope["circle_id"] if name == "circle" else scope["realm_id"] + "\x1f" + scope["sidecar_id"]
-                expected = hashlib.sha256(b"ak.mls.group_id.v1\x00" + scope_key.encode()).hexdigest()
+                expected = unb64(canonical_mls_group_id(event["scope_ref"])).hex()
                 if leaf["group_id_hex"] != expected:
                     raise ValueError("wrong recovery group scope")
 

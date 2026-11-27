@@ -29,7 +29,7 @@
     "strand_id": {
       "type": "string",
       "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$",
-      "description": "Target Strand. It MUST lie inside the Realm/Circle security scope named by the signed outer scope_ref."
+      "description": "Target Strand. It MUST lie inside the Realm security scope named by the signed outer scope_ref."
     },
     "typing": {
       "type": "boolean",

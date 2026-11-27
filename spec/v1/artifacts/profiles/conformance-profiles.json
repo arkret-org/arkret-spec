@@ -1459,7 +1459,6 @@
     "ak.profile.mimi_interop.v1",
     "ak.profile.sovereign_client.v1",
     "ak.profile.webrtc_media.v1",
-    "ak.profile.circle_conformance.v1",
     "ak.profile.personal_productivity.v1",
     "ak.profile.draft_sync.v1",
     "ak.profile.file_transfer.v1",
@@ -1492,8 +1491,7 @@
       "ak.profile.push_gateway.visible_notification.v1",
       "ak.profile.push_gateway.matrix_passthrough.v1",
       "ak.profile.sovereign_client.v1",
-      "ak.profile.webrtc_media.v1",
-      "ak.profile.circle_conformance.v1"
+      "ak.profile.webrtc_media.v1"
     ],
     "v1_minimal_interop_floor": [
       "ak.profile.core_event_store.v1"
@@ -1615,7 +1613,6 @@
     "ak.profile.membership_join_compensation.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
     "ak.profile.webrtc_media.v1": "gateway",
-    "ak.profile.circle_conformance.v1": "interop",
     "ak.profile.personal_node.v1": "admin",
     "ak.profile.small_team.v1": "admin",
     "ak.profile.organization.v1": "admin",
@@ -2074,7 +2071,7 @@
         "The Realm scope is plaintext until its single ak.mls.genesis is accepted; that accepted RealmCommit irreversibly activates standard RFC 9420 for the scope and every later content write MUST be an MLS application message.",
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Stable participants may author only the closed Chat/flat Topic structural actions of participant_authority.structural_contract; all other Space kinds, non-root Topic topologies, plaintext metadata and bootstrap extensions fail closed.",
-        "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
+        "The canonical main Strand MUST be active, belong to the Realm, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and fourth Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the same four byte-identical source RealmCommits without changing the fourth committed_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit, and no founding receipt exists.",
         "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
@@ -2139,8 +2136,8 @@
         "delegated_actor_rule": "participant_authority_and_agent_provision_runtime_participation_all_required",
         "structural_contract": {
           "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
-          "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
-          "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+          "canonical_main": "active_same_realm_primary_discussion_anchor_independent_of_actual_target",
+          "chat_create": "event_derived_same_realm_active_primary_discussion_without_content_or_extra_tracks",
           "chat_update_paths": [
             "encrypted_metadata",
             "topic"
@@ -2169,7 +2166,7 @@
         "personal_watch_contract": {
           "action": "ak.strand.watch.set",
           "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
-          "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+          "target": "actual_chat_strand_in_same_direct_realm",
           "authority": "stable_participant_and_unique_binding_confirmation_only",
           "bootstrap": "forbidden",
           "others": "forbidden_including_the_other_stable_participant",
@@ -3676,7 +3673,7 @@
         "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
         "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",
         "retry_must": "The operation forbids Idempotency-Key, is retry_safe=false and uses uncertain_outcome.strategy=drop_unconfirmed. A lost response MUST NOT cause automatic request replay.",
-        "scope_authority_cut_must": "Circle Signal MUST bind independent exact accepted scope and parent Realm cuts in proof/AAD, validate historical and current parent membership/capability and scope membership/MLS in one authority read, and fail closed on current revoke/reset/ownership/join changes or missing current lineage/coverage. Realm Signal MUST omit the parent field. No cross-stream position or wall-clock causal inference is allowed."
+        "scope_authority_cut_must": "Signal proof and AEAD bind the accepted head of the exact content stream."
       }
     },
     "ak.profile.identity_registry.v1": {
@@ -4709,7 +4706,7 @@
           "sidecar_context_excluded_from_authority_stream_head",
           "ownership_lifecycle_expected_revision"
         ],
-        "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize Circle/member/Strand/Relation objects for one (realm_id, controller_account_id)"
+        "unsupported_optional": "fail closed; do not create multiple Sidecars or synthesize member/Strand/Relation objects for one (realm_id, controller_account_id)"
       }
     },
     "ak.profile.agent_participation_policy.v1": {
@@ -5930,74 +5927,6 @@
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
-    "ak.profile.circle_conformance.v1": {
-      "role": "interop",
-      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor content payload (`scope_circle_id` where that object schema defines it), the signed Event `scope_ref`, and the materialized object's `effective_scope`; it also pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
-      "enforcement_phases": [
-        "conformance",
-        "peer_eligibility"
-      ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.events.command.submit.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.self.committed_event.read.scan.v1",
-          "binding_kind": "http_json"
-        }
-      ],
-      "inherits": [],
-      "required_event_kinds": [
-        "ak.circle.create",
-        "ak.circle.update",
-        "ak.circle.archive",
-        "ak.circle.restore",
-        "ak.circle.tombstone",
-        "ak.circle.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.circle.v1",
-        "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
-      ],
-      "required_capability_actions": [
-        "ak.circle.create",
-        "ak.circle.manage",
-        "ak.circle.member.add",
-        "ak.circle.member.manage",
-        "ak.circle.member.add.others",
-        "ak.circle.audit"
-      ],
-      "required_fixtures": [
-        "circle-scope-fixture.json",
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [
-        "scope_rebind_audit_paired"
-      ],
-      "feature_discovery": {
-        "required": [
-          "circle_submit_payload_shape",
-          "circle_signed_scope_ref_shape",
-          "circle_mls_genesis_activation_check",
-          "circle_scope_rebind_default_reject",
-          "circle_member_state_transition_table"
-        ],
-        "unsupported_optional": "implementations that cannot verify the signed Event scope_ref and its equivalence to reducer-derived scope MUST NOT claim ak.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
-      },
-      "additional_requirements": {
-        "submit_payload_must": "Object payload schemas that own scope_circle_id (including Strand, Morph, Relation, and scoped Space create/update shapes) MAY carry only that field as their actor-authored scope selector and MUST reject effective_scope (reason=effective_scope_reducer_managed). The rejection is decidable from the artifact schemas alone on both surfaces: every create shape reuses its object schema, and Relation - the one object schema that declares effective_scope on a patch surface - additionally forbids the effective_scope / effective_scope.* patch paths, registered per object kind in registry/reducer-managed-path-registry.json. Message and structural-operation payloads derive scope from accepted target references and MUST NOT invent a duplicate scope_circle_id; every Event still carries the producer-signed scope_ref.",
-        "canonical_reducer_output_must": "The producer MUST sign the tagged Event scope_ref. The receiver MUST derive the effective scope from the frozen pre-state and payload, require exact equality with scope_ref, and materialize the same value as the object's read-only effective_scope. A later scope_circle_id rebind MUST NOT re-interpret historical Events or objects.",
-        "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ak.audit.accessed pairing.",
-        "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "The Station sync surface MUST NOT deliver Events with scope_ref.kind=circle to actors who are not members at that Event's committed Circle-stream position (see zh/models/circle.md §9.3 scope-delivery invariant).",
-        "circle_mls_genesis_activation_must": "A Circle scope is plaintext until its own ak.mls.genesis is accepted. That accepted RealmCommit irreversibly activates standard RFC 9420 for the Circle scope; a later plaintext content write into the activated scope MUST be rejected and the activation MUST NOT be reversed. See zh/models/circle.md section 7."
-      }
-    },
     "ak.profile.personal_productivity.v1": {
       "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
       "enforcement_phases": [
@@ -6228,7 +6157,7 @@
       }
     },
     "ak.profile.pinned_items.v1": {
-      "description": "Shared pin profile for Strand/Realm/Circle/Space projection homes using ak.pin.* events.",
+      "description": "Shared pin profile for Strand/Realm/Space projection homes using ak.pin.* events.",
       "enforcement_phases": [
         "build",
         "conformance"

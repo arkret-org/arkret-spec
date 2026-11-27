@@ -75,52 +75,18 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Scope 披露策略 (Disclosure Policy)
 
-Realm-default scope 与每个 Circle scope MUST 使用同一套 read receipt policy 合同，各自独立配置、
-独立存取与执行。消息所属的签名 `scope_ref` 决定唯一适用策略：Realm-default 消息只读该 Realm
-scope 的策略，Circle 消息只读该 Circle 的策略。父 Realm、Realm link、`governed_by`、其它 Circle
-及 source Realm 的策略 MUST NOT 参与继承、fallback、合并或“取更严格者”。Realm 的 `required`
-或 `disabled` 都不锁定 Circle 的配置。Track 级策略与 Sidecar 策略不在本合同范围内。
-
-整个 Strand 的 scope 由 `Strand.scope_circle_id` 与签名 `scope_ref` 绑定，见
-[Circle](../models/circle.md) 和 [Strand §5](../models/strand-and-message.md)。
-Scope 隔离是披露上限；policy 只能在该 scope 已有观察权限内约束阅读行为，不能授予成员资格、
-正文访问权或跨 scope 观察权。
+每个 Realm 有一份已读披露策略。Strand 和 Track 上的回执按所属 Realm 的策略处理。个人 Sidecar 的私聊独立受其原有披露规则约束。
 
 #### 2.5.1 唯一写者与当前状态
 
-唯一写入 Event 为 `ak.scope.read_receipt_policy`。它的签名 envelope `scope_ref` MUST 是闭合的
-Realm 或 Circle 分支（[read_receipt_policy_scope_ref](../../artifacts/schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref)），
-其中 `realm_id` MUST 等于 envelope `realm_id`；Circle MUST 属于该 Realm。Event 进入该 scope
-自己的 authority commit stream，covering RealmCommit 的 `stream_ref` MUST 标识同一 scope。
-准入 MUST 在同一事务 cut 检查目标 scope 的 `ak.policy.manage` 授权、scope/lifecycle 与有效成员资格；
-Circle 范围的 grant 不能授权父 Realm 或兄弟 Circle，聚合 admin/owner 权限也不跳过 scope 校验。
-拒绝时 MUST 零 accepted effects；成功时 Event、RealmCommit 与 current 替换 MUST 原子提交。
+唯一写入 Event 为 `ak.scope.read_receipt_policy`。签名 `scope_ref` MUST 为该 Realm，接纳事务 MUST 核实有效成员资格、生命周期与 `ak.policy.manage` 授权。Event、覆盖它的 RealmCommit 与策略 current 必须原子提交；拒绝时零写入。
 
-Payload 为 [read_receipt_policy_payload](../../artifacts/schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload)
-闭合非空对象，只包含 `disclosure`、`visibility`；两字段都可省略，但不可显式为 `null`。
-Payload MUST NOT 重复 `scope_ref`、`realm_id` 或 `circle_id`。
-
-```json fragment
-{
-  "kind": "ak.scope.read_receipt_policy",
-  "scope_ref": {"kind": "circle", "realm_id": "<realm_id>", "circle_id": "<circle_id>"},
-  "payload": {"disclosure": "optional", "visibility": "members"}
-}
-```
-
-唯一 current family 为 `scope_read_receipt_policy`；closed selector 是
-`{kind:"scope_read_receipt_policy",scope_ref:<exact signed scope_ref>}`。
-Subject 是签名 `envelope.scope_ref` 的 canonical JSON 单组件；source stream 与 selector scope MUST
-逐字段一致，revision 为接受该 Event 的同 scope RealmCommit `{commit_id,stream_position}`。
-每次写入完整置换 payload，MUST NOT 把旧值的省略字段补回；默认值仅在读侧解释。
-策略不属于 `ak.realm.policy_bundle`、Circle 对象或 `ak.circle.update` patch，不能产生第二份写者。
-现行 v1 不再登记 `ak.realm.read_receipt_policy`、`realm_read_receipt_policy` 或
-`scope_overrides_allowed`；它们 MUST NOT 被当作兼容写入、selector 或 fallback。
+唯一 current selector 是 `{"kind":"scope_read_receipt_policy"}`，其 subject 为 null，由 Realm stream 定位。current 的 `source_stream_ref` MUST 是目标 Realm，revision 必须是覆盖写入的 Commit。每次以完整签名 payload 置换旧值。payload 仅允许 `disclosure` 和 `visibility`，至少有一项，显式 null 无效。
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | `required`：合规客户端 MUST 发送；`optional`：按 Client Preference；`disabled`：MUST NOT 生成，接收端 MUST 丢弃且不呈现。三者是本 scope 的选择，不构成跨 scope 严格度排序。 |
-| `visibility` | `enum(public, members, private)` | `members` | `public`：本 scope 已有权限观察目标 Strand 的全部观察者；`members`：Realm-default scope 的有效 Realm 成员或该 Circle 的有效成员；`private`：仅目标消息的原作者，且仍须具备该 scope 的访问资格。任何值都不得把 Circle 回执披露到 Realm-default scope 或兄弟 Circle。 |
+| `visibility` | `enum(public, members, private)` | `members` | `public`：本 scope 已有权限观察目标 Strand 的全部观察者；`members`：该 Realm 的有效成员；`private`：仅目标消息的原作者，且仍须具备该 scope 的访问资格。 |
 
 #### 2.5.2 同 cut 读取、缺席与更新
 
@@ -144,8 +110,8 @@ Subject 是签名 `envelope.scope_ref` 的 canonical JSON 单组件；source str
 - 客户端 MUST 在进入 scope/Strand 时明示该 scope 的 disclosure/visibility 与锁定开关。
   `required` 禁止 `send=false`，并 SHOULD 在每次进入 track 时按 §2.1 至少发送覆盖当前可见 head 的回执；
   debounce、合并与限流仍适用。`disabled` 覆盖用户 `send=true`，Read Cursor 不受影响。
-- 回执 target Event、Strand/track、签名 Signal `scope_ref` 和 policy selector MUST 对应同一 scope。
-  错 Realm、错 Circle、兄弟 scope 或只有父 Realm 成员资格的接收者 MUST NOT 获得 Circle 的回执展示。
+- 回执 target Event、Strand/track、签名 Signal `scope_ref` 和策略的源流 MUST 对应同一 Realm。
+  不同 Realm 的策略、回执和源流不能混用。
 - Station sync surface MUST 按签名 scope 与该 scope 的投递授权裁剪 fanout。它看不到加密的 kind/event_id，
   MUST NOT 通过新增明文产品 selector 识别回执或按消息作者定向路由。
 - 接收端解密后检查 policy 与目标作者；`private` 只允许原消息作者看到，使用完整 ActorId（含 Station）
@@ -343,7 +309,7 @@ state=unread, cursor=<cursor>, limit=<int>
 多设备 read cursor 合并规则（按下列优先级,normative）：
 
 1. **支配优先**：position Event 在单权威模型下的唯一顺序是其已提交坐标 `(CommitStreamRef, stream_position)`（[`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md)）。cursor A 支配 cursor B，当且仅当两者的 position Event 提交在**同一** `CommitStreamRef` 上且 A 的 `stream_position` 更大；此时取 A，**与 HLC / device_id 无关**。合并结果 MUST NOT 回退到任何被它支配的更早 cursor 之前（即不得造成未读计数反弹，与 §6.6 流程第 5 条一致）。
-2. **互不支配才比 HLC**：两个 position 提交在不同 stream（Realm／Circle／Sidecar 之间不存在总序），或指向同一 Event 时，二者互不支配，取 HLC 最大者。
+2. **互不支配才比 HLC**：两个 position 提交在不同 stream（Realm／Sidecar 之间不存在总序），或指向同一 Event 时，二者互不支配，取 HLC 最大者。
 3. **HLC 相等才用 device_id**：仅当互不支配且 HLC 全等时，才按 device id 字典序作确定性 tie-break；MUST NOT 用它选中一个被另一方支配的更早 position。
 
 该三段式规则是唯一算法：schema description、operation notes 与 transport binding 表 MUST NOT 把它压缩成无条件 "HLC max"。可执行覆盖见 [`../conformance/conformance-vectors.md` §5.9](../conformance/conformance-vectors.md) 的 `ak.vector.read_cursor.multi_device_merge.v1`。

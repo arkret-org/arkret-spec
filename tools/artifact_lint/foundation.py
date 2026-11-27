@@ -2344,7 +2344,7 @@ def check_protocol_layer_registry(lint: Lint) -> None:
             for branch in branches
             if isinstance(branch, dict)
         }
-        expected_scope_kinds = {"realm", "circle", "sidecar", "realm_genesis", "realm_control"}
+        expected_scope_kinds = {"realm", "sidecar", "realm_genesis", "realm_control"}
         if scope_kinds != expected_scope_kinds:
             lint.fail(
                 envelope_path,

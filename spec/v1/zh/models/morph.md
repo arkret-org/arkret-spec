@@ -33,7 +33,6 @@ Schema id: `ak.schema.morph.v1`
 | `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ak.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | scope 派生、authority-commit 基线校验、签名 `scope_ref` 对照与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 结构验证的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
 | `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfiguration>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
@@ -59,7 +58,7 @@ Schema id: `ak.schema.morph.v1`
 
 | event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
 | --- | --- | --- | --- | --- |
-| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked；`stage` / `stage_changed_at` 禁止出现在 create payload，业务进度轴由后续首条 `ak.morph.stage.set` 初始化；`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
+| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked；`stage` / `stage_changed_at` 禁止出现在 create payload，业务进度轴由后续首条 `ak.morph.stage.set` 初始化；`schema_refs[]` ≥1。创建事件使用所属 Realm 范围。 |
 | `ak.morph.update` | yes | `ak.schema.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content`。patch path `morph_kind` / `schema_refs` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
 | `ak.morph.stage.set` | yes | stage transition payload | `ak.morph.stage.set` | 唯一改 / 初始化 `stage` 的路径；缺失轴的首写可取任一合法值，`stage_changed_at` reducer-derived；后续转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
 | `ak.morph.archive` | yes | object_lifecycle_payload | `ak.morph.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |

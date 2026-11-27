@@ -29,7 +29,7 @@ Event Envelope 的顶层字段为：
 | `event_id` | 是 | canonical Event bytes 的 typed content address |
 | `kind` | 是 | 已登记的 Event kind |
 | `realm_id` | 通常 | 所属 Realm；`ak.realm.create` 使用既有派生例外 |
-| `scope_ref` | 是 | Realm、Circle 或 Sidecar effective scope |
+| `scope_ref` | 是 | Realm 或 Sidecar effective scope |
 | `actor_id` | 是 | 业务事实归属主体 |
 | `executed_by` | 否 | 委托执行者；出现时同时要求 `authorization_ref` |
 | `authorization_ref` | 否 | Grant、委托 Event、DID delegation 或封闭 profile authority |
@@ -84,7 +84,7 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 ## 3. Typed reducer
 
 每个 Event kind 选择一个固定 typed reducer。治理 Station 按该 Event 所属 stream 的
-`RealmCommit.stream_position` 执行；Realm、不同 Circle、不同 Sidecar 之间没有总序。
+`RealmCommit.stream_position` 执行；Realm、不同 Sidecar 之间没有总序。
 
 需要 compare-and-set 的领域在自身 payload 中定义 `expected_commit_id`，该值引用该 typed current row 最后
 一次接受它的 Commit。协议不提供 current state key、通用 patch DSL、CRDT/deterministic projection rank 或 caller 指定的 state root。
@@ -105,7 +105,7 @@ Message、Strand、Calendar 等对象的 create/update 字段由各自 payload s
 治理 Station 验证 Event ID、producer proof、current authorization、typed payload、引用可见性和领域不变量；
 成功后原子写入 Event、RealmCommit、typed current 与 outbox。消费方验证 authority chain、逐 stream
 predecessor/position、Commit signature、Event ID 和 producer proof。消费方只能证明自己获准读取的 stream
-连续，不能从 Realm stream 推断隐藏 Circle 或 Sidecar 的活动。
+连续，不能从 Realm stream 推断隐藏 Sidecar 的活动。
 
 
 ### 4.2 patch path 规则

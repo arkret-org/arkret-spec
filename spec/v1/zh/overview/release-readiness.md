@@ -30,18 +30,18 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 143 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 236 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 221 | `artifacts/registry/operation-registry.json` |
-| Claimable conformance profile | 58 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 77 | `artifacts/profiles/conformance-profiles.json` |
+| Event kind（active） | 136 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 234 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 46 | `artifacts/registry/id-kind-registry.json` |
+| Service operation | 215 | `artifacts/registry/operation-registry.json` |
+| Claimable conformance profile | 57 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 76 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数由 pipeline 单独核验；bundle schema id 可登记到现有 schema artifact 的 `$defs`，因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 不重复可从 `identity_payload` 本体推导的 carrier digest，roster cache 使用独立的 `member_display_state_digest`；(3) 定向账号邀请（`ak.schema.invite.v1`）MUST 携带 exact `invitee_account_id` 与 `introduction_evidence_digest`，route material 仅在私有投递链路消费，不进入 durable Invite，使 base invite 不依赖 handle resolve 作为投递授权。current parser 只接受当前 registry/schema 中存在的 canonical 形态，不运行草案迁移层。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（77）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（76）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/artifact_lint/` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
@@ -103,7 +103,6 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - fixture 与 Markdown JSON 示例 MUST NOT 使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，MUST NOT 被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；MUST NOT 让 schema `$id` 解析到 HTML 文档。
 - Public catalog snapshot MUST 与发布状态一致并受版本控制：`spec/v1/release-metadata.json#release_tag` 是规范工具、release gate、站点展示与 public snapshot 命名共同消费的唯一机器源，site-local TypeScript 不得复制其字面量。stable promotion 前该值固定为 `v1.0.0-candidate`，Git tree 中只允许 `site/public/v1/contract-registry-1.0.0-candidate.json`；`artifact_pipeline.py generate` 刷新它，`check` 校验唯一文件名、受跟踪实物及其与 `artifacts/registry/contract-registry.json` byte identity。promotion 只能在所有 gate 通过后原子切换 `release_tag` 为 `v1.0.0`、删除旧 candidate snapshot、生成并提交 `contract-registry-1.0.0.json`；release tag 直接绑定该 tracked 文件。
-- Circle stable gate MUST 闭合签名 Event `scope_ref`、对象 `effective_scope` projection、Event / RealmCommit output shape、RealmCommit canonical bytes、MLS 激活不可逆机器契约、`confidential_discussion_of` Relation 契约，以及 Circle scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
 - `/en/v1/...` 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。除非未来另行接受新的语言政策提案，本规范不承诺提供完整英文版。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 - current-v1 尚未发布；本仓的 canonical schema、registry、正文、fixture 与 SDK 必须在 promotion 前保持单一自洽合同，不维护替代合同或双解释路径。

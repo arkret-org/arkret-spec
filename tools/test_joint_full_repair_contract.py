@@ -86,8 +86,7 @@ class JointFullRepairContractTest(unittest.TestCase):
         self.assertNotIn('activation_condition', row)
         catalog = load('registry/contract-registry.json')
         kinds = {row['event_kind']: row for row in catalog['event_kind_registry']['event_kinds']}
-        for kind in ('ak.member.state', 'ak.circle.member.state'):
-            self.assertIn('invalid_membership_transition', kinds[kind]['payload'])
+        self.assertIn('invalid_membership_transition', kinds['ak.member.state']['payload'])
         mapping = load('registry/operations-error-mapping.json')
         operations = {row['operation_id']: row for row in mapping['operations']}
         for operation in ('ak.self.events.command.submit.v1', 'ak.peer.events.command.submit.v1',

@@ -77,7 +77,7 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
         self.assertTrue(any("does not recompute" in e for e in self._run(mutate_fixture=mutate)))
 
     def test_timestamp_all_scopes_and_directions_are_required(self) -> None:
-        for index in range(9):
+        for index in range(6):
             with self.subTest(index=index):
                 errors = self._run(mutate_fixture=lambda f: f["timestamp_gate_cases"].pop(index))
                 self.assertTrue(any("every scope" in e for e in errors))
@@ -282,7 +282,6 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
         def mutate(registry):
             registry["scope_kind_applicability"]["applicable_scope_kinds"] = [
                 "realm",
-                "circle",
                 "sidecar",
             ]
             registry["scope_kind_applicability"]["excluded_scope_kinds"] = []
@@ -295,7 +294,7 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
 
     def test_silent_scope_kind_fails(self) -> None:
         def mutate(registry):
-            registry["scope_kind_applicability"]["excluded_scope_kinds"] = ["sidecar"]
+            registry["scope_kind_applicability"]["excluded_scope_kinds"] = []
             registry["scope_kind_applicability"]["applicable_scope_kinds"] = ["realm"]
 
         errors = self._run(mutate_registry=mutate)

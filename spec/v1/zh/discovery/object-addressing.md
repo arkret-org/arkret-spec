@@ -56,7 +56,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 ### 3.1 Path 规则（normative）
 
-- **realm 是身份，进 path；join forwarding 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；客户端只向自己的 Station 提交，后者可用的 joined-member forwarding hints 由 `resolve_realm` 返回的 `join_candidates[]` 给出，不写入地址本体。
+- **realm 是身份，进 path；join forwarding 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/realm-and-space.md`](../models/realm-and-space.md)）；客户端只向自己的 Station 提交，后者可用的 joined-member forwarding hints 由 `resolve_realm` 返回的 `join_candidates[]` 给出，不写入地址本体。
 - **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail closed（返回 `not_found`），不得做全网 strand_id 猜测。
 - **`<realm>` 段消歧（normative）**：该段匹配 canonical 44-character Base64URL-no-pad Realm token 时解释为
   `realm_id`，并在重建 `ak:realm:<token>` 后按 id-kind registry 校验保留零高 nibble、digest suite 与 canonical 重编码；否则该段必须匹配
@@ -67,9 +67,8 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
   （`ak:realm:<token>` / `ak:strand:<token>` / `ak:message:<token>`）并按该 kind 的 `id_form`
   校验。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical
   `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
-- **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
+- **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
 - Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/strand-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Strand discussion track 内的 `ak:message:` 对象；synthesis track 的结构化内容应通过 Strand / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
-- **Circle-scoped Strand**（`Strand.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
 
 ### 3.2 Query 规则（normative）
 
@@ -215,7 +214,7 @@ preview 必须遵守 effective preview policy；未知、撤销、到期、耗�
 ## 7. 规范性引用
 
 - 发现 / 目录 / 三 gate / anti-enumeration / `resolve_realm` / `join_candidates`：[`discovery/discovery-directory.md`](./discovery-directory.md)。
-- Realm 为根的授权 / Circle scope / 存在性隐私：[`models/circle.md`](../models/circle.md)、[`models/strand-and-message.md`](../models/strand-and-message.md)。
+- Realm 为根的授权 / 存在性隐私：[`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/strand-and-message.md`](../models/strand-and-message.md)。
 - Invite token / signed_link 生命周期：[`governance/join-policy.md`](../governance/join-policy.md)。
 - Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。
 - 逻辑 ID grammar：[`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)。

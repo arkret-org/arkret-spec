@@ -161,9 +161,6 @@
         "authority_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         },
-        "parent_realm_authority_commit_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
-        },
         "current_realm_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
@@ -193,7 +190,7 @@
             "$ref": "./policy.schema.json"
           },
           "maxItems": 64,
-          "description": "Complete applicable access/moderation policies at this cut, including parent Realm and Circle restrictions; no narrower allow overrides a parent denial."
+          "description": "Complete applicable access/moderation policies at this cut, including Realm restrictions; no narrower allow overrides a parent denial."
         },
         "current_product_policies": {
           "type": "array",
@@ -201,7 +198,7 @@
             "$ref": "./policy.schema.json"
           },
           "maxItems": 64,
-          "description": "Complete applicable access/moderation policies at this cut, including parent Realm and Circle restrictions; no narrower allow overrides a parent denial."
+          "description": "Complete applicable access/moderation policies at this cut, including Realm restrictions; no narrower allow overrides a parent denial."
         },
         "owner_actions": {
           "type": "array",

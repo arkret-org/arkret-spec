@@ -36,10 +36,9 @@
         "class": "admission_input",
         "consumed_by": [
           "models/realm-and-space.md §2.7",
-          "governance/join-policy.md §4",
-          "models/circle.md §9.1"
+          "governance/join-policy.md §4"
         ],
-        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction. Circle join admission and effective Circle membership compare its revision with the Circle join's parent_membership_revision."
+        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction."
       }
     },
     {
@@ -361,7 +360,7 @@
         "consumed_by": [
           "discovery/read-receipts.md §2.5"
         ],
-        "note": "Scope-local disclosure and visibility govern receipt sending and rendering only inside the exact signed Realm/Circle scope; no parent or sibling policy participates."
+        "note": "The sole Realm-local policy controls disclosure and visibility for receipts within the verified Realm stream."
       }
     },
     {
@@ -480,9 +479,9 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "models/circle.md §7.1"
+          "models/realm-and-space.md §3.3"
         ],
-        "note": "Whether a child Space's scope narrowing is admissible is decided against this policy."
+        "note": "Placement reads the requirement in the target Space and the accepted Realm MLS activation."
       }
     },
     {
@@ -656,18 +655,6 @@
       }
     },
     {
-      "state_kind": "circle",
-      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "zh/models/circle.md",
-          "zh/models/common-fields.md section 5.2"
-        ],
-        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
-      }
-    },
-    {
       "state_kind": "morph",
       "schema_ref": "schemas/current-state.schema.json#/$defs/current_morph",
       "consumption": {
@@ -834,19 +821,6 @@
           "models/realm-and-space.md §2.3.0"
         ],
         "note": "Organization views and official-badge rendering read the latest verified relationship statement."
-      }
-    },
-    {
-      "state_kind": "circle_member_state",
-      "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "models/circle.md §9.1",
-          "crypto-media/encryption-and-audit.md §2.4.1",
-          "governance/history-visibility.md §3.1"
-        ],
-        "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis. Effective Circle membership, the MLS send and Add gate for parent-invalidated leaves, and the Circle readable floor and historical-cut membership read the join value's parent_membership_revision against the parent Realm member_state current in the same cut."
       }
     },
     {
@@ -1079,7 +1053,7 @@
           "identity/key-management.md native Realm actor archive series",
           "extensions/realm-actors.md native content backup"
         ],
-        "note": "Exact full Realm actor, exact Realm/Circle scope and secret_storage. Current manager selects; Device only consumes authenticated public next_prepare_input and cannot select series or read other scope predecessors."
+        "note": "Exact full Realm actor, exact Realm scope and secret_storage. Current manager selects; Device only consumes authenticated public next_prepare_input and cannot select series or read other scope predecessors."
       }
     }
   ],

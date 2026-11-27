@@ -750,11 +750,6 @@ def check_model_required_field_table_coverage(lint: Lint) -> None:
             "ak.schema.relation.v1",
         ),
         (
-            "spec/v1/zh/models/circle.md",
-            "spec/v1/artifacts/schemas/circle.schema.json",
-            "ak.schema.circle.v1",
-        ),
-        (
             "spec/v1/zh/models/morph.md",
             "spec/v1/artifacts/schemas/morph.schema.json",
             "ak.schema.morph.v1",

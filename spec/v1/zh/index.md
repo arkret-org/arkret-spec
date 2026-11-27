@@ -21,7 +21,7 @@ see_also:
 
 `arkret-spec` 是 **Arkret v1 联邦式协作协议规范**。个人、组织与 AI Agent 可通过独立运营的 Station
 在 Realm 中跨域协作；每个 Realm 在同一任期只有一个治理 Station，负责接纳写入、确定逐 stream 顺序并
-签发 RealmCommit。启用 MLS 的 Realm / Circle / Agent Sidecar 以独立 scope 保护正文，服务器仍承担授权、
+签发 RealmCommit。启用 MLS 的 Realm / Agent Sidecar 以独立 scope 保护正文，服务器仍承担授权、
 同步与投递职责，并可见路由等元数据。Agent 以独立 Actor 参与，受 capability、accountability 与 Realm policy
 约束；个人 Agent 私聊使用独立 Direct Conversation Realm，项目内私人上下文使用 Sidecar，产出须显式发布。
 
@@ -35,7 +35,7 @@ see_also:
 日历、通话等产品形态定义为同一协作对象图的不同投影：
 
 - 身份主键：完整 ActorId；账号为不可拆分的 AccountId `{principal_id, station_id}`，DID principal 仅为密码学身份锚点
-- 数据主语（核心对象导览）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
+- 数据主语（核心对象导览）：Realm / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 审计主语：signed Event + 其所在 authority stream 的 RealmCommit position
 - 权限主语：capability
 - 呈现主语：views / projection
@@ -58,7 +58,6 @@ Realm 的延续只能依据其他参与者自身有效的授权。完整规则�
 | --- | --- | --- |
 | 谁在做事？ | Principal / Actor | Principal 是 DID 身份根；Actor 是该 Principal 在 Realm 内产生 Event 的参与身份。 |
 | 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
-| Realm 内要给一部分人单独的成员、历史和加密边界？ | Circle | Circle 是 Realm 内的子事件边界；复用父 Realm 的 federation / policy / capability，只裁剪成员、history、投递与查询，必要时启独立 MLS group。 |
 | 用户要与自己的 AI Agents 在 Realm context 中私密协作？ | Agent Sidecar | Sidecar 是每个 `(controller_account_id, source_realm_id)` 唯一的个人 AI 工作区；H 管理私聊与恢复，按主人显式启用记录和自有 Agent 的当前资格生成 MLS 目标集合。来源 Realm 治理站授权项目资料和发布。 |
 | 用户界面怎么组织项目、看板和列表？ | Space | Space 是导航 / 容器，不拥有成员、policy 或加密组。 |
 | 一件事、一个任务、一个话题或一个决策放哪里？ | Strand | Strand 是统一协作主对象；自身说明写入 Description（顶层 `content`），正式沉淀写入 `synthesis` track，讨论写入 `discussion` track。 |
@@ -138,7 +137,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 - 看板定义：`Board Space -> List Space -> Strand`。
 - 会话定义：`Strand(discussion track) -> Message`。
 - `ak.strand.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
-- Track 不携带独立 access（单点承载见 [`models/strand-and-message.md` §4](./models/strand-and-message.md)）；整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Strand + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
+- Strand 的所有 track 共享所属 Realm 的安全边界。各 track 的正文和写入条件见 [Strand 模型](./models/strand-and-message.md)。
 
 ### 4.4 同步与真相模型
 
@@ -180,7 +179,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 ## 6. 当前覆盖范围
 
 - 身份、handle、组织主体、服务 DID 与进阶披露
-- 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
+- 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 字段级结构、必填性、枚举与约束
 - capability、delegation、claim 条件、policy 与 moderation policy
 - Event-first 发布、Station 同步、客户端查询与投影

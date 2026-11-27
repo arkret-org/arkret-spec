@@ -20,7 +20,6 @@ UINT64_MAX = (1 << 64) - 1
 
 REALM_ID = "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
 OTHER_REALM_ID = "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
-CIRCLE_ID = "ak:circle:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
 SIDECAR_ID = "ak:sidecar:AZUfzdx1qBOtCsg2CGmS3QLP7vlDe_kxRx0pxdxefWTa"
 BASE_REF = "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq"
 OTHER_BASE_REF = "ak:event:AbhX3-n_FG8scl_4zkFai8VRhqvIwjOeWHvA8D3mQ9V7"
@@ -93,10 +92,6 @@ def realm_scope() -> dict[str, str]:
     return {"kind": "realm", "realm_id": REALM_ID}
 
 
-def circle_scope() -> dict[str, str]:
-    return {"kind": "circle", "realm_id": REALM_ID, "circle_id": CIRCLE_ID}
-
-
 def sidecar_scope() -> dict[str, str]:
     return {"kind": "sidecar", "realm_id": REALM_ID, "sidecar_id": SIDECAR_ID}
 
@@ -145,7 +140,6 @@ def map_with_raw_value(value: dict[str, Any], member: str, raw_value: bytes) -> 
 
 def build_fixture() -> dict[str, Any]:
     realm = binding(realm_scope())
-    circle = binding(circle_scope())
     sidecar = binding(sidecar_scope())
     genesis = binding(realm_scope(), base=None, previous=0, next_=0, revision=0)
 
@@ -208,7 +202,6 @@ def build_fixture() -> dict[str, Any]:
             },
             "accepted": [
                 accepted("realm_scope_commit", realm),
-                accepted("circle_scope_commit", circle),
                 accepted("sidecar_scope_commit", sidecar),
                 accepted("realm_scope_genesis", genesis),
             ],
@@ -349,8 +342,8 @@ def build_fixture() -> dict[str, Any]:
             "clause_id": "AK-NC-061",
             "decision_points": [
                 {"id": "closed_deterministic_cbor_and_bounds", "requirement": "Every received binding is the exact closed deterministic-CBOR map and fails before allocation when a syntax, range or decoder bound is violated.", "evidence": ["/cases/0"]},
-                {"id": "sidecar_members_are_scope_bound", "requirement": "The Sidecar scope carries only its signed participant digest in addition to shared fields. Missing digest, foreign-scope digest and the removed reference array are rejected; the digest commits the required member incarnations without a business count veto.", "evidence": ["/cases/0/accepted/2", "/cases/0/rejection_samples/2", "/cases/0/rejection_samples/3", "/cases/0/rejection_samples/4", "/participant_authority"]},
-                {"id": "all_scope_branches_have_fixed_acceptance_bytes", "requirement": "Realm, Circle, Sidecar and Genesis/null branches each have a positive fixed-byte acceptance KAT.", "evidence": ["/cases/0/accepted/0", "/cases/0/accepted/1", "/cases/0/accepted/2", "/cases/0/accepted/3"]},
+                {"id": "sidecar_members_are_scope_bound", "requirement": "The Sidecar scope carries only its signed participant digest in addition to shared fields. Missing digest, foreign-scope digest and the removed reference array are rejected; the digest commits the required member incarnations without a business count veto.", "evidence": ["/cases/0/accepted/1", "/cases/0/rejection_samples/2", "/cases/0/rejection_samples/3", "/cases/0/rejection_samples/4", "/participant_authority"]},
+                {"id": "all_scope_branches_have_fixed_acceptance_bytes", "requirement": "Realm, Sidecar and Genesis/null branches each have a positive fixed-byte acceptance KAT.", "evidence": ["/cases/0/accepted/0", "/cases/0/accepted/1", "/cases/0/accepted/2"]},
                 {"id": "epoch_and_revision_are_unsigned_monotonic_counters", "requirement": "Genesis is 0 to 0, Commit increments epoch by one, and key_access_revision is a monotonic unsigned 64-bit counter rather than a digest.", "evidence": ["/cases/1"]},
                 {"id": "valid_public_material_still_requires_exact_binding_equality", "requirement": "RFC 9420-valid public material is rejected when its internal binding differs from Station state or the Event payload.", "evidence": ["/cases/2"]},
                 {"id": "historical_replay_is_not_current_send_authority", "requirement": "Historical material is verified against its accepted historical binding and never grants current send authority.", "evidence": ["/cases/3"]},

@@ -823,7 +823,6 @@
                 "enum": [
                   "realm",
                   "space",
-                  "circle",
                   "strand",
                   "message",
                   "morph",
@@ -848,7 +847,6 @@
                   "values": [
                     "realm",
                     "space",
-                    "circle",
                     "strand",
                     "message",
                     "morph",
@@ -892,7 +890,6 @@
                       "enum": [
                         "realm",
                         "space",
-                        "circle",
                         "strand",
                         "message",
                         "morph",
@@ -915,7 +912,6 @@
                         "values": [
                           "realm",
                           "space",
-                          "circle",
                           "strand",
                           "message",
                           "morph",
@@ -1518,7 +1514,7 @@
     },
     "audit_accessed_payload": {
       "type": "object",
-      "description": "Strict audit payload. watch_set_others and circle_member_set_others belong to one registered audit_paired_event unit. watch_audit_read is admitted only through the dedicated audited-read command and is not a reusable preaccepted read ticket. The target and writer are checked against the signed business Event or authenticated auditor and current effective scope. No caller-authored state head or result ID is carried.",
+      "description": "Strict audit payload. watch_set_others belongs to one registered audit_paired_event unit. watch_audit_read is admitted only through the dedicated audited-read command and is not a reusable preaccepted read ticket. The target and writer are checked against the signed business Event or authenticated auditor and current effective scope. No caller-authored state head or result ID is carried.",
       "required": [
         "access_kind",
         "writer_actor_id",
@@ -1531,7 +1527,6 @@
           "type": "string",
           "enum": [
             "watch_set_others",
-            "circle_member_set_others",
             "watch_audit_read",
             "e2ee_late_recovery",
             "policy_audit_read",
@@ -1543,7 +1538,6 @@
             "owner": "event-payload.schema.json#/$defs/audit_accessed_payload/properties/access_kind",
             "values": [
               "watch_set_others",
-              "circle_member_set_others",
               "watch_audit_read",
               "e2ee_late_recovery",
               "policy_audit_read",
@@ -1583,16 +1577,14 @@
             "properties": {
               "access_kind": {
                 "enum": [
-                  "watch_set_others",
-                  "circle_member_set_others"
+                  "watch_set_others"
                 ],
                 "x-arkret-value-ownership": {
                   "class": "owned_symbol",
                   "authority": "event-payload.schema.json#/$defs/audit_accessed_payload/allOf/0/if/properties/access_kind",
                   "owner": "event-payload.schema.json#/$defs/audit_accessed_payload/allOf/0/if/properties/access_kind",
                   "values": [
-                    "watch_set_others",
-                    "circle_member_set_others"
+                    "watch_set_others"
                   ]
                 }
               }
@@ -3142,140 +3134,6 @@
       },
       "additionalProperties": false
     },
-    "circle_create_payload": {
-      "type": "object",
-      "description": "Create payload uses the create branch of Circle schema. Reducer requires created_by/created_at to match the Event, derives circle_id and, once the Circle scope has an accepted ak.mls.genesis, derives mls_group_id. A Circle is created plaintext and carries no encryption profile, content scheme or encryption floor. Actor-supplied id or mls_group_id is forbidden.",
-      "required": [
-        "object"
-      ],
-      "properties": {
-        "object": {
-          "allOf": [
-            {
-              "$ref": "./circle.schema.json"
-            },
-            {
-              "not": {
-                "required": [
-                  "id"
-                ],
-                "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
-              }
-            }
-          ]
-        }
-      },
-      "not": {
-        "properties": {
-          "object": {
-            "required": [
-              "mls_group_id"
-            ]
-          }
-        },
-        "required": [
-          "object"
-        ]
-      },
-      "additionalProperties": false
-    },
-    "circle_member_state_payload": {
-      "type": "object",
-      "description": "Payload for ak.circle.member.state. Uses the same membership_state enum as ak.member.state (Realm), scoped to a Circle. A `join` carries the producer-signed parent_membership_revision and every other transition forbids it; admission MUST verify in the accepting cut that the parent Realm member_state current of the same member_id is `join` at exactly that revision, MUST gate `knock` on Circle join_rule=knock, and MUST reject self-unban/self-unremove paths. See zh/models/circle.md §9.1.",
-      "required": [
-        "circle_id",
-        "member_id",
-        "membership"
-      ],
-      "properties": {
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "member_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "membership": {
-          "$ref": "#/$defs/membership_state"
-        },
-        "parent_membership_revision": {
-          "$ref": "./current-state.schema.json#/$defs/revision",
-          "description": "Required on membership=join and forbidden on every other transition. It is the exact typed revision of the parent Realm member_state current state for this complete member_id, i.e. the Realm-stream RealmCommit that accepted the Event (ak.member.state or ak.invite.accept) establishing the member's current parent join. Admission rejects the join with failed_precondition reason=circle_member_must_be_realm_member unless that current is `join` at exactly this {commit_id, stream_position} in the same accepting cut. It is signed by the producer, never derived by a reducer, because a replica or snapshot consumer cannot recompute the cross-stream admission basis. Comparison is by the content-addressed commit_id together with the position on the parent Realm stream, never by a position number shared with a Circle stream. Effective Circle membership holds only while the parent current still carries this revision; a later parent leave, ban or rejoin never revives this join (zh/models/circle.md §9.1)."
-        },
-        "reason": {
-          "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expected_membership": {
-          "x-arkret-presence-semantics": "distinct",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/membership_state"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Optional optimistic-concurrency guard, orthogonal to the membership transition guard. The three wire states are distinct: omission applies no CAS and leaves legality to the FSM guard, explicit null asserts the actor currently has no membership record in this Circle, and a concrete value asserts the current membership equals it. A failed assertion MUST be rejected with failed_precondition. See zh/models/circle.md §9.1."
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "membership": {
-                "const": "join",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "event-payload.schema.json#/$defs/circle_member_state_payload/allOf/0/if/properties/membership",
-                  "owner": "event-payload.schema.json#/$defs/circle_member_state_payload/allOf/0/if/properties/membership",
-                  "values": [
-                    "join"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "membership"
-            ]
-          },
-          "then": {
-            "required": [
-              "parent_membership_revision"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "parent_membership_revision"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "circle_patch_payload": {
-      "type": "object",
-      "description": "Payload class for ak.circle.update. Patch path MUST NOT contain realm_id, mls_group_id, history_access, state, state_changed_at, created_by, or created_at; history_access changes use dedicated ak.circle.history_access. Reducer enforces create-locks and semantic policy checks.",
-      "required": [
-        "circle_id",
-        "patch"
-      ],
-      "properties": {
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "patch": {
-          "$ref": "#/$defs/patch"
-        },
-        "expected_state_digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
-    },
     "consent_peer": {
       "description": "Closed consent counterparty identity. Ordinary accounts, Agents, pseudonymous accounts and MIMI-correlated parties use one exact ActorId, including Account Station and actor role.",
       "type": "object",
@@ -4167,7 +4025,7 @@
     },
     "cross_object_redaction_target_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(space|actor_profile|strand|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$",
       "description": "Cross-object ak.redaction object target. Identical to object_ref except that ak:message: is removed from the typed-object alternation: Message is the only object with a registered object-scoped redact kind, so a Message MUST enter state=redacted through ak.message.redact and MUST NOT be the target of a cross-object ak.redaction (models/common-fields.md 5.2)."
     },
     "device_authorize_payload": {
@@ -4825,34 +4683,6 @@
           "required": [
             "kind",
             "realm_id",
-            "circle_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "event-payload.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
-                "owner": "event-payload.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
-                "values": [
-                  "circle"
-                ]
-              }
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id",
             "sidecar_id"
           ],
           "properties": {
@@ -4860,8 +4690,8 @@
               "const": "sidecar",
               "x-arkret-value-ownership": {
                 "class": "owned_symbol",
-                "authority": "event-payload.schema.json#/$defs/effective_scope/oneOf/2/properties/kind",
-                "owner": "event-payload.schema.json#/$defs/effective_scope/oneOf/2/properties/kind",
+                "authority": "event-payload.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
+                "owner": "event-payload.schema.json#/$defs/effective_scope/oneOf/1/properties/kind",
                 "values": [
                   "sidecar"
                 ]
@@ -4937,37 +4767,6 @@
       },
       "additionalProperties": false,
       "description": "Realm history-access FSM transition. The atomic create unit uses from=null exactly once and chooses either closed initial state. After create the only legal state-changing edge is all_history_for_current_members to since_join; widening and every other new transition are permanently rejected. Exact same-transition/same-basis replay is an idempotent duplicate/no-op."
-    },
-    "circle_history_access_payload": {
-      "type": "object",
-      "required": [
-        "circle_id",
-        "from",
-        "to"
-      ],
-      "properties": {
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "from": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/$defs/history_access_value"
-            }
-          ]
-        },
-        "to": {
-          "$ref": "#/$defs/history_access_value"
-        },
-        "reason": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Dedicated per-Circle history-access FSM transition. Circle create initializes from=null. The only post-create edge is all_history_for_current_members to since_join; exact replay is idempotent and widening is permanently rejected. Generic ak.circle.update patches cannot touch history_access."
     },
     "history_access_value": {
       "type": "string",
@@ -5986,7 +5785,7 @@
     },
     "membership_state": {
       "type": "string",
-      "description": "Canonical materialized membership state enum shared by ak.member.state (Realm) and ak.circle.member.state (Circle). Invite is a separate pending workflow and is never a member state. `knock` denotes a pending self-authored join request; see governance/join-policy.md §5 and models/circle.md §9.1.",
+      "description": "Canonical materialized membership state enum for ak.member.state. Invite is a separate pending workflow and is never a member state. `knock` denotes a pending self-authored join request; see governance/join-policy.md §5.",
       "enum": [
         "join",
         "knock",
@@ -6898,7 +6697,6 @@
         "comparison": "canonical_timestamp_string_equality",
         "effective_scope_kinds": [
           "realm",
-          "circle",
           "sidecar"
         ],
         "check_phase": "before_any_accepted_effect",
@@ -7385,7 +7183,7 @@
     },
     "object_lifecycle_payload": {
       "type": "object",
-      "description": "Generic lifecycle payload for the Strand / Circle / Morph archive-restore-tombstone kinds. The target object is single-sourced by target_ref. The payload does NOT carry the target state: zh/models/common-fields.md section 5.2 maps the event kind itself to the state -- archive -> archived, restore -> active, tombstone -> tombstoned -- and the reducer produces it through the object_lifecycle_state derivation. An author-suppliable target state would put the object's `state` member, which universal_forbidden_patch_paths reserves for the reducer, back inside the author region through a second door, and would make ak.circle.archive able to spell a restore.",
+      "description": "Generic lifecycle payload for the Strand / Morph archive-restore-tombstone kinds. The target object is single-sourced by target_ref. The payload does NOT carry the target state: zh/models/common-fields.md section 5.2 maps the event kind itself to the state -- archive -> archived, restore -> active, tombstone -> tombstoned -- and the reducer produces it through the object_lifecycle_state derivation. An author-suppliable target state would put the object's `state` member, which universal_forbidden_patch_paths reserves for the reducer, back inside the author region through a second door, and would make ak.morph.archive able to spell a restore.",
       "required": [
         "target_ref"
       ],
@@ -7401,7 +7199,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(space|actor_profile|strand|message|morph|relation|view|event|grant|invite|realm_invite_link|call):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "organization_moderation_policy_state_payload": {
       "type": "object",
@@ -7918,35 +7716,11 @@
           ],
           "properties": {
             "kind": {
-              "const": "circle",
+              "const": "space",
               "x-arkret-value-ownership": {
                 "class": "owned_symbol",
                 "authority": "event-payload.schema.json#/$defs/pin_scope/oneOf/2/properties/kind",
                 "owner": "event-payload.schema.json#/$defs/pin_scope/oneOf/2/properties/kind",
-                "values": [
-                  "circle"
-                ]
-              }
-            },
-            "id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "space",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "event-payload.schema.json#/$defs/pin_scope/oneOf/3/properties/kind",
-                "owner": "event-payload.schema.json#/$defs/pin_scope/oneOf/3/properties/kind",
                 "values": [
                   "space"
                 ]
@@ -8603,7 +8377,7 @@
       "additionalProperties": false
     },
     "read_receipt_policy_payload": {
-      "$comment": "Closed whole-value payload for ak.scope.read_receipt_policy. The signed Event scope_ref selects one Realm or Circle; payload never repeats scope identity. No parent policy, inheritance or overrides. minProperties=1 rejects an empty value; omitted members use read-side defaults, never the previous value.",
+      "$comment": "Closed whole-value payload for ak.scope.read_receipt_policy. The signed Event scope_ref selects one Realm; payload never repeats scope identity. No parent policy, inheritance or overrides. minProperties=1 rejects an empty value; omitted members use read-side defaults, never the previous value.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -9945,9 +9719,7 @@
             },
             {
               "propertyNames": {
-                "not": {
-                  "pattern": "^scope_circle_id(?:\\.|$)"
-                }
+                "pattern": "^(?:kind|rank|schema_refs|title|summary|labels|fields|avatar_blob_ref|encrypted_metadata)(?:\\.|$)"
               }
             },
             {
@@ -10706,7 +10478,7 @@
         "patch": {
           "$ref": "#/$defs/patch",
           "propertyNames": {
-            "pattern": "^(?:(?:scope_circle_id|schema_refs|agent_participation|metadata|encrypted_metadata|content|encrypted_content)(?:\\.[a-z][a-z0-9_]{0,63})*|topic|tracks\\.synthesis\\.(?:content|encrypted_content))$"
+            "pattern": "^(?:(?:schema_refs|agent_participation|metadata|encrypted_metadata|content|encrypted_content)(?:\\.[a-z][a-z0-9_]{0,63})*|topic|tracks\\.synthesis\\.(?:content|encrypted_content))$"
           },
           "description": "Only the two exact Synthesis content paths may reach tracks; replacing tracks, a track entry or configuration is forbidden.",
           "properties": {
@@ -11451,7 +11223,7 @@
     },
     "applet_managed_device_scope": {
       "type": "object",
-      "description": "One exact scope/action pair of a managed Device authorization. Only Realm and Circle are supported; no ancestor, Sidecar, wildcard or cross-entry action inheritance. Actions MUST be registered CapabilityActionId values, sorted in UTF-8 byte order and unique. See device-lifecycle section 16.1.",
+      "description": "One exact scope/action pair of a managed Device authorization. Only Realm is supported; no ancestor, Sidecar, wildcard or cross-entry action inheritance. Actions MUST be registered CapabilityActionId values, sorted in UTF-8 byte order and unique. See device-lifecycle section 16.1.",
       "required": [
         "effective_scope",
         "actions"
@@ -11789,8 +11561,7 @@
   },
   "x-arkret-public-handshake-contract": {
     "effective_scope_kinds": [
-      "realm",
-      "circle"
+      "realm"
     ],
     "proposal_wire_format": "mls_public_message",
     "commit_wire_format": "mls_public_message",

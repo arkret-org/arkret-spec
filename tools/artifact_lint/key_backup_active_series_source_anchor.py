@@ -43,10 +43,6 @@ def _scope_shape() -> dict[str, Any]:
         {"type": "object", "required": ["kind", "realm_id"],
          "properties": {"kind": {"const": "realm"}, "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"}},
          "additionalProperties": False},
-        {"type": "object", "required": ["kind", "realm_id", "circle_id"],
-         "properties": {"kind": {"const": "circle"}, "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-                        "circle_id": {"$ref": "./common-ids.schema.json#/$defs/circle_id"}},
-         "additionalProperties": False},
     ]}
 
 
@@ -87,7 +83,7 @@ def check_key_backup_active_series_source_anchor(lint: Lint) -> None:
         _fail(lint, ACTIVE_SERIES_SCHEMA, "native branch must require exact scoped source refs and forbid PCR/custody/Device author")
     if isinstance(properties, dict):
         if _shape(properties.get("effective_scope")) != _scope_shape():
-            _fail(lint, ACTIVE_SERIES_SCHEMA, "native scope must remain a closed Realm/Circle union")
+            _fail(lint, ACTIVE_SERIES_SCHEMA, "native scope must remain an exact Realm scope")
         for name in native_fields[1:]:
             if _shape(properties.get(name)) != {"$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"}:
                 _fail(lint, ACTIVE_SERIES_SCHEMA, "native source refs must reuse full committed originals")

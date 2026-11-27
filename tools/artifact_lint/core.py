@@ -182,7 +182,7 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     },
     "spec/v1/zh/models/strand-and-message.md": {
         1: "schemas/strand.schema.json",
-        5: "schemas/message.schema.json",
+        4: "schemas/message.schema.json",
     },
     "spec/v1/zh/models/morph.md": {
         1: "schemas/morph.schema.json",
@@ -567,7 +567,7 @@ NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 # declarations that ever read it were cell subjects, and the typed reducer
 # subjects that replaced them derive object identity from the Event itself
 # rather than by naming an envelope field.
-ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.actor_id.kind", "envelope.scope_ref")
+ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.actor_id.kind")
 
 
 # Envelope fields §9.5.1 names as explicitly forbidden. Called out separately
@@ -654,7 +654,6 @@ PAYLOAD_DISPATCH_REF_RE = re.compile(
 # the kind's last dot-segment (one-to-one semantic renames).
 KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
     "ak.member.state": "membership_payload",
-    "ak.circle.update": "circle_patch_payload",
     "ak.space.update": "space_patch_payload",
     "ak.profile.space_override": "profile_realm_override_payload",
 }
@@ -669,9 +668,6 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.restore", "realm_archive_payload"),
     ("ak.realm.unfreeze", "realm_freeze_payload"),
-    ("ak.circle.archive", "object_lifecycle_payload"),
-    ("ak.circle.restore", "object_lifecycle_payload"),
-    ("ak.circle.tombstone", "object_lifecycle_payload"),
     ("ak.strand.archive", "object_lifecycle_payload"),
     ("ak.strand.restore", "object_lifecycle_payload"),
     ("ak.strand.update", "strand_patch_payload"),

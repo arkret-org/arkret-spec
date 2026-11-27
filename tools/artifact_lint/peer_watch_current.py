@@ -25,8 +25,8 @@ REQUIRED_CASES = {
     "others_author_write_prevents_never_written",
     "handoff_omitted_clear_row_fails_closed",
     "same_principal_other_station_is_private_cell",
-    "authorized_circle_self_read",
-    "parent_membership_cannot_read_hidden_circle",
+    "authorized_second_realm_self_read",
+    "source_realm_membership_cannot_read_other_realm_watch",
     "session_revoked_before_delivery_withholds",
     "device_replaced_before_delivery_withholds",
     "agent_content_gate_cannot_be_bypassed",
@@ -76,6 +76,7 @@ def evaluate_read(value: dict) -> str:
         or selector != wanted_selector
         or response.get("stream_head") != value["confirmed_head"]
         or value["confirmed_head"]["stream_ref"] != value["scope_stream_ref"]
+        or value["scope_stream_ref"].get("realm_id") != request["realm_id"]
     ):
         return "revision_unavailable"
     if row is not None:

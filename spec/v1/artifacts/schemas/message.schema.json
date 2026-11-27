@@ -150,7 +150,7 @@
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
-      "description": "Read-only immutable effective scope of this Message, materialized from the accepted Event.scope_ref after the receiver verifies it against the Strand's frozen pre-state (models/circle.md §6.1-§6.2). kind='realm' for Realm-default scope; kind='circle' when the Message's Strand was Circle-scoped at write time. A later Strand scope rebind MUST NOT reinterpret already-written Messages. This field MUST NOT appear in actor-supplied content payload (reason=effective_scope_reducer_managed)."
+      "description": "Read-only scope bound to the original accepted Event and verified Strand. Subsequent object changes cannot reinterpret the Message. An actor-supplied content payload must omit this field (effective_scope_reducer_managed)."
     },
     "content": {
       "$ref": "#/$defs/content_block"
@@ -469,7 +469,7 @@
         },
         "sidecar_exchange_binding": {
           "$ref": "./agent-sidecar-event-exchange-binding.schema.json",
-          "description": "Agent Sidecar exchange binding. Legal only inside encrypted_metadata plaintext of an event whose signed scope_ref.kind is sidecar; forbidden in plaintext metadata and shared Realm/Circle events."
+          "description": "Agent Sidecar exchange binding. Legal only inside encrypted_metadata plaintext of an event whose signed scope_ref.kind is sidecar; forbidden in plaintext metadata and shared Realm events."
         }
       },
       "not": {

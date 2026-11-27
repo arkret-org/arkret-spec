@@ -33,8 +33,7 @@ Schema id: `ak.schema.relation.v1`
 | `id` | yes | `id:relation` | 以 `ak:relation:` 开头。 | Relation ID。 |
 | `schema` | yes | `ak.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | 通用 scope 派生与校验以 [`circle.md` §6](./circle.md) 为唯一权威；`confidential_discussion_of` 按 §3.1 MUST 指向 private Strand 的 Circle。Sidecar context mapping 使用原生 `sidecar_context`，不是 Relation。 | 该 Relation 事实的 Circle 作用域。 |
-| `effective_scope` | no | `object` | 通用只读 projection 规则以 [`circle.md` §6](./circle.md) 为唯一权威；结构关系 MUST NOT 宽于参与端点中最窄的作用域。 | 派生的有效作用域。 |
+| `effective_scope` | no | `object` | 从已验证的原始 Event 和端点归属派生；客户端写入时拒绝此字段。 | 已接纳关系的只读内容范围。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `RelationEndpoint` | MUST 是合法 typed object-reference string 或完整 ActorId object。 | 终点对象/Actor/Realm 引用。 |
@@ -47,15 +46,15 @@ Schema id: `ak.schema.relation.v1`
 | `updated_by` | no | `ActorId` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-**生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
+**生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
 
-**Relation 写入 payload（normative）**：`ak.relation.create`、`ak.relation.update` 与 `ak.relation.tombstone` 都携必填 `primary_conflict_domain`，它是 `relation` current state 的唯一 subject（Realm 取自 Event envelope）。Reducer MUST 按 `relation-kind-registry.json` 复算并验证该 domain：`tuple` 精确绑定 `(relation_kind, from_ref, to_ref)`，`from` 精确绑定 `(relation_kind, from_ref)`；Circle 不进入 key，派生 `truth_source` shape 不能直接写 Relation。调用方自报的 domain 与 payload／当前 Relation 不一致时 MUST `schema_violation` 且零写入。
+**Relation 写入 payload（normative）**：`ak.relation.create`、`ak.relation.update` 与 `ak.relation.tombstone` 都携必填 `primary_conflict_domain`，它是 `relation` current state 的唯一 subject（Realm 取自 Event envelope）。Reducer MUST 按 `relation-kind-registry.json` 复算并验证该 domain：`tuple` 精确绑定 `(relation_kind, from_ref, to_ref)`，`from` 精确绑定 `(relation_kind, from_ref)`；派生 `truth_source` shape 不能直接写 Relation。调用方自报的 domain 与 payload／当前 Relation 不一致时 MUST `schema_violation` 且零写入。
 
-`create.relation` MUST 是 closed `relation_definition`，且只可包含 `scope_circle_id`、`relation_kind`、`from_ref`、`to_ref`、`rank`、`fields`；其中后三个 identity 字段必填，`scope_circle_id`、`rank`、`fields` 可选。create-time rank 的唯一签名路径和唯一投影 consumer 是 `payload.relation.rank`；`payload.rank` 不存在并 MUST 以 `schema_violation` 拒绝。完整物化 Relation 的 `schema`、`realm_id`、`id`、`effective_scope`、`state`、`state_changed_at`、`created_by`、`created_at`、`updated_by`、`updated_at` 均由 Reducer 派生或维护，不得作为 authoring input 回流。
+`create.relation` MUST 是 closed `relation_definition`，且只可包含 `relation_kind`、`from_ref`、`to_ref`、`rank`、`fields`；其中后三个 identity 字段必填，`rank`、`fields` 可选。create-time rank 的唯一签名路径和唯一投影 consumer 是 `payload.relation.rank`；`payload.rank` 不存在并 MUST 以 `schema_violation` 拒绝。完整物化 Relation 的 `schema`、`realm_id`、`id`、`effective_scope`、`state`、`state_changed_at`、`created_by`、`created_at`、`updated_by`、`updated_at` 均由 Reducer 派生或维护，不得作为 authoring input 回流。
 
 `create.expected_commit_id` 是 `RealmCommitId | null`：domain 从未写入时必须为 `null`；当前值为 `tombstoned` 时可携其 exact revision 创建一个新的 event-derived RelationId；当前值仍为 `active` 时即使 revision 匹配也 MUST `failed_precondition`。`update` 与 `tombstone` 同时携 `relation_id` 和 exact `expected_commit_id`，Reducer MUST 验证 domain 当前值的 `id` 与 `relation_id` 相同且为 `active`。stale revision、错误 id、目标不存在／跨 Realm／已 tombstone 都 MUST `failed_precondition` 且零写入；exact replay 返回原 RealmCommit。
 
-`relation_kind`、`from_ref`、`to_ref` 共同决定主冲突域，create 后 MUST 锁定；`ak.relation.update` 只可 patch `scope_circle_id`、`rank`、`fields`，触及身份三字段或 `effective_scope` MUST `schema_violation`。改变 kind／端点不是 update 或 move：调用方先以旧 domain 的 exact revision tombstone，再以新 domain 的 current revision（从未写入则 `null`）create 新 RelationId。这是两个独立、可重试、用户可见的操作；协议不提供跨 domain 双 CAS、隐式搬迁或原子 move。
+`relation_kind`、`from_ref`、`to_ref` 共同决定主冲突域，create 后 MUST 锁定；`ak.relation.update` 只可 patch `rank`、`fields`，触及身份三字段或 `effective_scope` MUST `schema_violation`。改变 kind／端点不是 update 或 move：调用方先以旧 domain 的 exact revision tombstone，再以新 domain 的 current revision（从未写入则 `null`）create 新 RelationId。这是两个独立、可重试、用户可见的操作；协议不提供跨 domain 双 CAS、隐式搬迁或原子 move。
 
 `ak.relation.tombstone` 的可选 `reason` 只保留在 Event 上；接受后执行 `active → tombstoned`。
 物化 `state_changed_at` 与 `updated_at` 必须在同一原子写入内分别由
@@ -125,7 +124,6 @@ confidential_discussion_of
 | `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> ActorId`（`from_ref=<strand_id>`, `to_ref=<ActorId object>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 分配仅为关系记录，不改变成员身份、角色或访问权限；应用层单负责人规则见 §5。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
 | `watches`：`ActorId -> strand` | **派生投影**（derived from current state, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是完整 ActorId object，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 current-value projection current state `strand_watch`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（reason=`relation_kind_watches_derived`；与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
-| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public authority commit Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public authority commit，而 non-member 不能从 public authority commit 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
 Relation MUST 按 §6 以 `(realm_id, primary_conflict_domain)` 的单一 current state 去重。两个离线设备基于同一 revision 并发写入时，治理 Station 的原子 CAS 至多接受一个；另一个 stale Event 零写入拒绝，不产生 RealmCommit，也不进入共享 current state。
 
@@ -208,7 +206,7 @@ v1 不提供 Realm 级关系数量限制配置或注册机制。标准关系按 
 - `from`：`(realm_id, relation_kind, from_ref)`；
 - `truth_source`：没有可直接写 Relation，继续只读其原 current state。
 
-Realm 来自已验证 Event envelope；Circle 只参与 scope 与授权，不进入 subject。不同 Actor 的 `assigned_to` 因完整 ActorId 不同而属于不同 tuple。payload 的 `primary_conflict_domain` 是封闭、签名的 selector，不是调用方可任选的 bucket；Reducer MUST 从 create definition 或 domain 当前值复算并逐字段相等验证。
+Realm 来自已验证 Event envelope。不同 Actor 的 `assigned_to` 因完整 ActorId 不同而属于不同 tuple。payload 的 `primary_conflict_domain` 是封闭、签名的 selector，不是调用方可任选的 bucket；Reducer MUST 从 create definition 或 domain 当前值复算并逐字段相等验证。
 
 每个 `(realm_id, primary_conflict_domain)` 只有一个 `relation` current state，value 是完整 Relation 对象并保留 event-derived RelationId。不存在第二组裁决 family，也不存在候选 heads、16 条诊断上限、17-head recovery、分页修复材料或显式组裁决操作。
 
@@ -217,7 +215,7 @@ Realm 来自已验证 Event envelope；Circle 只参与 scope 与授权，不进
 三种写入都在治理 Station 的同一 authority-commit transaction 内先比较 payload 的 `expected_commit_id`，再原子写入 domain 当前值：
 
 - **create**：domain 从未写入时要求 `expected_commit_id = null`；若当前值已 tombstoned，要求携其 exact revision，成功后以本 create Event 派生新的 RelationId。当前值为 active 时不得用 create 覆盖；
-- **update**：要求 non-null exact revision，且 `relation_id` 等于当前 value 的 id、state 为 active；只允许修改 `scope_circle_id`、`rank`、`fields`；
+- **update**：要求 non-null exact revision，且 `relation_id` 等于当前 value 的 id、state 为 active；只允许修改 `rank`、`fields`；
 - **tombstone**：要求 non-null exact revision，且 `relation_id` 等于当前 value 的 id、state 为 active；成功后保留同一 RelationId 与历史，把 state 单向置为 tombstoned。
 
 revision 不匹配、current id 不匹配、非法 lifecycle 或 active domain 上再次 create 都 MUST 以 `failed_precondition` 零写入拒绝。只有成功写入才取得 RealmCommit；字节完全相同的 Event exact replay 返回原 Commit，不再次推进 revision。失败 intent 可由客户端或部署本地拒绝审计保留，但不得伪装成 committed Relation、共享候选或 RealmCommit。
@@ -233,7 +231,6 @@ revision 不匹配、current id 不匹配、非法 lifecycle 或 active domain �
 D1 只删除冗余冲突修复面，不删除 Relation 领域本身：
 
 - 所有已接受 create/update/tombstone Event、RealmCommit、RelationId 与 tombstoned value 继续按既有 history/redaction policy 保留；
-- `confidential_discussion_of` 及其它 Circle-scoped Relation 仍按 §3.2 / §4 执行最小披露，subject 不含 Circle 不代表扩大可见性；
 - 派生 `contains` / `watches` 继续由其原 current state 投影，仍不得通过 Relation Event 直接写入；
 - scope/capability、endpoint existence、cross-Realm reference disclosure 与不可逆 tombstone 规则不变。
 

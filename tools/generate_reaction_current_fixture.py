@@ -40,10 +40,10 @@ STREAM = {"kind": "realm", "realm_id": REALM}
 ANCHOR = typed_id("realm_commit", {"fixture": "verified_prefix_0"})
 
 
-def event(actor, action, position):
+def event(actor, action, position, *, realm=REALM):
     created_at = (datetime.fromisoformat(T.replace("Z", "+00:00")) + timedelta(milliseconds=position)).isoformat(
         timespec="milliseconds").replace("+00:00", "Z")
-    body = {"kind": "ak.reaction." + action, "realm_id": REALM, "scope_ref": STREAM,
+    body = {"kind": "ak.reaction." + action, "realm_id": realm, "scope_ref": {"kind": "realm", "realm_id": realm},
             "actor_id": actor, "created_at": created_at, "payload": {"target_ref": TARGET, "key": "👍"}}
     digest = "sha256:" + hashlib.sha256(jcs(body)).hexdigest()
     binding = {"context": "ak.event_proof.v1", "event_digest": digest, "actor_id": actor,
@@ -108,7 +108,14 @@ def build_fixture():
             "retention_and_history_floor": {"history_access": "since_join", "stream_floors": [
                 {"stream_ref": STREAM, "oldest_position": min(4, position)}]}, "created_at": ev["created_at"]}))
         previous = commit["commit_id"]
+    foreign_realm = typed_id("realm", {"fixture": "foreign_reaction_realm"})
+    foreign_event = event(ACTOR, "add", 1, realm=foreign_realm)
+    foreign_core = {k: v for k, v in rows[0]["commit"].items() if k not in {"commit_id", "signature"}}
+    foreign_core.update(realm_id=foreign_realm, stream_ref=foreign_event["scope_ref"], event_ref=foreign_event["event_id"])
+    foreign_commit = {"commit_id": typed_id("realm_commit", foreign_core), **foreign_core}
+    foreign_commit["signature"], _ = make_signature("ak.realm_commit_signature.v1", foreign_commit, OLD_VM, KEY_A_SEED)
     cases = [
+        ("resigned_reaction_wrong_target_realm", "scope_ref_mismatch"),
         ("complete_ordered_tail", "accept"), ("remove_keeps_empty_row", "accept"),
         ("snapshot_then_tail", "accept"), ("old_add_after_empty_cut", "ignore"),
         ("gap_before_remove", "buffer"), ("same_position_equivocation", "reject"),
@@ -124,6 +131,7 @@ def build_fixture():
             "description": "Executable active-only Reaction current with actual Ed25519 producer/Commit/Snapshot signatures. Native DID authority, target existence and business authorization are independently validated inputs, not proven by fixture keys. Historical scans are read-only and no old Event is required to consume Snapshot metadata.",
             "test_keys": {"producer_public_key_b64u": public_key(KEY_B_SEED), "governance_public_key_b64u": public_key(KEY_A_SEED)},
             "trusted_basis": {"stream_ref": STREAM, "target_ref": TARGET, "position": 0, "commit_id": ANCHOR},
+            "wrong_target_realm": {"event": foreign_event, "commit": foreign_commit},
             "original_rows": rows, "checkpoints": checkpoints,
             "cases": [{"name": name, "expected": expected} for name, expected in cases]}
 

@@ -24,10 +24,10 @@ encrypted envelope必带`encryption_scheme`；`content_type`只标识解密后�
 Realm genesis必带`initial_encryption_backup_strategy`，参与原Event ID preimage；Realm query的
 `encryption_backup_strategy`从该原签值投影。当前唯一active策略为
 `ak.encryption_backup.epoch_content_roots.v1`，create-locked。该字段不自动激活MLS。
-Circle／Sidecar独立群在accepted MLS Genesis时冻结其所属Realm的注册策略为自身策略；其
+Sidecar独立群在accepted MLS Genesis时冻结其所属Realm的注册策略为自身策略；其
 `backup_strategy_ref`仍精确指向该策略的原签声明，不继承父群secret／epoch／history权限。
 
-个人 Sidecar 的 H 从已接纳的主人 Human PCR genesis 读取该策略，在本地已授权端点的 MLS roster manifest 中签署 `sidecar_backup_strategy`。端点校验签名及其绑定的 H、Sidecar、目标 MLS 原件与 epoch，以 manifest 的 `realm_id` 还原原签策略声明的 Event ID。此证明只披露策略，不授予读取主人控制流的资格。Realm 与 Circle 的 manifest 不携带此字段。
+个人 Sidecar 的 H 从已接纳的主人 Human PCR genesis 读取该策略，在本地已授权端点的 MLS roster manifest 中签署 `sidecar_backup_strategy`。端点校验签名及其绑定的 H、Sidecar、目标 MLS 原件与 epoch，以 manifest 的 `realm_id` 还原原签策略声明的 Event ID。此证明只披露策略，不授予读取主人控制流的资格。Realm 的 manifest 不携带此字段。
 
 未知、reserved、未实现的scheme／strategy及其不匹配组合MUST拒绝，不得忽略字段或静默降级。
 未来策略／格式用新的稳定v1 ID登记closed schema、KDF、能力、授权／耐久语义及正反向向量后激活，
@@ -173,8 +173,8 @@ key-material decrypt 对象不得持有该私钥或解锁 vault 的能力。治�
 
 原生 active series 的独立 current family 为 realm_actor_key_backup_active_series，唯一键是
 `(完整 Realm Actor,effective_scope,backup_kind)`；不复用旧 Account／Agent current-key helper 的固定 arity。effective_scope 只可为
-该主体所属 Realm 或其获准的一个 Circle；Realm 与各 Circle 独立，不继承隐藏 Circle、不使用 Sidecar／PCR／
-realm_control 作为根的业务 scope。Device／普通业务调用者不得跨同 Actor 的其它 Circle 读取 pointer、counter、
+该主体所属 Realm；不得使用 Sidecar／PCR／
+realm_control 作为根的业务 scope。Device／普通业务调用者不得跨其它 Realm actor 的范围 读取 pointer、counter、
 predecessor 或 metadata；只有§3.2.5明确的 current Manager 私密 custody 库存例外，不授业务历史权限。
 
 当前 manager Service 通过既有 `ak.key_backup.active_series` 的原生 realm_control 分支选择每个 scope 的 series；
@@ -201,7 +201,7 @@ recipient 真正替换后的 fresh-series 要求、当前 Device／generation／
 manager 可以先签选尚无 envelope 的新 series，故初次 PUT 不依赖一张尚不存在的备份回执。Device 必须读取本次
 exact scope 已接受的 pointer 与公共 recipient；未选、旧 manager／recipient 或缺少已验原件时保持不可用，不能从
 唯一可见 series、最大 sequence、到达顺序或默认配置猜测。首包 series_sequence=0；后继精确绑定同 scope 的直接
-predecessor 与 supersedes digest，不能用另一个 Circle 的包补 predecessor。
+predecessor 与 supersedes digest，不能用另一个 Realm actor 的包补 predecessor。
 
 原生 KeyBackup 的 `actor_id.kind=realm` 必须与 `encryption.recipient_method=realm_actor_recovery` 同时成立。
 只允许一个 content_epoch_root item，包含真实 C_root／root_ref；禁止混入其它 secret class。
@@ -282,7 +282,7 @@ next_prepare_input={authorization_binding,content_backup_recipient,active_series
 Event 或按 signer 新发现网络的权利；Manager 的完整归档原件与私密验证闭包保持独立角色来源。
 这些来源不含 archive 私钥，不授业务权限。Device 的最小 admission 只含正式回执登记的 exact Actor／Scope、
 原作者公钥／Device／authorize ref／generation、manager／recovery／recipient refs、packet digests、原 issuer／
-time／signature；不携 sibling DeviceAuthorize 原件、其其它 Circle scopes、完整 producer fact、governance history
+time／signature；不携 sibling DeviceAuthorize 原件、其完整 producer fact、governance history
 或 method-native history。Station 对完整原始授权／治理闭包的真实独立验证及耐久保管仍是交付前置门；
 Device 在本次已认证、current、exact actor/scope 的 bound response 验证后以回执原公钥验包，不能用调用者给定
 key、当前 Device directory 或独立从 receipt signer 发现网络代替。metadata／receipt 不冒充完整包 Ed 验证。
@@ -330,8 +330,8 @@ manager-only archive 私钥／解锁能力及成员 MLS 私态均不属于 Stati
 
 仅当前真实 manager Service 可在既有 GET /_arkret/self/keys/backups 使用 purpose=archive_inventory，
 按完整 realm_actor_id 读取该主体跨 scopes 的完整原生归档库存。Account、Agent、Device 及旧 manager 均禁止；
-此分支与 Device exact-scope head 及 Account／Agent metadata 分支严格互斥，不允许 circle_id、series_id、backup_kind 等子集过滤伪装成全量。
-它不返回私钥、明文 R、成员私有 MLS state 或其它主体资料，也不授任何 Circle 的业务／历史读取权。
+此分支与 Device exact-scope head 及 Account／Agent metadata 分支严格互斥，不允许 series_id、backup_kind 等子集过滤伪装成全量。
+它不返回私钥、明文 R、成员私有 MLS state 或其它主体资料，也不授所属 Realm 的业务／历史读取权。
 
 库存必须包含全部首次 PUT 永久准入索引及完整原包、保管替代来源、每个 scope 的 series／指针、历史
 recipient 原声明与必要原始签署来源；无业务 Event、CAS loser、丢 ACK、失败 first-use 和未决结果均不能遗漏。
@@ -424,7 +424,7 @@ new-Service acceptance 还绑定 content_backup_handover_digest，覆盖其真�
 验收 MUST 使用真实服务与耐久存储覆盖：首次 PUT 与 scoped-head CAS／manager change 的 PostgreSQL 并发、
 成功响应丢失后的原字节重试、已 fixed outcome 之后 epoch／recipient／业务 gate 变化、原认证真正失效、
 进程冷重启后的 exact receipt／库存／root 恢复，以及未产生业务 Event／CAS loser／失败 first-use 的 last-root 保管。
-Device sibling head 正例必须核独立原签且拒完整授权／其它 Circle scopes 泄漏；manager 转交必须实际 HPKE open、
+Device sibling head 正例必须核独立原签且拒完整授权／其它主体资料泄漏；manager 转交必须实际 HPKE open、
 完整私钥／包／原件导入并冷重启后解封，缺任一材料、错库存 cut 或普通 Device KEK 都不得成功。多 Station 验收
 只走已登记真实认证网络，不能共享数据库／私钥；参考模型、fixture 布尔、静态 SHA 相等或 HTTP200 均不替代这些证据。
 
@@ -432,7 +432,7 @@ Device sibling head 正例必须核独立原签且拒完整授权／其它 Circl
 
 每一新 accepted epoch，已 effective 的 Agent MAY 作为首个实际业务作者。若已从自己的合法内容入口取得同一 epoch 的完整业务原件，可核对当前 R、完整 root_context、root_ref 与原签保护引用后复用。实际发言仍使用自己的 producer、fresh salt、AAD 和签名。没有可读原件时用以下原生入口；无需主人先发消息。
 
-* **来源与主体。** 仅适用于 accepted 私人 Sidecar、具备当前业务写权和显式备份操作权限的实际 Agent 端点。根包 subject 是 Agent 的完整 Account，原生 Agent key 签名，custodian 与 accepted provision 引用沿 §8.2。controller 已为该 Agent 正式启用 history_custody、选定 active series 及充分的当前恢复 recipient 时，accepted Sidecar 的同一主人身份与该主人当前对该 Sidecar 的内容／恢复资格共同构成此单根披露依据。任何一项缺失都拒绝；没有默认接收方。pending、普通 Realm/Circle、其它主人的 scope 或 PCR 根不能使用本分支。
+* **来源与主体。** 仅适用于 accepted 私人 Sidecar、具备当前业务写权和显式备份操作权限的实际 Agent 端点。根包 subject 是 Agent 的完整 Account，原生 Agent key 签名，custodian 与 accepted provision 引用沿 §8.2。controller 已为该 Agent 正式启用 history_custody、选定 active series 及充分的当前恢复 recipient 时，accepted Sidecar 的同一主人身份与该主人当前对该 Sidecar 的内容／恢复资格共同构成此单根披露依据。任何一项缺失都拒绝；没有默认接收方。pending、普通 Realm、其它主人的 scope 或 PCR 根不能使用本分支。
 * **首次准备。** Agent 经自己活跃会话 GET 现有备份列表，仅传 sidecar_id。H 从 accepted create、当前两方成员与有效 MLS 状态导出精确 scope、Genesis、epoch、group_state 和策略；检查上述资格，只返回该 scope 的当前 root_context、Agent 已选在用 series 的下一序号和必要 predecessor ID/digest、主人当前 accepted 恢复策略引用与该策略的充分公钥 backup_hpke。前驱仅用于 CAS，不给出相邻包内容。没有 series 或充分 recipient 时拒绝。Agent 以自己合法持有的 R 核 context 和 root_ref，按 §11.1 密封一个根，用自己的身份 PUT 到原备份入口。禁止使用主人的会话、签名或读取其私有库存。
 个人 Sidecar 首份内容根的准备与 PUT 由 H 依据本次原签、当前获准的业务写动作、确切 Sidecar、Genesis／epoch 与接收端核准。重试和每次交付重核当前授权。该私有备份上下文不得用于站际签发、复制或项目历史恢复。
 * **恢复与撤权。** 普通 Sidecar 根必须单包单根，解密领取仅在本 Sidecar 主人当前仍具备恢复资格且满足现有 unlock 门时通过。列表、按 ID 领取、challenge、unlock、替代包与轮换均从首次 PUT 的 root_context 分派并重核当前披露资格；普通 Agent PCR 保管权本身不能读取这些业务根。失权立即停止新供给，已存包仍按 §8.3 保留充分的合法恢复覆盖。私钥不下发给运行端。
@@ -512,7 +512,7 @@ PCR 私有 Profile 的唯一 typed 槽与精确原件路径见 profiles-presence
 基础policy恢复不要求current DID publication／updateKeys，不借unsupported first-device active-series分支。
 下载历史只还原读视图，不能将旧snapshot／device authorize重新安装为current。
 
-完整安全库存必须覆盖所有相关PCR／Realm／Circle／Sidecar／Direct的旧endpoint，包括无内容空群，
+完整安全库存必须覆盖所有相关PCR／Realm／Sidecar／Direct的旧endpoint，包括无内容空群，
 不等于非空root库。Join／Add／consume账本的登记及安全收尾须耐久；枚举与新membership／pairing有并发fence。
 仍有当前参与资格的目标根据已验证的RFC roster实际Remove旧leaf，更新epoch／新根备份，保留其它Actor及合法成员。
 已经失去资格或scope已不可逆终止的目标按§10.1取得removed／terminated窄证明，不重新入群、不领取新根。
@@ -580,7 +580,7 @@ Agent PCR 的原件仍以 Agent 为资源 Actor，controller 代表其写入时�
 self-authored 写入 Agent PCR 的例外。仅在独立验证 accepted immutable provision、原 Agent PCR／
 完整 Account／同 Station、当前 controller binding／lifecycle、实际 Human 设备授权及该具体
 MLS 动作的 control delegation 后，才可使用本窄角色。history_custody 批准本身不是写权限；
-普通 Realm／Circle／Sidecar／Direct 不适用此例外。
+普通 Realm／Sidecar／Direct 不适用此例外。
 
 此角色的 MLS BasicCredential、Genesis 唯一 leaf、Member sender、External path leaf、
 creator_leaf_authority.endpoint／authorization_event_ref 和内容 C_item.producer 均绑定
@@ -838,7 +838,7 @@ scope_cleanup保持rekeyed／removed／terminated三态；仍有参与资格的�
 **终态与保密边界**：removed证明在其首次终局cut全部被替换endpoint已实际移除；terminated证明原scope依据登记生命周期
 不可逆终止。terminated允许保留旧leaf，但原group从该终态起永远不得再接纳业务密文、新epoch内容或新R，不得restore、
 重铸同group或由successor复活原group。archive／freeze／暂停／断连／无在线成员／治理站失联／缺树均不是终止证明；
-不激活禁止提交的ak.realm.destroy。Circle／Sidecar派生终态须核真实上游accepted来源，不能伪造子scope tombstone。
+不激活禁止提交的ak.realm.destroy。Sidecar派生终态须核真实上游accepted来源，不能伪造子scope tombstone。
 既有历史根保管与充分重封装仍按§8执行；后两种终态不交付root、backup、完整roster、其它成员详情或业务原件。
 无法核实实际移除或合法不可逆终态保持pending／明确不可用，不猜测完成。
 
@@ -932,7 +932,7 @@ terminated仅公开terminal_source_digest，不公开上游PCR坐标。令T为cl
 其余值取I；摘要为`sha256(UTF8("ak.mls.scope_terminal_source.v1\n") || JCS(T))`。T、原件和完整级联来源仅留原生私有审计，
 不向ordinary／peer／self披露T或外scope引用，也不跨stream比较position。
 proof.scope_cut始终属于目标scope；terminal_event_ref则为真实直接或已登记级联的上游终态来源，二者不要求同stream。
-例如Sidecar的controller principal终态可来自其PCR，来源项目终态只使其 Circle 派生终止，个人 Sidecar 以主人账号的终态为依据；治理方须独立核accepted原件、
+例如Sidecar的controller principal终态可来自其PCR，来源项目终态只结束该来源的投递，个人 Sidecar 以主人账号的终态为依据；治理方须独立核accepted原件、
 精确目标及完整原生级联关系，不能仅凭一个跨stream引用或合法签名推导终止，也不能伪造Sidecar tombstone Event。
 
 **当前交付确认**：terminal peer响应固定为`{cleanup,delivery_attestation}`，cleanup为原scope_cleanup逐字不变；

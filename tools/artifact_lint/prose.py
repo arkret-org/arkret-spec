@@ -916,7 +916,7 @@ def check_common_object_field_matrix(lint: Lint) -> None:
         start = next(
             index
             for index, line in enumerate(lines)
-            if line.startswith("| 字段 | 组 | Realm | Circle |")
+            if line.startswith("| 字段 | 组 | Realm | Space |")
         )
     except StopIteration:
         lint.fail(prose_path, "§3.1 matrix header is missing")

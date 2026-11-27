@@ -20,7 +20,7 @@ Authority-commit 基线由 `ak.vector.authority_commit.independent_streams.v1` �
 
 该向量必须证明：
 
-1. Realm、每个 Circle、每个 Sidecar 各自从 position 0 开始，分别维护连续
+1. Realm 与每个 Sidecar 各自从 position 0 开始，分别维护连续
    `previous_commit_ref`；不得存在跨 stream position 或 predecessor。
 2. Event 不携带 `previous_commit_ref`，最终 predecessor 只属于治理 Station 签署的 `RealmCommit`。
 3. 私有 handoff manifest 覆盖所有 stream heads；公开 authority bundle 只公开 Realm stream head。
@@ -76,7 +76,7 @@ View/preference 向量必须明确区分 Account-private 状态和 authority-com
 
 ### 5.12 Client sync
 
-同步向量按每条获准 Realm/Circle/Sidecar stream 分别检查连续 position 和 predecessor。
+同步向量按每条获准 Realm/Sidecar stream 分别检查连续 position 和 predecessor。
 
 ### 5.13 Preference conflict
 
@@ -138,7 +138,7 @@ MUST 由 `spec/v1/artifacts/fixtures/` 下的 fixture 以 `vector_id`／`negativ
 fixture 存在、suite id 已登记或向量 active 都不等于参考实现已执行：认证器 MUST 拒绝未映射的 suite，
 也 MUST 拒绝缺少逐 case 实际断言结果的运行。全部判定按本规范
 当前的 Event / RealmCommit 边界解释：Event 只承载 producer 意图，接纳由当前治理 Station 的 `RealmCommit` 表达，
-一条 `RealmCommit` 恰好接纳一条 Event，Realm、每个 Circle 与每个 Sidecar 各有独立 commit stream。
+一条 `RealmCommit` 恰好接纳一条 Event，Realm 与每个 Sidecar 各有独立 commit stream。
 
 ### 3.1 Account 与偏好
 
@@ -542,7 +542,7 @@ patch path 中的 TrackName 必须先与 active registry 集合比较，未登�
 
 ### 3.13 内容与消息
 
-`ak.vector.message.poll_reducer.v1` MUST 证明：只有已接纳的明文 Message ContentBlock 可成为 v1 正式 Poll 输入；加密消息带 `poll_response_heads[]` 零写入拒绝，解密后的 poll 形状不参与正式计票。完整 ActorId 与 Realm、Circle 分区保留全部 response；同一 authority stream 中最大 Commit position 选出唯一当前票。错指 poll、actor 或 scope 的明文 heads 零写入拒绝；到达排列、迟到 position、前缀缺口、作废以及可交换、可结合、幂等的副本并集，在当前票、选择项与计票上必须收敛。
+`ak.vector.message.poll_reducer.v1` MUST 证明：只有已接纳的明文 Message ContentBlock 可成为 v1 正式 Poll 输入；加密消息带 `poll_response_heads[]` 零写入拒绝，解密后的 poll 形状不参与正式计票。完整 ActorId 与 Realm 分区保留全部 response；同一 authority stream 中最大 Commit position 选出唯一当前票。错指 poll、actor 或 scope 的明文 heads 零写入拒绝；到达排列、迟到 position、前缀缺口、作废以及可交换、可结合、幂等的副本并集，在当前票、选择项与计票上必须收敛。
 
 `ak.vector.reaction.authority_order_current.v1` MUST 证明：治理 Station 在同一 authority stream 的连续 Commit 顺序内对 exact actor、target、key、scope 归约 active entries；add 插入或替换其 source，remove 真正删除该 entry，最后一项删除后仍保留空值行与最后 revision。完整 Snapshot cut 原子安装 checkpoint，旧前缀不得回灌，tail 必须连续、重复幂等、gap 缓冲，partial current 不得证明空集。普通客户端只安装可信完整 typed current，不扫描历史重建；redaction 后不复活，跨 MLS epoch 不越 history floor 或要求补旧 epoch key，opaque tag 计数不冒充已验证 emoji。当前 capability 撤销后新 reaction 仍必须拒绝。
 
@@ -608,7 +608,7 @@ SFU service DID 不在 `plaintext_visible_services`、以及未显示必需的�
 create 收敛到唯一 Sidecar；`sidecar_id` 等于胜出 create Event 的 `event_id` 按 sidecar id kind 重类型得到的
 同一 token，调用方不得提交或覆盖它；exact draft 可接受，任一被变异的 draft MUST 冲突且零写入，
 重放已接纳 draft 幂等返回同一 Sidecar；context attach 只投影 `(sidecar_id, source_context_ref)` 映射，
-不创建 Circle、membership、Strand 或 Relation，同映射重放幂等，另一来源上下文产生另一映射但仍复用同一 Sidecar。
+不创建 membership、Strand 或 Relation，同映射重放幂等，另一来源上下文产生另一映射但仍复用同一 Sidecar。
 
 `ak.vector.sidecar.eligibility_states.v1` MUST 证明：已被主人在该 Sidecar 启用、其余资格有效、尚未发布 KeyPackage 的自有 Agent属于
 `desired_agent_ids` 但不属于 effective access，ensure 返回 `access_readiness=key_material_pending`，
@@ -627,7 +627,7 @@ H expected 与旧组不匹配只使当前 reconciliation pending，不追改历�
 H 保留原接纳成员来源以支持 floor 及冷启动，不能用当前启用记录替换历史 Commit 的原绑定；
 只有一个 genesis 通过标准 Event 准入与 CAS 成为 canonical 胜者，服务端不得生成 MLS 私有状态、伪造
 GroupInfo 或 ratchet-tree 摘要、也不得提供绕过 Event proof 的 bootstrap 端点；全部 binding 变异 MUST fail closed，
-native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 或 Circle 携带该字段，都必须拒绝；
+native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 携带该字段，都必须拒绝；
 creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_method` fragment 投影，
 变异该 proof MUST fail closed，payload 携带 creator 主体或设备标识 MUST 判 `schema_violation`；
 崩溃恢复重放字节相同的 Event 并激活已接纳的临时快照，失败方的快照必须销毁并通过胜者 group 重新加入。
@@ -671,7 +671,7 @@ Sidecar 内 Event 不触发来源 Strand 参与者的通知；来源项目的提
 `ak.vector.sidecar.explicit_publish.v1` MUST 证明：只有显式的 controller 确认才创建一条被 allowlist 允许的
 普通共享 Event，且其中零私有标识符、零历史、零定位符。
 
-`ak.vector.agent.selector_label_known_account.v1` 的 `agent-participation-fixture.json` MUST 同时验证可读短输入的显式候选选择：完整 AccountId 与可见 token 范围逐字节绑定，未选择字符串不派生目标，token 改字/删除/chip 移除后不以另一处同名文本复活，跨 Station 与改名不改绑；私有 holder 备注不进入共享正文或 metadata。其 composer routing cases 按 sidecar §8.1 覆盖普通 Realm、当前草稿自有/混合/audience 目标、公开 Agent、Circle、Direct 与已恢复私密历史后不沿用旧目标；无 Agent mention 的新草稿回到原 Strand，混合私有目标阻止发送，不自动拆分或降级群发送。运行该本地合同向量不替代真实 MLS、private-failure、publish 与第二设备的 live 验收。
+`ak.vector.agent.selector_label_known_account.v1` 的 `agent-participation-fixture.json` MUST 同时验证可读短输入的显式候选选择：完整 AccountId 与可见 token 范围逐字节绑定，未选择字符串不派生目标，token 改字/删除/chip 移除后不以另一处同名文本复活，跨 Station 与改名不改绑；私有 holder 备注不进入共享正文或 metadata。其 composer routing cases 按 sidecar §8.1 覆盖普通 Realm、当前草稿自有/混合/audience 目标、公开 Agent、Direct 与已恢复私密历史后不沿用旧目标；无 Agent mention 的新草稿回到原 Strand，混合私有目标阻止发送，不自动拆分或降级群发送。运行该本地合同向量不替代真实 MLS、private-failure、publish 与第二设备的 live 验收。
 
 `ak.vector.sidecar.multi_agent_publish.v1` MUST 证明：Agent 执行 publish 时 `actor_id` 与 `executed_by`
 MUST 是单一 Agent DID，不得出现 Agent 组式的复合归属；另一 Agent 的 grant 不覆盖该内容或缺少新鲜审批时
@@ -702,7 +702,7 @@ pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键�
 | `sidecar_incomplete_cut_recovery` | 暂扣私密 tail 或 historical signer／MLS 依赖，交付较新 current。不能展示未验证新回复或推进 checkpoint；当前授权仍允许时上一完整 cut 可标明非最新并保持可读。恢复依赖后自动验证同 cut 并显示回复，不清除密钥或重发请求。 |
 | `sidecar_restart_exactly_once` | 分别在回复接纳后、历史/current 事务耐久前和耐久后断线／终止客户端。重连／重启从安全 checkpoint 自动恢复，reply 一次可见、Agent 无重复执行；cursor 失效只重建对应基线。正常 Signal drain／续订不累积故障退避；Signal 不到达时仍自动续传 committed reply。 |
 | `sidecar_responsive_bounded_history` | 在声明的设备、历史规模、单批预算和退避参数下，注入验证等待并连续输入、滚动、取消；页面持续可操作。工作量随受影响增量增长，不因无关 render 重放全部历史；相关读取授权／历史 signer 证据／MLS basis 变化仍重新验证。当前读取资格丧失时旧缓存不得替代权限；Agent 作者化撤销不追溯剥夺 controller 仍获准读取的历史。 |
-| `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Circle／Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。另交付已验证的共享流条目并使其群内模式 unknown，随后交付独立获授权 Sidecar／主人 Direct 请求；私有回复无需取得群内 public 模式即可执行并可见，共享条目仍保留待处理且不被 ACK／丢弃，各流保序、去重与 cursor 绑定不被混用。恢复共享模式后只恢复该流未完成条目；非法 Account 帧仍整体拒绝，不推进聚合 cursor。 |
+| `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。另交付已验证的共享流条目并使其群内模式 unknown，随后交付独立获授权 Sidecar／主人 Direct 请求；私有回复无需取得群内 public 模式即可执行并可见，共享条目仍保留待处理且不被 ACK／丢弃，各流保序、去重与 cursor 绑定不被混用。恢复共享模式后只恢复该流未完成条目；非法 Account 帧仍整体拒绝，不推进聚合 cursor。 |
 | `sidecar_bound_mention_draft_acceptance` | 主人行不在当前成员显示列表但 verified controller 与完整 Agent AccountId 已绑定时，标签仍为 `@me/slug`。pending／失败保留草稿和选择；发送途中修改草稿或切换账号/scope，迟到成功不清除新输入；重复点击不重复请求。 |
 | `sidecar_per_draft_route_after_private_history` | 在同一原 Strand 先发送并收到私密回复，再依次提交无 Agent mention、当前绑定公开 Agent、当前绑定私人 Agent 的新消息；前两条进入原 Strand，第三条进入 Sidecar，实际 durable scope、模型投递与受众提示一致。删除／解绑私人 mention、重开卡片、恢复历史与重试不得借旧目标切回 Sidecar；旧私密历史始终保留且不向普通其它成员披露。混合目标继续按 §8.1 阻止，不自动拆分或猜测。 |
 
@@ -723,10 +723,21 @@ pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键�
 
 `ak.vector.direct_conversation.chat_topic_structure.v1`：由 `direct-conversation-structure-fixture.json` 与 artifact structure gate 逐项执行 Space 密文／明文互斥、解密 plaintext 封闭字段集、独立 Space(kind=topic) 的密文载体、Strand.topic 的显式整体 set/unset、必需完整 CAS、非法 null／子路径／rank 负例，并校验九项 participant action、独立 main/target、root Topic 以及 List／Board 不得充当 Topic 的边界；不宣称此 wire 向量已代替真实 MLS、双设备、跨站或 Agent 产品验收。
 
+普通 Realm 的实现 MUST 按 [Strand and Message §9.4.6](../models/strand-and-message.md#946-普通-realm-的-chat-分类与-topic-排序) 验证下表。使用两个独立 Realm A 和 B，各自在本 Realm 创建 Topic 和 Chat。
+
+| 场景 | 预期结果 |
+| --- | --- |
+| 有相应字段授权的 A 成员把 A 的 Chat 从 A 的一个 Topic 换到 A 的另一个 Topic，再移出 | 单次 set 替换归属，unset 后为未分类。全过程保留相同 Strand 和消息历史。 |
+| 同时加入 A 和 B 的操作者将 A 的 Chat 加入 B 的 Topic | 拒绝，原归属、rank 与投影不变。跨 Realm、非 root、非 Topic 或归档目标同样拒绝 set。 |
+| 发送者只有消息权限，或有 Strand update 但其可写字段不覆盖 topic，或只管理 Topic | 加入、移出、排序均拒绝。持有正确 Strand 授权但无目标 Topic 读取权时也拒绝 set。 |
+| 两次更新指向同一 Strand 前像；或两个可见 Chat 取得相同 rank | 前者只接纳首个改变前像的更新，另一笔零写入；后者均保留，按 Strand ID 升序。 |
+| A 的 Topic 新增一个 A 的 Chat | 获准的 A 成员看到该 Chat；对无权读取 A 的用户，列表、计数、未读与分页结果和新增前一致。 |
+| Topic 仍被已归档 Chat 引用 | 在已观察到该引用的 basis 上拒绝 tombstone；恢复 Chat 并显式解除最后依赖后方可删除。 |
+
 `ak.vector.agent.interaction_mode.v1`：`agent-participation-fixture.json` 与 artifact fixture gate 执行已确认
 private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 action 门及公开／私人 composer 矩阵，
 `event-kind-payload-coverage-fixture.json` 执行模式 payload 的 closed schema 正反例。Containment assertions
-固定 Sidecar roster 不变、Circle 不跨界、Message scope 不迁移、上下文不自动发布及 fanout 非追溯；
+固定 Sidecar roster 不变、Message scope 不迁移、上下文不自动发布及 fanout 非追溯；
 同 fixture 的 `reply_configuration_contract` 决策表验证 human／Agent 独立消息 authority、明确配置
 与仅 preference／mode 的区别、grant issuer／scope／ceiling、逐步骤接纳和 unknown、有效状态与
 重启／重新配对／重置／提交响应丢失边界。机读产品合同绑定 canonical registry 中
@@ -758,7 +769,7 @@ live fence 原子持久化与重启／迟到投递不复活。离站关闭不产
 义务保留。`terminal-replication-authority-fixture.json` 固定这些协议断言；真实源站 fanout、接收事务与跨站
 HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过代替。
 
-`ak.vector.state.strand_watch_current_read.v1` MUST 通过 `strand-watch-current-read-fixture.json` 的跨站具名用例证明：来源站与完整账号绑定、同 principal 不同 Station 私有隔离、合法 Circle 与不可见 Circle、无本地 tenure 的远端交付、handoff 后肯定未写入及清空行保留、他人代写不能冒充从未写入、session/device/权限撤回时迟到结果拒绝、错误 generation/head/source/revision 拒绝，以及真实写入前态与并发 whole-value CAS。规范 fixture／schema 执行不代替 SDK／Coland／客户端／真实跨站 PG 与 HTTP 验收。
+`ak.vector.state.strand_watch_current_read.v1` MUST 通过 `strand-watch-current-read-fixture.json` 的跨站具名用例证明：来源站与完整账号绑定、同 principal 不同 Station 私有隔离、无本地 tenure 的远端交付、handoff 后肯定未写入及清空行保留、他人代写不能冒充从未写入、session/device/权限撤回时迟到结果拒绝、错误 generation/head/source/revision 拒绝，以及真实写入前态与并发 whole-value CAS。规范 fixture／schema 执行不代替 SDK／Coland／客户端／真实跨站 PG 与 HTTP 验收。
 
 ## Applet 配置与 Realm 主体
 

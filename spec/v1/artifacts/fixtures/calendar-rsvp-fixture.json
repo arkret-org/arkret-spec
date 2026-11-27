@@ -1372,7 +1372,7 @@
     {
       "name": "attendee_roster_does_not_widen_access",
       "vector_id": "ak.vector.calendar.attendee_roster.v1",
-      "precondition": "an actor without Realm or Circle read access is added to attendees",
+      "precondition": "an actor without Realm read access is added to attendees",
       "action": "recompute effective access",
       "semantic_outcome": "accept",
       "expected_projection": "no membership is created, history access is unchanged, and the actor receives no notification or push wakeup"

@@ -204,25 +204,9 @@ ActorId 一致。同 principal/device 在不同 Station 下的账号具有独立
 
 ## 3. Admission 与能力广告
 
-### 3.0 独立 scope 与父 Realm 授权 cut
+### 3.0 Realm 授权与历史提交
 
-`authority_commit_id` MUST 指向 `scope_ref` 对应独立 stream 的 exact accepted RealmCommit。
-Realm Signal MUST 省略 `parent_realm_authority_commit_id`；Circle Signal MUST 携带该字段，且它 MUST
-指向同一父 Realm 的 Realm stream 的 exact accepted RealmCommit。null、另一个 Realm、另一种 stream
-或未验证的 Commit MUST 拒绝。两个引用同时进入完整 envelope digest 与 §1 的 AAD。
-
-Circle 的成员与 MLS basis 使用 scope cut；Realm membership、capability 与 moderation action 使用显式父
-Realm cut。两个 stream 的 position 不可比较，MUST NOT 按 wall clock 推断跨 stream 因果顺序。
-每个声明 Commit 自己的 committed_at MUST 不晚于 sent_at。Circle 历史 join 的
-parent_membership_revision MUST 等于所声明父 Realm cut 上该发送者的 exact active join revision，
-且 scope current 与父 Realm current 必须仍绑定同一个有效 join；leave / rejoin 不得复活旧 Circle join。
-
-Station MUST 在同一个 authority read 中验证 historical 与 current 双视图：发送者在两个历史 cut
-及两个 current 均有有效 membership，Realm / scope 均未 terminal、frozen 或 archived；moderation 的
-`ak.call.moderate` grant、issuer graph、ownership root、authority reset 与时间约束在父 Realm historical
-cut（sent_at）及 current（当前投递时间）均 MUST 成立。后来的 grant 不得使旧父 cut 获得授权；
-显式引用 grant 后的父 cut 可以与未变化的 Circle cut 配对。任何 current revoke、reset、到期或 join
-revision 变化 MUST 在出站重检及逐帧投递时拒绝，不写 Event 或 RealmCommit，也不继续 relay。
+`authority_commit_id` 必须引用原签 `scope_ref` 所属 Realm stream 的已接纳提交，且提交时间不得晚于 `sent_at`。接纳方在同一次读取中核验该提交和当前 head 的成员资格、授权和 MLS basis。任一时点 Realm 已终止、冻结或归档都须拒绝。对于 moderation，应分别核验 `ak.call.moderate`、issuer graph、ownership root、authority reset 和相应时点的时间约束。退出再加入不得恢复旧加入实例的投递资格。每次出站和逐帧投递时重验当前资格。
 
 覆盖证明 MUST 来自当前唯一治理 Station 已签发的 accepted history 或签名 snapshot 与可验证 tail。
 每个 source cut 独立证明其所属 stream、完整 Commit identity、authority generation 与当前已知 head。
@@ -299,8 +283,7 @@ revision 猜成 EventId，不得删去无法求值的负向约束。缺口、超
 MUST 省略整个 product_authority，MUST NOT 截断一组 grants 后声称完整。
 
 `historical_product_policies` 与 `current_product_policies` MUST 分别包含原／当前 cut 的完整
-适用 `access`／`moderation` Policy，Realm 与 Circle 层分别保留，不以同 id 的更窄 allow 覆盖
-父层限制。按 [governance-objects §3.2／§3.3](../models/governance-objects.md) 的 priority、
+适用 `access`／`moderation` Policy，同一组中所有限制共同生效。按 [governance-objects §3.2／§3.3](../models/governance-objects.md) 的 priority、
 同优先级取严与跨 Policy 的 AND gate 求值；Policy 只收紧独立 capability／participant 权限。
 规则的 action／Realm／exact Strand selector 必须精确匹配。缺少可信 condition、server、quota
 或 extension profile 输入时 fail closed，不能把未知谓词当作未命中后退回 allow；已由已知
@@ -476,7 +459,7 @@ destination 在任何 local fanout 前 MUST：
    这些是结构、完整性和 transport admission 检查，**不是** producer signature 的密码学验证。
    destination MUST NOT 查询远端 current device directory、重放远端 PCR 或维护 MLS public-tree /
    leaf tracker 来决定 relay；也不得借用本地同 principal/device、另一 Station 的账号目录验签；
-5. 只按外层 `scope_ref` 计算本地 eligible devices，并执行 membership、Circle visibility、
+5. 只按外层 `scope_ref` 计算本地 eligible devices，并执行 成员资格、
    blocklist 与本地 rate/backpressure policy；
 6. 把原 envelope 原样交给 recipient self 投递 gate；该 gate 与 peer ingress 是独立阶段，未通过不得输出 live data frame。精确 payload type、Strand/Message/Call/receipt
    target 与 sequence 只由 recipient 解密后校验。
@@ -547,11 +530,11 @@ service-level profile preflight 后报告 peer relay unavailable，但不得暴�
 
 ## 6. 最小正反例
 
-正例：typing payload 和 `strand_id` 加密，外层只暴露 Circle `scope_ref` 与 `session`。
+正例：typing payload 和 `strand_id` 加密，外层只暴露 Realm `scope_ref` 与 `session`。
 
 反例：外层携带 `signal_kind=typing` 或 `call_id`，即使内容仍加密也违反元数据最小化。
 
-反例：服务端因 operation 存在而对所有 Realm 全局广告 Signal，却不能验证某 Circle 的 MLS
+反例：服务端因 operation 存在而对所有 Realm 全局广告 Signal，却不能验证所选 Realm 的 MLS
 basis。该广告不合规，必须按 scope 撤下。
 
 ## 7. Message 正文流式预览 payload profile
@@ -576,7 +559,7 @@ producer 在首帧前 MUST：
 `stream_id` 为每个 attempt 新生成的 `ak:message_stream:<uuidv7>`。producer 丢失上述状态时
 MUST 生成新的 Event/Message identity，不得猜测或复用旧 identity。
 
-解密后的 `strand_id` MUST 在 Signal 外层签名 `scope_ref` 指定的 Realm/Circle security scope
+解密后的 `strand_id` MUST 在 Signal 外层签名 `scope_ref` 指定的 Realm security scope
 内；`ak.schema.signal_message_stream.v1` identity 固定 discussion family，plaintext frame 不携
 `track_name`。sender MUST 同时持有 `ak.message.stream.send` 和目标
 Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密，service 只能执行外层实时
@@ -586,7 +569,7 @@ Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密�
 `ak.realm.owner` 的 grant-authority 有 `ak.message.stream.send` 这一明确 profile 例外，
 可签发该独立 grant；owner role 不直接覆盖这个非 Event action，producer 仍须持有明确 grant。
 
-recipient MUST 消费 §3.1 的单帧 `product_authority`，以解密出的 exact Strand、外层 Realm/Circle
+recipient MUST 消费 §3.1 的单帧 `product_authority`，以解密出的 exact Strand、外层 Realm
 scope、完整 sender Actor、discussion/message facts，分别求值 send 与 create。每个 action
 均 MUST 在原 `sent_at` 和当前展示时刻通过共享 constraint 语义；同一 grant source MUST 在
 两组求值中都有效，owner/profile 独立角色仍按其登记边界处理。任一 cut 的 deny、quarantine

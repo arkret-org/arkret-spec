@@ -16,7 +16,7 @@ sidebar:
 把 Station 返回的 current state 作为共享状态的当前权威视图；Event timeline 用于审计与内容读取，不要求客户端
 重放 Event 来恢复共享状态。
 
-Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前结果响应携带本次视图所覆盖 stream 的
+Realm 与每个 Sidecar 分别拥有独立 commit stream。当前结果响应携带本次视图所覆盖 stream 的
 `stream_heads[]`；不同 stream 之间不存在隐含总顺序。producer Event 不携 predecessor，只有 RealmCommit 的
 `previous_commit_ref` 串联同一 stream。
 
@@ -57,7 +57,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   值是单成员对象而不是裸布尔，理由与 `space_parent` 相同：裸标量没有字段可供 CAS 谓词指名。
   这两条**不解除**终态、redaction、另一道 gate 或任何 capability 上限；Realm 没有 materialized
   `state` 成员，所以 archive 不是对象 lifecycle 而是一条 facet；
-- `scope_read_receipt_policy`：以签名 Event 的完整 `scope_ref`（Realm 或 Circle）为 selector subject，
+- `scope_read_receipt_policy`：以签名 Event 的完整 `scope_ref`（Realm）为 selector subject，
   source stream MUST 对应该 exact scope。唯一写者 `ak.scope.read_receipt_policy` 整值置换 disclosure/visibility，
   各 scope 独立，无父子继承或取更严。已验证完整 scope 基线证明 never-written 才解释默认值；
   无权、未知或缺读取证据不能当作默认，见 [read-receipts §2.5](../discovery/read-receipts.md)；
@@ -104,7 +104,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `agent_interaction`：以完整 `agent_account_id` 选择本 Realm 的 Agent 模式，value 为
   `{controller_account_id,interaction_mode}`，由 `ak.agent.interaction.set` 单一 whole-value writer 写入，
   controller-only proof 与 expected_commit_id CAS 见 [Agent 交互](../models/agent-interaction.md)。
-  Circle／Strand 消费父 Realm current，不注册局部覆盖；snapshot 缺项不是默认私人证明。
+  Strand 消费父 Realm current，不注册局部覆盖；snapshot 缺项不是默认私人证明。
 
 `parent_membership` admission 同时把 current `realm_policy_bundle`、目标 Realm 内每个 source 对应的 active
 `realm_link{link_kind="join_gate_from"}`、source/target current authority tenure 与 source `member_state` 当作权威事务输入。
@@ -128,7 +128,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   `registration_epoch`、namespace 与 installer authority 全部在置换前验证；
 - `key_backup_active_series`：仅 Account／Agent 以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
   后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；
-- `realm_actor_key_backup_active_series`：以完整 RealmActorId、exact Realm／Circle `effective_scope` 和 `backup_kind`
+- `realm_actor_key_backup_active_series`：以完整 RealmActorId、exact Realm `effective_scope` 和 `backup_kind`
   独立选择原生 current，唯一写者是 `ak.key_backup.active_series` 的 current manager Service 分支；source stream
   必须为该主体所属 Realm 的 `realm_control`，不能拿根的业务 scope 替代控制来源。value 仅含 active_series_id、
   series_pointer_version、manager_ref、recovery_ref、recipient_ref；完整 record／previous_series_ids／inner proof
@@ -142,10 +142,6 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   与独立的 `object_redaction`，不得把 redaction 伪装成 revision payload；
 - `realm_organization`：在 Realm 内以 `(organization_id, relationship)` 选择最新完整组织关系 statement；
   `statement_id` 只承载审计/替换链，Realm-side 与 Organization-side 两层授权均在置换前验证；
-- `circle_member_state`：以 `(circle_id, member_actor_id)` 选择 Circle 内一个 Actor 的 membership；
-  `expected_membership` 是三态 CAS guard，不进入值；`effective_at` 缺省时取 accepted Event `created_at`；`join` 值逐字保存
-  producer 签名的 `parent_membership_revision`，其它值不带；effective Circle membership 由它与父 Realm 同 cut 的
-  `member_state` revision 比较得出（[`../models/circle.md` §9.1](../models/circle.md)），父资格结束不改写该值；
 - `realm_search_policy`：Realm singleton，完整置换搜索 profile、服务 allowlist、数据类别与泄漏等级；
 - `rsvp`：以 `(event_ref, canonical occurrence, responder_actor_id)` 选择一个响应，值为完整 `rsvp_entry`；
 - `schema_definition`：以稳定 JSON Schema `$id` 选择 create-once 定义；exact replay 幂等，异字节复用同 id 拒绝；
@@ -155,7 +151,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `strand_watch`：以 `(strand_id, watcher_actor_id)` 选择 watch current value；值是
   `null` 或 `{level, level_public?}`，`expected_value` 只作 whole-value CAS，不进入结果；
 - `strand`：以 `strand_id` 选择 Strand；
-- `circle`、`morph`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
+- `morph`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
   封闭 schema；`relation` 以封闭的 `payload.primary_conflict_domain`（single-component
   `canonical_json` composite）选择一个可直接写关系域，值是带 event-derived RelationId 的完整 Relation。
   create/update/tombstone 都写同一 domain subject并由 payload 的 exact `expected_commit_id` CAS；
@@ -170,24 +166,23 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   Agent mode read 必须已获授权知道 exact Agent AccountId，不能用 guessed ID 探测私人参与；返回的 mode
   不授予 selector/profile 披露或第三方唤醒权。权限不足、不可见、未知或跨 Realm 统一
   `not_found`，不得通过 absence 分支枚举状态；generation/head/selector 不匹配一律 fail closed；
-  带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
+  带物理 lifecycle 的四族（`morph` / `relation` / `space` /
   `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，
   reducer 按 [`../models/common-fields.md` §5.2](../models/common-fields.md) 的 kind → state 映射
   以 `object_lifecycle_state` 产出，payload 不携带目标状态；普通 update MUST NOT 复活终态。
   五族的成员来源均按 `value_member_maintenance` 逐项封闭：create 只投影 author business region，
   schema / Realm / creator / create-time / initial state 与 update metadata 由 reducer 派生；普通 update、
   stage/history 专用写者及 lifecycle 写者分别登记允许路径、派生成员与完整 retained members。
-  `space_parent` / `space_child_scope_policy` 仍是 Space 对象之外的独立 family，Circle MLS group 仍由
+  `space_parent` / `space_child_scope_policy` 仍是 Space 对象之外的独立 family，Realm MLS group 仍由
   `mls_group` family 单源维护，不复制为第二个可写对象字段；
 - `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
   Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
   （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；
 - `space_parent`：以 `space_id` 选择一个 Space 的结构父，值为单成员对象 `{parent_space_id}`（成员可空，null 即 root），**值本身不是裸 null**——本 family 的 compare-and-set 是对已存字段的谓词，裸 null 没有字段可比
   （见 [`../models/realm-and-space.md` §3.5](../models/realm-and-space.md)）；
-- `space_child_scope_policy`：以 `space_id` 选择该 Space 的子资源 placement policy，值为封闭 policy 对象或 `null`（未声明）；
-  它由 `ak.space.create` 与 `ak.space.update` 顶层 `child_scope_policy` 成员上的专用非 patch 写维护（见 [`../models/circle.md` §7.1](../models/circle.md)）；
+- `space_child_scope_policy`：每个 Space 有一个可选布尔值，真值要求放置子资源时所属 Realm 已接纳 MLS。创建或更新 Space 时通过顶层 `child_scope_policy` 写入。[Space 模型](../models/realm-and-space.md)
 - `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
-- `mls_group`：以 Realm 或 Circle `scope_ref` 选择 MLS group；
+- `mls_group`：以 Realm `scope_ref` 选择 MLS group；
 - `realm_authority_root`：singleton，值为 `current-state.schema.json` 的封闭 `realm_authority_root_value`（由各写入方的 `value_schema_ref` 以 JSON Pointer 指向；它没有、也 MUST NOT 有自己的 `ak.schema.*` id，见上节末段与 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；
 - `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；
 - `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值；
@@ -239,7 +234,7 @@ Realm、selector、generation 与来源，再重新确认并签新 Event；不�
 exact accepted Event replay 返回原 Commit，不重做当前 CAS，也不复活旧授权。
 
 **`expected_state_digest` 的摘要输入（normative）**：以 `expected_state_digest` 声明前态的 kind（`actor_profile`、
-Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单值 family）一律使用同一算法：
+Realm authority root、View、Morph、Space、Strand、Relation 等单值 family）一律使用同一算法：
 `expected_state_digest = "sha256:" || lowercase_hex(SHA-256(RFC8785_JCS(v)))`，其中 `v` 是接纳事务冻结的该
 current state 的**完整当前 value**，逐字等于其 `value_schema_ref` 下的物化值（含 reducer 派生成员，
 不含 `revision`、`source_stream_ref` 或 selector），摘要输入**不加** domain 前缀。不相等时以不带 `reason_code`
@@ -351,7 +346,7 @@ selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 
 - `realm_id`：结果所属 Realm；
 - `governance_generation`：当前治理 Station 任期代次；
-- `stream_heads[]`：调用者获准读取的 Realm/Circle/Sidecar stream heads；
+- `stream_heads[]`：调用者获准读取的 Realm/Sidecar stream heads；
 - `entries[]`：closed typed results。
 
 同一 selector 在同一 revision 下必须具有完全相同的 canonical bytes。发现相同 revision、不同值时，客户端 MUST
@@ -367,7 +362,7 @@ Realm state snapshot；当前 authority bundle 与治理签名由消费 Station 
 MUST NOT 随投影缓存重建而清除。
 
 响应只包含调用者当前有权读取的 selector。省略不表示空值、删除或权限；领域若允许显式空值，必须由其 typed value
-表达。成员退出、Circle 撤权或 Station 更换后，客户端必须按新授权范围清除不可再见的缓存，但不得由响应差异推断隐藏对象。
+表达。成员退出或 Station 更换后，客户端必须按新授权范围清除不可再见的缓存，但不得由响应差异推断隐藏对象。
 
 `strand_watch` 的 whole-value CAS 不能从本列表、Realm snapshot 或 stream scan 中的缺项推断
 `never_written`。本人需调用 [`strand-and-message.md` §8.3](../models/strand-and-message.md)

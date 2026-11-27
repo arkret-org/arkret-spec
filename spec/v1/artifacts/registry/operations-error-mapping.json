@@ -1291,7 +1291,7 @@
         "applet_namespace_conflict",
         "applet_registration_unauthorized"
       ],
-      "description": "Applet install preview validates publisher/controller proof, closed package schema, exact Service DID/key binding, Realm/handle namespace syntax and conflicts, signed registration CAS, requested capabilities and Realm/Circle Policy. Actor DID patterns are not registered and never establish ownership. Invalid remaining namespace syntax is applet_namespace_pattern_invalid; exclusive conflicts with another Applet are applet_namespace_conflict.",
+      "description": "Applet install preview validates publisher/controller proof, closed package schema, exact Service DID/key binding, Realm/handle namespace syntax and conflicts, signed registration CAS, requested capabilities and Realm Policy. Actor DID patterns are not registered and never establish ownership. Invalid remaining namespace syntax is applet_namespace_pattern_invalid; exclusive conflicts with another Applet are applet_namespace_conflict.",
       "codes": []
     },
     {
@@ -1401,68 +1401,6 @@
         "media_service_foci_required"
       ],
       "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media key-access-revision freshness, and media_service_decryption_allowed pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[].",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.command.create.v1",
-      "http_alias": "POST /_arkret/self/circles",
-      "operation_specific": [
-        "snapshot_capacity_exceeded"
-      ],
-      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.command.rotate_scope.v1",
-      "http_alias": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-      "operation_specific": [
-        "duplicate_conflict",
-        "epoch_mismatch",
-        "failed_precondition",
-        "realm_frozen",
-        "snapshot_capacity_exceeded",
-        "approval_carrier_unregistered",
-        "device_unauthorized",
-        "device_revoked",
-        "device_revocation_pending",
-        "device_generation_fenced",
-        "dependency_missing"
-      ],
-      "description": "The exact Circle path and public member Commit with UpdatePath are request restrictions. Ordinary MLS producer, current scope, native Device and complete atomic Commit/Welcome failure semantics remain unchanged; no separate Circle-specific error code is allocated.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.member.command.add.v1",
-      "http_alias": "POST /_arkret/self/circles/{circle_id}/members",
-      "operation_specific": [
-        "snapshot_capacity_exceeded"
-      ],
-      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.member.resource.delete.v1",
-      "http_alias": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
-      "operation_specific": [
-        "snapshot_capacity_exceeded"
-      ],
-      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.read.list.v1",
-      "http_alias": "GET /_arkret/self/circles",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.circle.resource.get.v1",
-      "http_alias": "GET /_arkret/self/circles/{circle_id}",
-      "operation_specific": [
-        "not_found"
-      ],
-      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract.",
       "codes": []
     },
     {
@@ -2150,7 +2088,7 @@
         "not_found",
         "revision_unavailable"
       ],
-      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Foreign actor, invisible Circle scope and unknown Strand collapse to not_found; an unresolved current governing basis uses revision_unavailable, never a guessed never_written response.",
+      "description": "Operation-specific errors include the non-enumerating not_found required by the canonical operation contract. Foreign actor, a hidden target and unknown Strand collapse to not_found; an unresolved current governing basis uses revision_unavailable, never a guessed never_written response.",
       "codes": []
     },
     {

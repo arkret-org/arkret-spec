@@ -6,7 +6,7 @@
     "Rows (or shapes) with truth_source_class=derived_projection MUST NOT be written via ak.relation.create / update / delete; the listed write_path Event or durable event is the only truth source and direct Relation writes MUST be rejected with schema_violation.",
     "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
-    "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref). Circle is never a key component. truth_source shapes continue through their registered source current state and are never direct Relation writes.",
+    "Each directly writable shape has exactly one primary_conflict_domain: tuple means (realm_id, relation_kind, from_ref, to_ref); from means (realm_id, relation_kind, from_ref). truth_source shapes continue through their registered source current state and are never direct Relation writes.",
     "The primary_conflict_domain is the unique relation current-state subject. create, update and tombstone carry that closed domain plus the domain's exact expected_commit_id; only one competing write can receive a RealmCommit. relation_kind, from_ref and to_ref are create-locked, so changing the domain requires an explicit tombstone followed by create (relation.md section 6)."
   ],
   "relation_kinds": [
@@ -141,14 +141,6 @@
       "write_path": "ak.strand.watch.set",
       "notes": "Derived from current state strand_watch; direct Relation writes MUST schema_violation. from_ref MUST be a structured full ActorId, to_ref a Strand (or profiled watchable).",
       "primary_conflict_domain": "truth_source"
-    },
-    {
-      "canonical_id": "confidential_discussion_of",
-      "default_cardinality": "many_to_one",
-      "truth_source_class": "canonical",
-      "weak_semantic": true,
-      "notes": "Circle-scoped on the private Strand side; target-side reverse relation MUST NOT be written.",
-      "primary_conflict_domain": "from"
     }
   ]
 }

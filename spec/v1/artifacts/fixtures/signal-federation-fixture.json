@@ -431,7 +431,7 @@
               "case_id": "circle_with_parent",
               "scope": "circle",
               "parent": "present",
-              "expected_valid": true
+              "expected_valid": false
             },
             {
               "case_id": "circle_null_parent",
@@ -442,16 +442,12 @@
           ],
           "authority_cases": [
             {
-              "case_id": "grant_before_selected_parent_cut",
+              "case_id": "grant_before_selected_realm_cut",
               "expected": "admit"
             },
             {
-              "case_id": "grant_after_selected_parent_cut",
+              "case_id": "grant_after_selected_realm_cut",
               "expected": "deny"
-            },
-            {
-              "case_id": "new_parent_cut_with_unchanged_circle_cut",
-              "expected": "admit"
             },
             {
               "case_id": "current_revoke",
@@ -466,8 +462,8 @@
               "expected": "deny_old_root_authority"
             },
             {
-              "case_id": "parent_leave_or_rejoin",
-              "expected": "deny_old_circle_join"
+              "case_id": "realm_leave_or_rejoin",
+              "expected": "deny_old_realm_join"
             },
             {
               "case_id": "handoff_unchanged_scope_head_with_verified_manifest",
@@ -478,21 +474,20 @@
               "expected": "unavailable"
             },
             {
-              "case_id": "foreign_parent_or_wrong_stream",
+              "case_id": "foreign_realm_or_wrong_stream",
               "expected": "deny"
             }
           ]
         }
       },
       "expected": {
-        "independent_source_cuts": true,
         "historical_and_current": true,
         "cross_stream_position_ordering": false,
         "wall_clock_causal_inference": false,
-        "producer_proof_and_aad_bind_both_cuts": true,
         "denied_relay_count": 0,
         "denied_event_write_count": 0,
-        "denied_realm_commit_write_count": 0
+        "denied_realm_commit_write_count": 0,
+        "producer_proof_and_aad_bind_realm_head": true
       }
     }
   ]

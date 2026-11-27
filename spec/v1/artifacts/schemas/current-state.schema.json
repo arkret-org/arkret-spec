@@ -209,12 +209,6 @@
       "$ref": "#/$defs/current_realm_organization"
     },
     {
-      "$ref": "#/$defs/current_circle_member_state"
-    },
-    {
-      "$ref": "#/$defs/current_circle"
-    },
-    {
       "$ref": "#/$defs/current_realm_search_policy"
     },
     {
@@ -3620,7 +3614,7 @@
       "x-arkret-name-role": "current_state"
     },
     "space_child_scope_policy_value": {
-      "description": "The registered value shape of space_child_scope_policy: the closed placement policy object of models/circle.md section 7.1, or null. null is the undeclared state; that section says a Space MAY declare a policy, and an undeclared policy adds no constraint, which is what allow_any also means. The reducer MUST NOT synthesize the allow_any object out of an absent member: a projection may only write a value the signed Event or the envelope supplies, and null is the one registered spelling of the absent state.",
+      "description": "Declared encryption requirement for placement. Null records an undeclared requirement at creation.",
       "oneOf": [
         {
           "$ref": "./space.schema.json#/$defs/child_scope_policy"
@@ -3632,7 +3626,7 @@
     },
     "current_space_child_scope_policy": {
       "type": "object",
-      "description": "The child placement policy of one Space, keyed by SpaceId. models/circle.md section 7.1 is authoritative for the enum and for the four reducer obligations it creates on ak.strand.create, ak.strand.move, ak.space.parent and structural contains writes; section 6.3 is authoritative for why it is not interchangeable with Space.scope_circle_id. It is a family rather than a create-locked object member because space_patch_payload carries a dedicated top-level child_scope_policy command whose own description makes it select security execution, while the generic metadata patch is forbidden from reaching the path at all.",
+      "description": "Per-Space encryption placement requirement. A dedicated policy write replaces this value.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -4675,54 +4669,6 @@
       "additionalProperties": false,
       "x-arkret-name-role": "current_state"
     },
-    "current_circle": {
-      "type": "object",
-      "description": "Registered projection of one Circle object (zh/models/circle.md). ak.circle.create writes the whole object and the dedicated ak.circle.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "circle_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "current-state.schema.json#/$defs/current_circle/properties/selector/properties/kind",
-                "owner": "current-state.schema.json#/$defs/current_circle/properties/selector/properties/kind",
-                "values": [
-                  "circle"
-                ]
-              }
-            },
-            "circle_id": {
-              "type": "string",
-              "pattern": "^ak:circle:[A-Za-z0-9_-]{44}$"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./circle.schema.json"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "current_state"
-    },
     "current_morph": {
       "type": "object",
       "description": "Registered projection of one Morph object (zh/models/morph.md). ak.morph.create writes the whole object and the dedicated ak.morph.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
@@ -5023,110 +4969,6 @@
         },
         "value": {
           "$ref": "./actor-profile.schema.json"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "current_state"
-    },
-    "circle_member_state_value": {
-      "type": "object",
-      "description": "Canonical Circle membership register of one complete ActorId. A join value carries the producer-signed parent_membership_revision copied from the accepted Event; no other value carries it. Effective Circle membership is this value being join AND the parent Realm member_state current of the same ActorId, in the same durable cut, being join at exactly this revision on the parent Realm stream (zh/models/circle.md §9.1). No reducer, Station or trigger rewrites this value when the parent membership ends.",
-      "required": [
-        "membership",
-        "effective_at"
-      ],
-      "properties": {
-        "membership": {
-          "$ref": "./event-payload.schema.json#/$defs/membership_state"
-        },
-        "parent_membership_revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "effective_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "membership": {
-                "const": "join",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "current-state.schema.json#/$defs/circle_member_state_value/allOf/0/if/properties/membership",
-                  "owner": "current-state.schema.json#/$defs/circle_member_state_value/allOf/0/if/properties/membership",
-                  "values": [
-                    "join"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "membership"
-            ]
-          },
-          "then": {
-            "required": [
-              "parent_membership_revision"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "parent_membership_revision"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "current_circle_member_state": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "circle_id",
-            "member_actor_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle_member_state",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "current-state.schema.json#/$defs/current_circle_member_state/properties/selector/properties/kind",
-                "owner": "current-state.schema.json#/$defs/current_circle_member_state/properties/selector/properties/kind",
-                "values": [
-                  "circle_member_state"
-                ]
-              }
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
-            },
-            "member_actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "#/$defs/circle_member_state_value"
         }
       },
       "additionalProperties": false,
@@ -5828,7 +5670,7 @@
     },
     "current_scope_read_receipt_policy": {
       "type": "object",
-      "description": "One independently configured Realm/Circle scope policy. Selector scope_ref and source_stream_ref must identify the same scope; no inheritance, override or broader Realm disclosure.",
+      "description": "One complete disclosure policy per Realm. The revision and source stream must identify that Realm.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -5839,8 +5681,7 @@
         "selector": {
           "type": "object",
           "required": [
-            "kind",
-            "scope_ref"
+            "kind"
           ],
           "properties": {
             "kind": {
@@ -5853,15 +5694,12 @@
                   "scope_read_receipt_policy"
                 ]
               }
-            },
-            "scope_ref": {
-              "$ref": "./event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref"
             }
           },
           "additionalProperties": false
         },
         "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref/oneOf/0"
         },
         "revision": {
           "$ref": "#/$defs/revision"
@@ -6760,34 +6598,6 @@
                 },
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "current-state.schema.json#/$defs/realm_actor_key_backup_active_series_selector/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
                 }
               },
               "additionalProperties": false

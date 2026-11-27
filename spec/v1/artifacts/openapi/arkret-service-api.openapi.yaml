@@ -465,20 +465,6 @@ components:
       $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_response_body
     BooleanFilter:
       $ref: ../schemas/query.schema.json#/$defs/boolean_filter
-    CircleCreateRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
-    CircleList:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
-    CircleMemberDeleteRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body
-    CircleMemberRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
-    CircleMembershipResponseBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_response_body
-    CircleReadView:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_read_view
-    CircleView:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
     CommittedEventView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView
     ConsentList:
@@ -3976,272 +3962,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactScopeUpdateResponseBody'
-  /_arkret/self/circles:
-    get:
-      operationId: ak.self.circle.read.list
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      summary: List Circles visible to the caller within one parent Realm.
-      description: 'Directory visibility is enforced per Circle; non-members of a
-
-        members-visibility Circle MUST NOT see it.
-
-        '
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.read.list.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles/get/parameters/0/schema
-            values:
-            - ak.self.circle.read.list.v1
-      - name: realm_id
-        in: query
-        required: true
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/realm_id
-      responses:
-        '200':
-          description: Circles visible to the caller in the named Realm.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CircleList'
-    post:
-      operationId: ak.self.circle.command.create
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.command.create.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles/post/parameters/0/schema
-            values:
-            - ak.self.circle.command.create.v1
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      summary: Create a Circle (ak.circle.create).
-      description: 'Builds a ak.circle.create Operation in the named parent Realm and routes
-
-        it through the local accept pipeline. Reducer-locked fields
-
-        (mls_group_id, state) MUST NOT be actor-supplied.
-
-        '
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CircleCreateRequestBody'
-      responses:
-        '200':
-          description: Circle created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CircleView'
-  /_arkret/self/circles/{circle_id}:
-    get:
-      operationId: ak.self.circle.resource.get
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      summary: Read one Circle by id.
-      description: 'Returns not_found when the Circle is invisible to the caller rather than
-
-        disclosing existence.
-
-        '
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.resource.get.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}/get/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}/get/parameters/0/schema
-            values:
-            - ak.self.circle.resource.get.v1
-      - in: path
-        name: circle_id
-        required: true
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
-      responses:
-        '200':
-          description: Full Circle view or directory-only preview.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CircleReadView'
-  /_arkret/self/circles/{circle_id}/members:
-    post:
-      operationId: ak.self.circle.member.command.add
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      summary: Add or change a Circle member (ak.circle.member.state).
-      description: 'Activating another actor requires ak.circle.member.manage narrowed to
-
-        this Circle, and the target MUST already be a joined parent-Realm member
-
-        (strict-subset invariant). A self-join is gated by join_rule.
-
-        '
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.member.command.add.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1members/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1members/post/parameters/0/schema
-            values:
-            - ak.self.circle.member.command.add.v1
-      - in: path
-        name: circle_id
-        required: true
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CircleMemberRequestBody'
-      responses:
-        '200':
-          description: Circle membership state accepted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CircleMembershipResponseBody'
-  /_arkret/self/circles/{circle_id}/members/{actor_id}:
-    delete:
-      operationId: ak.self.circle.member.resource.delete
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      summary: Remove a Circle member (ak.circle.member.state -> removed).
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.member.resource.delete.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1members~1{actor_id}/delete/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1members~1{actor_id}/delete/parameters/0/schema
-            values:
-            - ak.self.circle.member.resource.delete.v1
-      - in: path
-        name: circle_id
-        required: true
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
-      - in: path
-        name: actor_id
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/common-ids.schema.json#/$defs/actor_id
-        description: One percent-encoded RFC 8785 JCS ActorId segment. Decode and validate the complete identity
-          before comparing with member_event.event.payload.member_id; bare principal DID input is forbidden.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CircleMemberDeleteRequestBody'
-      responses:
-        '200':
-          description: Circle member removed.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CircleMembershipResponseBody'
-  /_arkret/self/circles/{circle_id}/scope-rotate:
-    post:
-      operationId: ak.self.circle.command.rotate_scope
-      security:
-      - SessionGrantAuth: []
-        DpopProof: []
-      - HttpMessageSignature: []
-        ManagedDeviceMetadata: []
-        DestinationServiceId: []
-        ContentDigest: []
-      summary: Rotate the Circle's bound MLS group.
-      description: Narrow Circle-path convenience binding of the existing complete MlsCommitSubmission. commit_event
-        must name exactly this Circle and its parent Realm in scope_ref, and contain one member-sent RFC 9420 public
-        Commit with an UpdatePath for the scope's already accepted current MLS group. The current base, epoch, key-access
-        revision, effective parent/Circle membership, producer, capability, native Device scope and installation,
-        policy, approvals and every Welcome remain the ordinary MLS accepting transaction's independent gates. The
-        service never creates Genesis, signs for the caller or partially submits Events. CircleManage grants no
-        MLS permission and is not an extra requirement of this binding. One Commit and all Welcomes are accepted
-        atomically; return the actual AuthoritySubmitResponseBody. The complete unchanged retry unit returns its
-        original accepted or rejected outcome after the existing producer/recovery identity check, before today's
-        epoch or business authorization is rejudged; the same retry key with changed complete body is duplicate_conflict.
-        Standard MLS forwarding preserves this exact original without a new origin-operation carrier. Public RFC
-        verification establishes UpdatePath structure, not honest producer entropy or secret-dependent confirmation;
-        those remain member responsibilities.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.circle.command.rotate_scope.v1
-          x-arkret-value-ownership:
-            class: namespaced_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1scope-rotate/post/parameters/0/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1circles~1{circle_id}~1scope-rotate/post/parameters/0/schema
-            values:
-            - ak.self.circle.command.rotate_scope.v1
-      - in: path
-        name: circle_id
-        required: true
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission
-      responses:
-        '200':
-          description: Original atomic MLS authority outcome.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_response_body
   /_arkret/self/invite-receive-policy:
     get:
       operationId: ak.self.invite_receive_policy.resource.get
@@ -6494,8 +6214,8 @@ paths:
       operationId: ak.self.keys.backups.command.issue_unlock_challenge
       description: Issue one short-lived, exact-object challenge under the authenticated role. Native Device series_predecessor
         and current manager Service archive_recovery are disjoint closed branches, bound to full RealmActor, one
-        exact Realm/Circle scope and current requester manager/recovery/Device authority. recipient_ref binds the
-        target packet historical accepted declaration, independently verified against its complete signed envelope_digest,
+        exact Realm scope and current requester manager/recovery/Device authority. recipient_ref binds the target
+        packet historical accepted declaration, independently verified against its complete signed envelope_digest,
         never forced equal to the current recipient. The target authorization_binding stays immutable. Backup/series/ciphertext,
         audience and nonce also bind; mixed credentials reject.
       security:
@@ -6607,22 +6327,22 @@ paths:
       description: Return the closed role-specific typed list response, with the confirmed active-series state.
         Account/Agent retain their bounded metadata page; native Device returns a non-paginated current-head response
         body; current Manager archive inventory remains its separately bounded page. Native mode requires both realm_actor_id
-        components. Device mode optionally selects circle_id; absence selects that Realm, presence selects one exact
-        Circle of the same Realm. It forbids agent_id, partial, duplicate, unknown or mixed native selectors. Managed
-        Device metadata must match the complete actor/scope. Device purpose=series_predecessor returns only the
-        current selected-series head (empty for an empty series), forbids cursor, limit, backup_kind, series_id,
-        previous-series and old-packet enumeration. Head items contain typed native metadata and minimal immutable
-        signed admission, never ciphertext/full native_source or sibling DeviceAuthorize/private scopes. Only exact
-        current-head unlock returns the full original KeyBackup plus minimal admission for append/current-root recognition,
-        not archive keys, raw roots or old Event access. Station independently verifies/retains full original author
-        authority; the Device uses the original key bound by its live own-Station response to verify actual packet
-        Ed, never today's Device key or fresh DID/governance discovery from a receipt signer. Current manager Service
-        list requires purpose=archive_inventory and enumerates the complete subject custody inventory across scopes;
-        Device/Account/Agent cannot use that alternative, which forbids circle_id, series_id and backup_kind subset
-        filters. Native active_series uses its canonical closed native shape, not a dummy Account/PCR. Native head
-        response has at most one metadata item, no cursor/has_more; metadata cannot replace full-envelope signature,
-        digest or AAD verification. Manager inventory alone returns full original encrypted packets and source;
-        its cursor binds full actor/current manager/frozen inventory cut rather than an ordinary Device scope page.
+        components. Device mode selects the Realm of the authenticated Realm actor. It forbids agent_id, partial,
+        duplicate, unknown or mixed native selectors. Managed Device metadata must match the complete actor/scope.
+        Device purpose=series_predecessor returns only the current selected-series head (empty for an empty series),
+        forbids cursor, limit, backup_kind, series_id, previous-series and old-packet enumeration. Head items contain
+        typed native metadata and minimal immutable signed admission, never ciphertext/full native_source or sibling
+        DeviceAuthorize/private scopes. Only exact current-head unlock returns the full original KeyBackup plus
+        minimal admission for append/current-root recognition, not archive keys, raw roots or old Event access.
+        Station independently verifies/retains full original author authority; the Device uses the original key
+        bound by its live own-Station response to verify actual packet Ed, never today's Device key or fresh DID/governance
+        discovery from a receipt signer. Current manager Service list requires purpose=archive_inventory and enumerates
+        the complete subject custody inventory across scopes; Device/Account/Agent cannot use that alternative,
+        which forbids circle_id, series_id and backup_kind subset filters. Native active_series uses its canonical
+        closed native shape, not a dummy Account/PCR. Native head response has at most one metadata item, no cursor/has_more;
+        metadata cannot replace full-envelope signature, digest or AAD verification. Manager inventory alone returns
+        full original encrypted packets and source; its cursor binds full actor/current manager/frozen inventory
+        cut rather than an ordinary Device scope page.
       security:
       - SessionGrantAuth: []
         DpopProof: []
@@ -6707,13 +6427,6 @@ paths:
         schema:
           $ref: ../schemas/common-ids.schema.json#/$defs/realm_actor_id
       - in: query
-        name: circle_id
-        required: false
-        description: Native-only exact Circle selector paired with realm_actor_id; absence selects that Realm. The
-          Circle must belong to that Realm and the authenticated exact scope. No inherited or cross-Circle view.
-        schema:
-          $ref: ../schemas/common-ids.schema.json#/$defs/circle_id
-      - in: query
         name: purpose
         required: false
         description: 'Native Device requires series_predecessor: only the complete own actor, exact scope and current
@@ -6730,8 +6443,8 @@ paths:
           - archive_inventory
           x-arkret-value-ownership:
             class: owned_symbol
-            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
-            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/8/schema
+            authority: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/7/schema
+            owner: arkret-service-api.openapi.yaml#/paths/~1_arkret~1self~1keys~1backups/get/parameters/7/schema
             values: *id004
       - in: query
         name: sidecar_id
@@ -10959,7 +10672,7 @@ paths:
 
         from that Event. A separate ak.sidecar.context.attach Event records only a
 
-        source-context mapping and creates no Circle, membership, Strand or Relation.
+        source-context mapping and creates no membership, Strand or Relation.
 
         An existing Sidecar uses the attach branch only. The closed prepared/accepted
 
@@ -11251,8 +10964,8 @@ paths:
   /_arkret/self/streams/scan:
     post:
       operationId: ak.self.committed_event.read.scan
-      summary: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position
-      description: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position.
+      summary: Read one authorized Realm or Sidecar stream by continuous stream_position
+      description: Read one authorized Realm or Sidecar stream by continuous stream_position.
       parameters:
       - name: Arkret-Operation
         in: header

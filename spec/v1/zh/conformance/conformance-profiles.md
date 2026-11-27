@@ -739,7 +739,6 @@ MUST NOT:
 
 `ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象、native Sidecar scope 与
 controller-owned private AI workspace 行为。它依赖 Agent provisioning、auth 与 MLS profiles，
-不继承 Circle conformance。
 
 MUST 支持：
 
@@ -752,7 +751,7 @@ MUST 支持：
 - read surface 返回只读 `desired_agent_ids` 与 `effective_agent_ids`；前者从 ownership、Agent lifecycle/
   runtime-key authorization 与主人在此 Sidecar 签署且由 H 接纳的当前启用记录派生；后者是其中已完成当前 Sidecar
   MLS/KeyPackage reconciliation 的子集。私聊回复另需该启用记录的回复许可，项目读取和发布由项目治理站独立授权。
-- Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority revisions，不依赖 Circle membership。不同
+- Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority revisions。不同
   `sidecar_id` 的 MLS group 与有效访问独立求值；一个 Realm/Sidecar 的 membership 或 MLS reconciliation
   MUST NOT 改变另一个 Realm/Sidecar 的 desired/effective 集合、投递或 future epoch key。
 - Sidecar-private view 可寄宿普通 Strand shell，但不得改变 shared history、计数、未读、搜索、通知或权限。
@@ -762,7 +761,7 @@ MUST 支持：
 MUST NOT：
 
 - 接受或实现 `ak.sidecar.access.replace`、允许第三方加入的 Sidecar member/invite/join/role/admin surface；
-- 创建 backing Circle、Circle membership、private Strand 或 `agent_sidecar_of` Relation；
+- 创建private Strand 或 `agent_sidecar_of` Relation；
 - 接受调用方自报的 roster 取代 H 根据主人签署的启用记录求出的参与资格；
 - 将 source Strand 当作 Sidecar security scope，或向 shared surface泄漏 Sidecar private activity；
 - 为同一 `(controller_account_id,source_realm_id)` 创建第二个 non-tombstoned Sidecar。
@@ -784,16 +783,16 @@ MUST 支持:
   Account Authority 可在已认证的部署内签发元数据中附带 selection/version 与对应的下一次 replace echo。公开签发响应中的凭据对普通运行时保持不透明。
 - 主人与 Agent 在已验证的 Direct、原 Chat 中回复时，运行时 MAY 使用已有内容会话和该参与者身份提交原签名消息。提交仍须满足签名、动作、目标资源、参与者绑定和 MLS 合同。缺少可选的本地观察不会单独阻止提交，也不证明准入。目标无法取得权威 current 时 MUST 拒绝。运行时有权使用既有 `ak.self.authz.read.check.v1` 时可按其既有能力查询；查询结果只作提示，不能读取主人的私有设置或替代实际动作的当前判定。
 - session overlay MUST 来自 Account Authority 已认证的权威 selection/version，不能来自 runtime 自报；绑定本次完整 Agent/controller AccountId、session 与 target_scope。runtime 保存/refresh 时 MUST 拒绝错绑定、版本回退和较旧会话的迟到响应。replace echo 不授予 runtime 写权限。
-- 同 Station AA/AS/target 通过 [service-http-binding §2.2.3](../sync/service-http-binding.md#223-deployment-internal-channel) 的已认证内部 owner-current 通道取材，在动作准入时与当前 deployment/Realm/Circle/Strand ceiling、interaction mode 和其它独立权限求交；签发时 overlay、token 未到期或旧 allow 缓存不能覆盖已生效的 selection 收紧。内部 current 不能确定时 MUST fail closed，不新增公开 wire 或 receipt。
+- 同 Station AA/AS/target 通过 [service-http-binding §2.2.3](../sync/service-http-binding.md#223-deployment-internal-channel) 的已认证内部 owner-current 通道取材，在动作准入时与当前 deployment/Realm/Strand ceiling、interaction mode 和其它独立权限求交；签发时 overlay、token 未到期或旧 allow 缓存不能覆盖已生效的 selection 收紧。内部 current 不能确定时 MUST fail closed，不新增公开 wire 或 receipt。
 - own Station 的 notification/inbox/push/subscribe 在本地派生时检查 current selection 和所需有效治理事实；投递成功不授予外站自治写权限。跨独立治理 Station 的 target MUST 同时取得动作时可验证的 controller current selection 与目标 scope 完整治理 cut；内部 owner-current 通道不得跨该边界，closed introspection 的 active/status 也不能替代 selection current。v1 不登记跨站 selection carrier/取回 operation；缺 current 输入时 MUST 拒绝该自治动作且零写入，使用适用入口已登记的 `failed_precondition` / `agent_participation_ceiling_unresolved`。不得以 session overlay、短 TTL、Agent portable authority evidence 或 own Station 投递结果放行，不能声称支持跨站自治成功。selection 不得塞入 PCR 闭包、peer replica 或 unknown introspection 字段。
 - replace 的 closed body 固定为 `{target_scope,selection,expected_version}`。`target_scope` 是
-  `realm{realm_id}|circle{realm_id,circle_id}|strand{realm_id,strand_id}` closed XOR；selection 是 required 五位
+  `realm{realm_id}|strand{realm_id,strand_id}` closed XOR；selection 是 required 五位
   `{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}`。首次写
   `expected_version=0`，每次成功严格加一；版本不匹配返回 `cas_conflict` 且零写入。GET 与 replace outcome 的每项
   固定为 `{target_scope,selection,version,next_replace_input:{expected_version}}`，其中
   `next_replace_input.expected_version=version`
 - selection 本身不授予 capability，也不物化 `ak.capability.grant/revoke`。实际动作必须同时通过普通 Agent
-  capability、Agent/controller lifecycle 与 `current_selection ∩ current_deployment_ceiling ∩ current Realm/Circle/
+  capability、Agent/controller lifecycle 与 `current_selection ∩ current_deployment_ceiling ∩ current Realm/
   Strand ceiling`。任一输入 unknown/stale 时 fail closed。Account Authority 可在 session grant 中签发当前
   selection/version 与同值的 `next_replace_input.expected_version`；target service 必须自行读取当前治理 ceiling，
   不得信任 session 中复制的 ceiling/effective
@@ -805,7 +804,7 @@ MUST 支持:
 - 产品全局默认只可作为 SDK/UI authoring preference，不进入 admission、session 或服务 receipt。Agent
   pause/deactivate 继续是全局紧急停机；deployment ceiling 是 target 本地运行时安全门，只能进一步拒绝动作，
   不进入 controller selection wire、Realm reducer 或跨服务共识
-- Realm/Circle/Strand policy ceiling 复用同一 required 五位 shape，子级只能逐位收紧父级。不得保留缺省继承、
+- Realm/Strand policy ceiling 复用同一 required 五位 shape，子级只能逐位收紧父级。不得保留缺省继承、
   三位 shape、bit 重命名或把 `message_creation_allowed` 隐式扩展为 reaction 权限
 - 第三方 mention gate：`third_party_mention_delivery_allowed=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - `message_creation_allowed`只映射`ak.message.create`，reaction add/remove分别映射`ak.reaction.add/remove`。
@@ -813,7 +812,7 @@ MUST 支持:
   controller approval/accountability authorization ref，二者不可混用
 
 MUST NOT:
-- 允许 Strand / Circle ceiling 放宽父级 ceiling
+- 允许 Strand ceiling 放宽父级 ceiling
 - 把 controller-private selection 当作 capability、Realm Event 或跨服务事务参与者
 - 在 effective ceiling unknown 或 stale 时默认允许 agent participation
 

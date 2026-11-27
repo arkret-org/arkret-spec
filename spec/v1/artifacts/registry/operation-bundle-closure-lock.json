@@ -124,7 +124,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_core_current.v1",
-      "sha256": "sha256:99e84bac8ba516850af253ef1f667fe80e13147f5ed2dbdb5eb8dd07710c77f1"
+      "sha256": "sha256:04c6e24a0a550f9159b1f618414668d940f06edfcfae89fa3eeca3e604630c5e"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_peer_watch_current.v1",

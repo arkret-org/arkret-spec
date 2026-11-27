@@ -89,7 +89,7 @@ see_also:
 - Realm 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Strand、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载独立正式记录正文与 Message 讨论时间线。Strand 顶层 `content` 始终是 Description，不属于任何 track。Track **不携带独立 access security boundary**——整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）；写入权限仍可由 action 与字段 / track constraints 收窄。需要独立 membership、历史可见性或 E2EE 边界时，把整 Strand 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Strand + Relation。
+- Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载独立正式记录正文与 Message 讨论时间线。Strand 顶层 `content` 始终是 Description，不属于任何 track。各 track 沿用所属 Realm 的访问边界；写入权限仍可由 action、字段及 track constraints 收窄。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Station / Events / Sync / Projection
@@ -150,9 +150,8 @@ see_also:
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / server_revision_cas / cascade。 |
-| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas current state + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas current state + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision checkpoint、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
-| `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle 独立 MLS 激活与历史策略、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
 | `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、关系记录与应用规则边界、冲突处理。 |
@@ -185,7 +184,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | 当前治理 Station在 commit位置的 producer/authz校验、typed reducer和 committed/rejected状态。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、plaintext历史和MLS加入后可读边界。 |
-| `governance/scope-settings.md` | Realm / Circle / Sidecar / Space / Strand 的设置继承、独立配置、上限与资格约束矩阵；独立 MLS 激活、retention / legal hold / 明文服务的既有义务、跨站擦除回执与明确未定义的通用能力。 |
+| `governance/scope-settings.md` | Realm / Sidecar / Space / Strand 的设置继承、独立配置、上限与资格约束矩阵；独立 MLS 激活、retention / legal hold / 明文服务的既有义务、跨站擦除回执与明确未定义的通用能力。 |
 | `governance/content-moderation.md` | Realm/Organization 审核策略、治理决策与个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 
@@ -196,7 +195,7 @@ see_also:
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/server-trusted-results.md` | 客户端信任自己 Station 的治理结果、服务器验证复用及端到端职责。 |
 | `sync/current-state.md` | 服务器 typed current selector、完整 因果 heads、版本化替代/删除与有界基线。 |
-| `sync/authority-commit-log.md` | Realm、每个 Circle、每个 Sidecar 各自独立的权威 Commit stream、join bootstrap 与治理 Station handoff。 |
+| `sync/authority-commit-log.md` | Realm 与每个 Sidecar 各自独立的权威 Commit stream、join bootstrap 与治理 Station handoff。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、服务器当前结果、to_device。 |
 | `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Station、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |

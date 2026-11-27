@@ -141,7 +141,7 @@ POST /_arkret/edge/push/registrations:apply
 Arkret-Operation: ak.edge.push.command.apply_registration.v1
 ```
 
-请求必须使用 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) §8 的 HTTP Message Signature；签名覆盖 exact `Source-Service-ID`、`Destination-Service-ID` 与 `Content-Digest`。来源必须是完成 §3.1 exact AccountId 认证并预先与 Gateway 建立 tenant trust 的 Station；目标必须是该 Station 选择并验证的 exact Gateway service DID。用户 session grant、AccountId、principal、Realm、Circle、Strand、Message、Event、handle 与设备 DID URL 均不得进入请求或收据。
+请求必须使用 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) §8 的 HTTP Message Signature；签名覆盖 exact `Source-Service-ID`、`Destination-Service-ID` 与 `Content-Digest`。来源必须是完成 §3.1 exact AccountId 认证并预先与 Gateway 建立 tenant trust 的 Station；目标必须是该 Station 选择并验证的 exact Gateway service DID。用户 session grant、AccountId、principal、Realm、Strand、Message、Event、handle 与设备 DID URL 均不得进入请求或收据。
 
 active desired state 是闭合 whole-value：`registration_id`、`push_target_id`、`device_id`、`state="active"`、`push_key`、可选 `platform` / `app_id`、显式 `visible_notification_opt_in`、可选 `expires_at`，以及替代时的 `supersedes_registration_id`。revoked desired state 只携 `registration_id`、`push_target_id`、`device_id` 与 `state="revoked"`；不得回携 token、app、opt-in 或替代值。此最小合同只授权 authenticated `Source-Service-ID` Station 为该 installation 调用 notify；不得从 profile、相同运营方、目的 header 或 body 字段推导其它 delegated notification source。
 
@@ -250,7 +250,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
   - `ak.strand.tracks.update`（track 配置 / primary / enabled 变更）→ patch 影响的每个 track key 各派生一条 `track_name`；同时影响多个 track 时 server 派生 set，`strand_track` pattern 匹配任一即匹配
   - `ak.strand.watch.set` → `track_name` 不派生（watch 是个人偏好，不属于任一 track 时间线）；`strand_track` condition 视为不匹配
 - Event 不属于任何 Strand（普通 Realm 消息）→ `strand_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Realm 消息时应使用 `field_match` on `realm_id` 而非 `strand_track`
-- Strand 设置了 `scope_circle_id` 指向 Circle → Strand 的所有 track（含 discussion）的 `ak.message.*` 落在该 [Circle](../models/circle.md) scope；server MUST 校验通知 receiver 属于该 Circle 成员集合，否则 MUST `dont_notify` 并不暴露该 Strand 的存在性（与 [`../models/circle.md` §9.3](../models/circle.md) 一致）。
+- server MUST 对每个通知接收者检查所属 Realm 的当前成员资格。无权读取该事件时须 `dont_notify` 并隐藏其存在。
 
 `strand_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只在客户端完整规则链中影响 `notify` / `dont_notify` 的最终决定。
 
@@ -339,8 +339,8 @@ Audience mention（例如 `@all` / `@here`）的规范性节点形态、允许�
 Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完成以下 gate，且任一失败都不得产生 push wakeup：
 
 - sender 同时持有普通消息写入授权和 `ak.message.mention.broadcast` 授权；
-- effective Realm / Circle policy 允许该 `audience`，并声明有限 `max_recipients` 与 quota；
-- 展开后的 receiver 通过 Message effective scope、history visibility、Circle membership 和 target policy；
+- effective Realm policy 允许该 `audience`，并声明有限 `max_recipients` 与 quota；
+- 展开后的 receiver 通过 Message effective scope、history visibility、成员资格和 target policy；
 - receiver 的服务端可见 `level=muted` gate 没有抑制该 wakeup；个人 blocklist、DND 与更高优先级 `dont_notify` rule 由持钥 receiver 客户端在展示前检查，不作为服务端拒发 blind wakeup 的依据。
 
 `@here` 在 v1 中映射为 `audience="strand_engaged"`，即当前 Strand discussion 的历史参与者与当前有效 watchers 的并集；它不使用 presence / online 状态。`strand_watchers` 和 `strand_engaged` 的 watch 命中原因只在 receiver-side dispatcher 内部可见，MUST NOT 反向暴露给 sender 或普通 Realm 成员。
@@ -400,7 +400,7 @@ POST /_arkret/edge/push/notify
 | `notification.devices[].device_id` | id:device | required | 目标设备的 typed device id，与 `ak.edge.push.command.register_device.v1` 注册时使用的同一 id。它与 `notification.push_target_id` 组成本次 notify 的逐项身份，§5.2 响应即以此定址；协议不存在第三套 route identity。 |
 | `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定完整 `account_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
 | `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
-| `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
+| `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm scope 的 opaque token；不得携带`effective_scope` 对象或其它可识别 scope 原文。 |
 | `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.sender_actor_id` | ActorId | visible-only required | profile-gated 发送者的完整 Actor identity。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload；不得降格为 principal DID。 |
@@ -427,7 +427,7 @@ POST /_arkret/edge/push/notify
 3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`route_tokens`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ak.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
-`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ak.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用顶层 pairwise `push_target_id` 与 `route_tokens`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ak.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ak.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用顶层 pairwise `push_target_id` 与 `route_tokens`；raw Realm id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ak.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `ak.profile.push_gateway.blind_wakeup.v1`。
@@ -545,7 +545,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 - Station sync surface MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
 - 对通知正文、Account/Realm 身份和跨 tenant 活动而言，推送网关仍按最小披露第三方处理：`push_hint` 白名单与 payload 最小化约束见 §2.2 与 §5.1。唯一额外信任是 §3.4 公共 Gateway 在 exact source-Station tenant 内处理 provider route；该信任不授予读取消息、账号身份或跨 Station 关联的权限。
-- 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 不得包含、编码或可逆推出 DID、Realm id、Circle id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。v1 不存在 mention redirect token；mention 走 blind/batch wakeup 并由客户端解密判断。
+- 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 不得包含、编码或可逆推出 DID、Realm id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。v1 不存在 mention redirect token；mention 走 blind/batch wakeup 并由客户端解密判断。
 
 ## 7. 静默时段 (Do Not Disturb)
 

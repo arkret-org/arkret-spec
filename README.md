@@ -10,7 +10,7 @@
 协议站：[arkret.org](https://arkret.org) · 规范与文档：CC BY 4.0 · 代码：Apache-2.0（见 [LICENSE](./LICENSE)）。
 
 Arkret v1 是面向个人、组织与 AI Agent 的可自托管联邦协作协议。各方 Station 跨域互联，每个 Realm
-由单一治理 Station 接纳共享写入并签发 RealmCommit；启用 MLS 的 Realm / Circle / Agent Sidecar
+由单一治理 Station 接纳共享写入并签发 RealmCommit；启用 MLS 的 Realm / 个人 Sidecar
 以独立 scope 保护正文，聊天、任务、文档、日历和通话共享开放协作模型。联邦部署不代表无中心写入或
 无需信任服务器；治理、元数据与连续性边界见[写入确认](./spec/v1/zh/sync/authority-commit-log.md)与
 [服务器信任](./spec/v1/zh/sync/server-trusted-results.md)。当前 v1 为候选规范，参考实现成熟度另行验收。

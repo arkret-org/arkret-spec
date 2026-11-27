@@ -4373,7 +4373,7 @@
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "Narrowing-only Agent Auth overlay. Content issuance requires a non-empty verified Realm or Strand selector and intersects each action/resource with its complete registered authority path: literal grant, ordinary membership/history reading, Direct participant authority or dedicated Sidecar reading. Service scopes confer no content authority. Realm selection does not bypass Circle/Sidecar profile gates; exact Sidecar/endpoint binding is derived from accepted facts. Typed constraints and action-time current gates remain independent. No literal read grant is required for legitimate profile reading. track_names materializes only as allowed_tracks.",
+          "description": "Narrowing-only Agent Auth overlay. Content issuance requires a non-empty verified Realm or Strand selector and intersects each action/resource with its complete registered authority path: literal grant, ordinary membership/history reading, Direct participant authority or dedicated Sidecar reading. Service scopes confer no content authority. Realm selection does not bypass Sidecar profile gates; exact Sidecar/endpoint binding is derived from accepted facts. Typed constraints and action-time current gates remain independent. No literal read grant is required for legitimate profile reading. track_names materializes only as allowed_tracks.",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {

@@ -25,9 +25,8 @@
     },
     {
       "stream_ref": {
-        "kind": "circle",
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        "kind": "realm",
+        "realm_id": "ak:realm:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "commits": [
         {
@@ -164,7 +163,7 @@
         "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ"
       },
       "expected": "rejected",
-      "reason": "previous_commit_ref MUST name the position-1 Commit of the same stream; this candidate references the Circle stream head instead",
+      "reason": "previous_commit_ref MUST name the position-1 Commit of the same stream; this candidate references the head from an independent stream",
       "writes_nothing": true
     },
     {
@@ -192,9 +191,8 @@
       "name": "position_gap_is_rejected",
       "vector_id": "ak.vector.authority_commit.stream_continuity_negative.v1",
       "stream_ref": {
-        "kind": "circle",
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        "kind": "realm",
+        "realm_id": "ak:realm:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
       },
       "governance_generation": "1",
       "candidate": {
@@ -563,7 +561,7 @@
           "step": 2,
           "action": "deliver_commit",
           "event_ref": "E_state",
-          "stream": "circle_side",
+          "stream": "other_realm",
           "stream_position": 0,
           "previous_commit_ref": null,
           "governance_generation": "1",

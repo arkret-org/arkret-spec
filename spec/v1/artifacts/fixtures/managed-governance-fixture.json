@@ -224,9 +224,8 @@
     "installation_instance_boundary": "Reference-only qualified immutable source relation; no new wire ID/field, native acceptance or physical storage claim.",
     "parent_resources": [
       {
-        "kind": "circle",
-        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
-        "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+        "kind": "realm",
+        "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
       }
     ],
     "signed_authorization_ref": "ak:grant:AQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM",
@@ -237,9 +236,8 @@
         "created_position": 1,
         "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
         "resource": {
-          "kind": "circle",
-          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK",
-          "circle_id": "ak:circle:ASkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp"
+          "kind": "realm",
+          "realm_id": "ak:realm:AQoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoK"
         },
         "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
         "service_id": "ak:did_core:webvh:z6mkfixtureapplet",

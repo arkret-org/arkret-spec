@@ -245,7 +245,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Circle and Strand participation ceilings may only drop bits from their parent: a child enabling acting_on_behalf_allowed under a disabled parent bit, or a Strand re-enabling a Circle-disabled third-party mention bit, is rejected with agent_participation_ceiling_widen.",
+      "description": "Prove that a Strand can tighten its Realm participation ceiling. Any attempt to enable a disabled parent bit must be rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -379,7 +379,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Authorized candidates bind exact full AccountIds to current draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings and private holder notes stay local. Each source Strand draft/send routes only by its current bound targets: no Agent mention or only public Agents use the original Strand, current owned private Agents use Sidecar, and mixed/unknown targets keep the existing rejection rule. Prior private session, addressed targets, accepted requests and merged history never supply a current target; Circle and independent Direct keep their scope contracts, without silent private-failure fallback.",
+      "description": "Authorized candidates bind exact full AccountIds to current draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings and private holder notes stay local. Each source Strand draft/send routes only by its current bound targets: no Agent mention or only public Agents use the original Strand, current owned private Agents use Sidecar, and mixed/unknown targets keep the existing rejection rule. Prior private session, addressed targets, accepted requests and merged history never supply a current target; independent Direct keep their scope contracts, without silent private-failure fallback.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -606,7 +606,7 @@
       "applies_to_fixtures": [
         "authority-commit-fixture.json"
       ],
-      "description": "Realm, Circle and Sidecar streams each start and advance their own predecessor chain; planned handoff transfers every private head without exposing hidden stream existence in the public bundle.",
+      "description": "Realm and Sidecar streams each start and advance their own predecessor chain; planned handoff transfers every private head without exposing hidden stream existence in the public bundle.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -900,7 +900,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "calendar.attendees is the single canonical roster: actor ids are unique, the omitted role defaults to required, at most one organizer exists, and roster membership creates no Realm or Circle membership and widens no history access.",
+      "description": "calendar.attendees is the single canonical roster: actor ids are unique, the omitted role defaults to required, at most one organizer exists, and roster membership creates no Realm membership and widens no history access.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json"
       ]
@@ -1413,82 +1413,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.activation_independent_of_realm.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "visibility-policy-fixture.json"
-      ],
-      "description": "A Circle activates on its own commit stream; Realm activation neither implies nor blocks it.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "visibility-policy-fixture.json"
-      ],
-      "description": "Under directory_visibility=members a Realm member outside the Circle receives the same not_found error envelope and processing category as an absent Circle, and both are omitted from list, while a Circle member sees full metadata.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-        "spec/v1/zh/models/circle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "visibility-policy-fixture.json"
-      ],
-      "description": "directory_visibility=realm_members exposes only the closed active-Circle preview field set to current parent-Realm members and gives non-Realm callers the same not_found envelope/processing category as absent or members-only circles.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-        "spec/v1/zh/models/circle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.lifecycle_admission_barrier.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "circle-scope-fixture.json"
-      ],
-      "description": "Circle lifecycle is evaluated in the source-Station serializable admission gate: admission before archive is retained, archive or tombstone before admission blocks, and restore requires a newly signed Event.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-        "spec/v1/zh/models/circle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.parent_membership_revision.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "circle-parent-membership-fixture.json"
-      ],
-      "description": "Every ak.circle.member.state join carries the producer-signed parent_membership_revision and every other transition forbids it; admission accepts the join only when the parent Realm member_state current is join at exactly that revision, otherwise failed_precondition circle_member_must_be_realm_member with zero writes. Effective Circle membership is the canonical Circle join AND the parent current still carrying that revision in the same cut: a parent leave or ban invalidates every Circle join at once without synthesized Circle Events or rewritten rows, a parent rejoin never revives an old Circle join, and only an explicit new Circle join bound to the new revision restores one Circle. A replica whose Realm stream lags the bound revision fails closed and returns dependency_missing for a Circle-join bootstrap; equal position numbers on the Realm and Circle streams are never equivalent. An activated Circle with a parent-invalidated leaf stays epoch_update_required without advancing key_access_revision until a winning Commit removes the leaf, and historical-cut membership is continuous only at or after the current Circle join.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-parent-membership-fixture.json",
-        "spec/v1/zh/models/circle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.circle.scope_rebind_and_admission.v1",
-      "status": "active",
-      "domain": "circle",
-      "applies_to_fixtures": [
-        "circle-scope-fixture.json"
-      ],
-      "description": "Signed Event scope_ref, projected effective_scope and Circle lifecycle admission: the producer signs the matching scope_ref, the reducer verifies it and materializes effective_scope only in read projections, and source-Station serializable ordering, archive and tombstone barriers, restore re-signing, expected_commit_id checks and rebind transitions all hold together with their negatives.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
       ]
     },
     {
@@ -3525,7 +3449,7 @@
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet. Only accepted plaintext Message ContentBlocks are formal v1 Poll inputs; encrypted messages with poll_response_heads reject with zero writes and decrypted poll-shaped content is not tallied. A Realm/Circle, poll and full ActorId partition lies inside one authority stream, so the greatest RealmCommit position selects the whole current vote. Wrong poll/actor/scope heads reject with zero writes; arrival permutations, prefix gaps, invalidation and replica union converge. Activation requires an executable fixture covering these points.",
+      "description": "Reserved: no conformance fixture carries this vector yet. Only accepted plaintext Message ContentBlocks are formal v1 Poll inputs; encrypted messages with poll_response_heads reject with zero writes and decrypted poll-shaped content is not tallied. A Realm, poll and full ActorId partition lies inside one authority stream, so the greatest RealmCommit position selects the whole current vote. Wrong poll/actor/scope heads reject with zero writes; arrival permutations, prefix gaps, invalidation and replica union converge. Activation requires an executable fixture covering these points.",
       "source_refs": [
         "spec/v1/zh/models/content-types.md"
       ]
@@ -3597,7 +3521,7 @@
       "applies_to_fixtures": [
         "mls-creator-bootstrap-recovery-fixture.json"
       ],
-      "description": "The creator client drives one encrypted effective scope through the single durable transaction genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. A crash and a reload are injected before and after every registered arrow, and the run also covers Realm-create response loss, 0->0 response loss, partial public blob upload, sign-before-enqueue, a lost response after the enqueue commit, a lost local confirmation after acceptance, partial artifact persistence, another accepted Genesis winning, a terminal rejection and local corruption. Every positive run ends with exactly one accepted ak.mls.genesis whose bytes equal the bytes frozen in the outbound queue item, deleting every current or UI projection changes no outcome, and no branch declares completion from an HTTP success, a duplicate code, a queue item or an emitted flag. Executable timestamp predicate cases cover equal timestamps, one-millisecond inequality in both directions, independent later proof/commit clocks, zero accepted effects on mismatch and accepted-winner timestamp eligibility for Realm, Circle and Sidecar. Predicate success is not complete Event acceptance; Sidecar remains outside the creator transaction FSM. An accepted winner discovered while the original intent is still at genesis_intent_persisted terminates directly to superseded, preserving the independently authenticated accepted scope-create and winner atomically without manufacturing an absent result; both sides of that arrow include crash and reload.",
+      "description": "The creator client drives one encrypted effective scope through the single durable transaction genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. A crash and a reload are injected before and after every registered arrow, and the run also covers Realm-create response loss, 0->0 response loss, partial public blob upload, sign-before-enqueue, a lost response after the enqueue commit, a lost local confirmation after acceptance, partial artifact persistence, another accepted Genesis winning, a terminal rejection and local corruption. Every positive run ends with exactly one accepted ak.mls.genesis whose bytes equal the bytes frozen in the outbound queue item, deleting every current or UI projection changes no outcome, and no branch declares completion from an HTTP success, a duplicate code, a queue item or an emitted flag. Executable timestamp predicate cases cover equal timestamps, one-millisecond inequality in both directions, independent later proof/commit clocks, zero accepted effects on mismatch and accepted-winner timestamp eligibility for Realm and Sidecar. Predicate success is not complete Event acceptance; Sidecar remains outside the creator transaction FSM. An accepted winner discovered while the original intent is still at genesis_intent_persisted terminates directly to superseded, preserving the independently authenticated accepted scope-create and winner atomically without manufacturing an absent result; both sides of that arrow include crash and reload.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json"
       ]
@@ -3622,7 +3546,7 @@
       "applies_to_fixtures": [
         "mls-governance-binding-closure-fixture.json"
       ],
-      "description": "The fixed GroupContext binding is a closed deterministic-CBOR five-member map with bounded decoding. Realm, Circle, Sidecar and Genesis/null acceptance bytes are fixed; malformed, trailing, out-of-range and resource-limit inputs fail closed. Epochs and key_access_revision are unsigned 64-bit monotonic counters, a valid RFC 9420 public object still fails when its inner binding differs from the Event payload or Station state, historical replay grants no current send authority, and the closed pre-Genesis proposal carrier directly reuses the same binding schema.",
+      "description": "The fixed GroupContext binding is a closed deterministic-CBOR five-member map with bounded decoding. Realm, Sidecar and Genesis/null acceptance bytes are fixed; malformed, trailing, out-of-range and resource-limit inputs fail closed. Epochs and key_access_revision are unsigned 64-bit monotonic counters, a valid RFC 9420 public object still fails when its inner binding differs from the Event payload or Station state, historical replay grants no current send authority, and the closed pre-Genesis proposal carrier directly reuses the same binding schema.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json"
       ]
@@ -3646,7 +3570,7 @@
       "applies_to_fixtures": [
         "mls-group-id-derivation-fixture.json"
       ],
-      "description": "mls_group_id is base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope))) and is exactly 43 characters. The scope key bytes are UTF8(realm_id) for a realm scope, UTF8(circle_id) for a circle scope and UTF8(realm_id) || 0x1F || UTF8(sidecar_id) for a sidecar scope, so prefixing the circle branch with its realm_id, dropping the sidecar branch's realm_id, reordering the sidecar components or switching to JCS changes the value; a circle and a sidecar sharing one payload do not collide, because the kind prefixes differ.",
+      "description": "Verify the MLS group ID transcript for Realm and private Sidecar with independent domain tags and exact canonical identifier bytes, including the owning Realm in the Sidecar transcript. Reject cross-scope substitutions.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
         "spec/v1/zh/models/realm-and-space.md"
@@ -3699,7 +3623,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Realm/Circle inline MLS Proposals require verified complete public Commit source, exact-base occupied Member leaf and original producer binding. Unregistered external senders, NewMemberProposal, ExternalInit or NewMemberCommit without the current content-history recovery exception fail closed with unsupported_feature; absent base leaf stays failed_precondition and producer mismatch stays signature_invalid. Recovery-specific External Commit and exact same-Actor old-leaf cleanup use recovery_binding and cannot create membership or general administrator rights.",
+      "description": "Realm inline MLS Proposals require verified complete public Commit source, exact-base occupied Member leaf and original producer binding. Unregistered external senders, NewMemberProposal, ExternalInit or NewMemberCommit without the current content-history recovery exception fail closed with unsupported_feature; absent base leaf stays failed_precondition and producer mismatch stays signature_invalid. Recovery-specific External Commit and exact same-Actor old-leaf cleanup use recovery_binding and cannot create membership or general administrator rights.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
@@ -4019,7 +3943,7 @@
       "applies_to_fixtures": [
         "read-receipt-scope-policy-fixture.json"
       ],
-      "description": "Independent Realm and Circle policies, defaults and preferences; no parent or sibling fold.",
+      "description": "Independent Realm policies, defaults and preferences; no parent or sibling fold.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md",
         "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
@@ -4045,7 +3969,7 @@
       "applies_to_fixtures": [
         "read-receipt-scope-policy-fixture.json"
       ],
-      "description": "Closed shared Realm/Circle policy shape rejects removed overrides, scope identity in payload, Realm-only selectors and unsupported scopes.",
+      "description": "Closed shared Realm policy shape rejects removed overrides, scope identity in payload, Realm-only selectors and unsupported scopes.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md",
         "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
@@ -4229,11 +4153,11 @@
       "status": "active",
       "domain": "relation",
       "applies_to_fixtures": [
-        "circle-scope-fixture.json"
+        "relation-structural-realm-fixture.json"
       ],
       "description": "Relation is the only patch-surface object whose schema declares effective_scope, so it is the only place an actor could still supply the reducer-materialized value. Both surfaces MUST be decided by schema and MUST produce zero projection writes: an ak.relation.create carrying payload.relation.effective_scope, and an ak.relation.update whose patch addresses effective_scope or any effective_scope.* descendant, both fail with schema_violation reason=effective_scope_reducer_managed.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
+        "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json"
       ]
     },
     {
@@ -4245,7 +4169,7 @@
       ],
       "description": "Every directly writable Relation shape has one primary_conflict_domain current-state subject. create, update and tombstone carry the closed domain plus its exact expected_commit_id; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
+        "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/models/relation.md"
       ]
@@ -4310,18 +4234,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
-      "status": "active",
-      "domain": "scalability",
-      "applies_to_fixtures": [
-        "scalability-limits-fixture.json"
-      ],
-      "description": "A Realm above 1000 active Circles rejects the next create with failed_precondition and reason_code circle_count_exceeded, leaving state unchanged.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
     },
     {
@@ -4804,7 +4716,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Concurrent prepare and create for one (controller_account_id, source_realm_id) converge on a single Sidecar whose sidecar_id is the winning create event_id retyped, callers may not supply or overwrite it, a mutated draft conflicts with zero writes while the exact draft replays idempotently, and context attach only projects the (sidecar_id, source_context_ref) mapping without creating a Circle, membership, Strand or Relation. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Concurrent prepare and create for one (controller_account_id, source_realm_id) converge on a single Sidecar whose sidecar_id is the winning create event_id retyped, callers may not supply or overwrite it, a mutated draft conflicts with zero writes while the exact draft replays idempotently, and context attach only projects the (sidecar_id, source_context_ref) mapping without creating membership, Strand or Relation. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4854,7 +4766,6 @@
       ],
       "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: To a caller who is neither the controller nor one of its owned Agents, the account Event stream yields zero Events referencing the Sidecar native scope, no protocol Relation enumerates Sidecars or their source-context mappings, the Realm directory has no hit for sidecar_id or controller mapping, Sidecar Events raise no notification for source Strand participants, and source project commit metadata contains no trace of their existence. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/zh/models/circle.md",
         "spec/v1/zh/models/sidecar.md"
       ]
     },
@@ -5026,7 +4937,7 @@
       "applies_to_fixtures": [
         "signal-federation-fixture.json"
       ],
-      "description": "Circle Signal binds independent scope and parent Realm accepted cuts in proof and AAD; historical and current membership/capability gates both hold. Later grants never authorize old parent cuts, current revoke/reset/ownership/join changes deny, and idle heads require verified handoff manifest coverage.",
+      "description": "Signal proof and AEAD bind the exact Realm authority head. Verify the historical cut and current membership, grants and device authority. Refusal must not write an Event or Commit.",
       "source_refs": [
         "spec/v1/zh/sync/signal.md",
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
@@ -5093,7 +5004,7 @@
       "applies_to_fixtures": [
         "strand-watch-current-read-fixture.json"
       ],
-      "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses. Cross-Station cases cover authenticated own-Account-Station binding, remote delivery without local tenure, authorized and invisible Circle reads, full Account isolation, handoff provenance including cleared rows and other-author writes, revocation/session/device fences and submit-time CAS.",
+      "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses. Cross-Station cases cover authenticated own-Account-Station binding, remote delivery without local tenure, authorized and unauthorized Realm reads, full Account isolation, handoff provenance including cleared rows and other-author writes, revocation/session/device fences and submit-time CAS.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json"
       ]
@@ -5105,7 +5016,7 @@
       "applies_to_fixtures": [
         "registered-atomic-unit-and-watch-audit-fixture.json"
       ],
-      "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, narrow Circle audit exception, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
+      "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
       ]
@@ -5245,7 +5156,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Per-stream verifiable window-start basis versus Realm display preview: mixed Realm/Circle/Sidecar starts, genesis and readable-floor anchors, and preview_only isolated to the stream whose basis is insufficient.",
+      "description": "Per-stream verifiable window-start basis versus Realm display preview: mixed Realm/Sidecar starts, genesis and readable-floor anchors, and preview_only isolated to the stream whose basis is insufficient.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"

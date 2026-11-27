@@ -15,10 +15,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 221,
+    "total_operations": 215,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 219
+      "typed_schema": 213
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -29,7 +29,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 137
+        "typed_schema": 131
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1925,88 +1925,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.command.create.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleCreateRequestBody",
-        "response": "#/components/schemas/CircleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.command.rotate_scope.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
-      "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/submit_response_body"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.member.command.add.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/circles/{circle_id}/members",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleMemberRequestBody",
-        "response": "#/components/schemas/CircleMembershipResponseBody"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.member.resource.delete.v1",
-      "surface_class": "extension",
-      "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleMemberDeleteRequestBody",
-        "response": "#/components/schemas/CircleMembershipResponseBody"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.circle.read.list.v1",
-      "surface_class": "extension",
-      "http": "GET /_arkret/self/circles",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/CircleList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.self.circle.resource.get.v1",
-      "surface_class": "extension",
-      "http": "GET /_arkret/self/circles/{circle_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/CircleReadView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.committed_event.read.scan.v1",

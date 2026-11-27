@@ -843,7 +843,7 @@ MUST NOT 采信调用方自报的关系：
 
 Realm requester 分支的来源必须是该 Realm 经完整 authority bundle／连续交接链及 fresh current assertion
 验证的当前治理 Station；不能仅比较 RealmId、AppletId 或相信来源自报。来源治理方在发起前验证真实
-Realm Device、授权实例／generation、当前安装／grant、双 gate 与实际 Realm／Circle scope。
+Realm Device、授权实例／generation、当前安装／grant、双 gate 与实际 Realm scope。
 MLS 执行仍只按既有 `ak.mls.commit`、membership 与 policy 规则；本分支不新增 Bot 专用权限、审批或角色。
 它不授予成员准入、目标设备授权或任何管理权。目标仍仅限普通 Account Device selectors，不开放 Realm
 Bot／Ghost 设备目录、私有控制流或 Contact／call 用途，不转发设备凭据。
@@ -1017,7 +1017,7 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 `service_binding`；不得携带 holder-only proof、额外 proof 容器或平行 transcript。
 
 **完整目标scope（normative）**：所有Human／Agent／Realm Actor、self／peer及MIMI复用的claim，
-原意图MUST显式携带`effective_scope`，仅可为Realm、Circle或Sidecar的closed ScopeRef；
+原意图MUST显式携带`effective_scope`，仅可为Realm或Sidecar的closed ScopeRef；
 Direct使用其原Direct Realm的Realm scope。它与`intended_realm_id`、`mls_group_id`同时存在：
 scope的realm_id MUST逐字等于intended_realm_id，按realm-and-space §2.2固定公式派生的
 canonical MLS group ID MUST逐字等于mls_group_id。来源和目标在保留新意图／分配之前都必须校验，
@@ -1389,7 +1389,7 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 ### 12.1 Backup API
 
-备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `source_commit_ref`（出现时其 `realm_commit_id` 与 `device_generation_ref` 都必须存在），但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Circle 或 Sidecar stream 的位置。envelope builder 只接受等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId,device_generation_ref: u64}` 的 typed source value；该字段出现时在签名之前写入，验签后不得改名。它与 `series_sequence + supersedes_id + supersedes_digest` predecessor/CAS 链彼此独立，不能互相替代。`ak.key_backup.active_series` 的 signed payload 复用同一个闭合两字段锚：唯一顶层名是 `source_commit_ref`，`realm_commit_id` 直接使用强类型 `RealmCommitId`；`source_ref` 与内层 `commit_ref` 均无效，完整 `CommittedEventRef` 都不是 v1 wire；字符串 generation、Seal 与 frontier digest 也不是 v1 wire，MUST 在验签或状态写入前拒绝。
+备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `source_commit_ref`（出现时其 `realm_commit_id` 与 `device_generation_ref` 都必须存在），但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Sidecar stream 的位置。envelope builder 只接受等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId,device_generation_ref: u64}` 的 typed source value；该字段出现时在签名之前写入，验签后不得改名。它与 `series_sequence + supersedes_id + supersedes_digest` predecessor/CAS 链彼此独立，不能互相替代。`ak.key_backup.active_series` 的 signed payload 复用同一个闭合两字段锚：唯一顶层名是 `source_commit_ref`，`realm_commit_id` 直接使用强类型 `RealmCommitId`；`source_ref` 与内层 `commit_ref` 均无效，完整 `CommittedEventRef` 都不是 v1 wire；字符串 generation、Seal 与 frontier digest 也不是 v1 wire，MUST 在验签或状态写入前拒绝。
 
 ### 12.2 Retention and Erasure
 
@@ -1512,7 +1512,7 @@ Bot/Ghost设备请求认证 **MUST** 按 [Applet integration §18](../extensions
 ### 16.1 原签 scope／action 配对（normative）
 
 `realm_managed_delegation` 的 `scopes` MUST 是非空的闭合配对列表；每项字段顺序为
-`effective_scope`、`actions`。前者复用安装的 Realm／Circle ScopeRef，后者是非空的已登记
+`effective_scope`、`actions`。前者复用安装的 Realm ScopeRef，后者是非空的已登记
 CapabilityActionId 列表，按 UTF-8 字节升序且唯一。列表按 RFC8785 JCS(effective_scope) 的
 UTF-8 字节升序，且同一 scope 只能一项；接收方 MUST 拒绝非规范次序、重复 scope／action、
 未知 action／scope、额外字段、空值和通配，不得重排已签字节。其它 Device 授权分支保留原字符串
@@ -1520,20 +1520,20 @@ UTF-8 字节升序，且同一 scope 只能一项；接收方 MUST 拒绝非规�
 
 实际请求所需的每个 `(effective_scope, action)` MUST 在同一个原签项中命中。一个请求需要
 多个 action 时须全部命中该 scope 项；多个资源／queue item／Event 则分别验证全部实际 scope。
-`A/X + B/Y` 不授权 A/Y 或 B/X。Realm 不隐式覆盖 Circle，Circle 不覆盖 Realm 或其它 Circle。
+`A/X + B/Y` 不授权 A/Y 或 B/X。每个条目仅授权所列 Realm 中的操作。
 此合同不授权 Sidecar：Sidecar 有独立参与及披露合同，MUST NOT 借其 parent Realm 安装、
 metadata 或 `ak.event.read` 放行。新增支持必须先正式登记合同。
 
 目标资源的 scope MUST 来自权威 Event／对象／stream／signed MLS group／KeyPackage claim／
 原 durable queue item 或 Blob 的真实用途绑定，且 metadata.effective_scope MUST 与之相等；
 同一次请求含异 scope 内容时应按 exact scope 分请求，不得用调用人自报值替代资源归属。
-无 Circle 的 Realm 内容归 Realm，Circle 内的 Strand／Message／附件／MLS 材料归该 Circle；
+Realm 的 Strand、Message、附件及 MLS 材料按各自已接纳的原始 Realm 核验；
 公开 signer／历史依赖仍须绑定本次合法业务所需的最小引用，不授予私有 PCR 全流。
 未知、缺失、冲突或无法权威确定的归属 MUST fail closed，不按 Realm 默认补全。
 
 **首次 Blob 用途建立**：Realm Bot／Ghost 首次上传时尚无引用该 Blob 的 accepted 消息。
 仅在此创建阶段，已签 `metadata.effective_scope` MUST 解释为拟创建目标；治理方 MUST 独立解析
-accepted Realm／Circle，核 Circle 属于上传 body 的 owning Realm，并在同一授权 cut 核当前成员、
+accepted Realm，核上传 body 的 owning Realm 与已签范围一致，并在同一授权 cut 核当前成员、
 原签 scope／上传 action、Device 实例／generation／期限、当前安装、E2EE 同意、管理 Policy 与配额。
 不得把 metadata 自报目标当作已验证归属。接受事务 MUST 同时保存 Blob metadata 与不可变私有上传
 绑定：完整 BlobRef、exact ScopeRef、实际 Realm Actor、原 Device／authorization 实例及接受时间。

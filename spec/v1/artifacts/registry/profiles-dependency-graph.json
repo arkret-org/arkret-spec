@@ -23,7 +23,6 @@
     "ak.profile.calendar_event.v1",
     "ak.profile.calendar_notification_dispatch.v1",
     "ak.profile.chat_mvp.v1",
-    "ak.profile.circle_conformance.v1",
     "ak.profile.constraint.approval_workflow.v1",
     "ak.profile.constraint.claim_based.v1",
     "ak.profile.constraint.encryption_requirement.v1",

@@ -144,7 +144,7 @@ Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` �
 - `role` 省略时等价于 `required`。
 - `organizer` 只是展示 / 日程语义，MUST NOT 自动产生 capability；同一 roster 至多一个 `organizer`（由 schema `maxContains` 强制）。需要多 organizer 时另开 profile。
 - `display_name_snapshot` 是可泄露身份的信息：metadata 加密时 MUST 一并加密。
-- roster 增删 MUST NOT 创建 Realm / Circle membership，也 MUST NOT 扩大 history access。能看到日历事件不等于能看到其 private discussion 或 Circle-scoped 内容。
+- roster 增删 MUST NOT 创建 Realm membership，也 MUST NOT 扩大 history access。能看到日历事件不等于能看到其 private discussion 或其它受限内容。
 
 ## 8. RSVP
 

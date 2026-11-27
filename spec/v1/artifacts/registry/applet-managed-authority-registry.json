@@ -34,7 +34,6 @@
       "ak.self.blob.resource.get.v1",
       "ak.self.blob.resource.head.v1",
       "ak.self.blob.upload.create.v1",
-      "ak.self.circle.command.rotate_scope.v1",
       "ak.self.device_messages.command.ack.v1",
       "ak.self.device_messages.read.list.v1",
       "ak.self.keys.keypackages.command.claim.v1",
@@ -66,12 +65,12 @@
     "service_key_is_device_key": false,
     "scope_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_managed_device_scopes",
     "scope_matching": {
-      "scope_equality": "exact_closed_realm_or_circle",
+      "scope_equality": "exact_closed_realm",
       "entry_order": "utf8_jcs_effective_scope",
       "action_order": "utf8_ascending_unique_registered",
       "one_entry_per_scope": true,
       "cross_entry_combination": false,
-      "realm_includes_circle": false,
+      "realm_includes_other_realms": false,
       "sidecar_supported": false,
       "unknown_scope_or_action": "reject",
       "resource_scope_source": "authoritative_target_resource_not_request_metadata"
@@ -79,7 +78,7 @@
     "blob_upload_binding": {
       "operation_id": "ak.self.blob.upload.create.v1",
       "creation_target": "signed_metadata_effective_scope",
-      "target_validation": "accepted_realm_or_circle_in_body_owning_realm",
+      "target_validation": "accepted_realm_matching_body_owning_realm",
       "current_gates": [
         "membership",
         "original_device_scope_and_upload_action",
@@ -142,11 +141,6 @@
         "actions": [
           "ak.self.blob.upload.create.v1"
         ]
-      },
-      {
-        "operation_id": "ak.self.circle.command.rotate_scope.v1",
-        "mode": "submitted_business_actions",
-        "actions": []
       },
       {
         "operation_id": "ak.self.device_messages.command.ack.v1",
@@ -321,7 +315,7 @@
       "publisher": "exact_current_native_Device_only",
       "manager_inventory_or_archive_recovery": false,
       "recovery_enabled_is_business_gate": false,
-      "scope": "one_exact_Realm_or_Circle_entry_no_cross_entry_combination",
+      "scope": "one_exact_Realm_entry_no_cross_entry_combination",
       "next_prepare_input": "echo_authenticated_current_material_public_object_no_synthetic_coordinates"
     },
     "native_backup_subject_actions": {

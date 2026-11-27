@@ -21,12 +21,11 @@ updated: 2026-10-17
 
 ## 2. 设计原则
 
-### 2.1 审核权由 Realm / Circle 管理员行使
+### 2.1 审核权由 Realm 管理员行使
 
-去中心化环境中没有"全网管理员"。内容审核的权限由 Realm / Circle 的 Capability 体系决定：
+去中心化环境中没有"全网管理员"。内容审核的权限由 Realm 的 Capability 体系决定：
 
 - Realm-default 内容由持有对应 `ak.moderation.decision`、`ak.moderation.decision.lift`、`ak.message.redact` 或成员治理 grant 的 Actor 处理。
-- Circle-scoped 内容由该 Circle 的管理员 / moderator 处理；Realm 管理员只有在 grant 明确覆盖目标 Circle 时才可以处理该 Circle 的治理事务。
 
 ### 2.2 屏蔽是本地行为
 

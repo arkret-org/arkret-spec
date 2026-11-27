@@ -493,12 +493,6 @@
           "schema_ref": "event-payload.schema.json#/$defs/membership_payload",
           "instance_pointer": "",
           "match_scope": "root"
-        },
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "event-payload.schema.json#/$defs/circle_member_state_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
         }
       ]
     },
@@ -615,12 +609,6 @@
         {
           "document_kind": "schema_instance",
           "schema_ref": "event-payload.schema.json#/$defs/space_patch_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
-        },
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "event-payload.schema.json#/$defs/circle_patch_payload",
           "instance_pointer": "",
           "match_scope": "root"
         }
@@ -2308,12 +2296,12 @@
       "context": "strand_payload",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
-      "replacement": "scope_circle_id",
+      "replacement": "Realm of the Strand",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Strand payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/strand.schema.json, zh/models/circle.md).",
+      "notes": "Strand payloads reject discussion_space_ref. A discussion Track shares the Realm of its Strand. See zh/models/strand-and-message.md.",
       "match": {
         "kind": "field",
         "values": [
@@ -2740,7 +2728,7 @@
       "context": "grant_constraint",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "allowed_view_ids / allowed_strand_ids / allowed_circle_ids / denied_strand_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_principal_ids",
+      "replacement": "allowed_view_ids / allowed_strand_ids / denied_strand_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_principal_ids",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -2801,7 +2789,7 @@
       "context": "single_kind_identifier_fields",
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
-      "replacement": "parent_space_id / default_realm_id / default_scope_circle_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
+      "replacement": "parent_space_id / default_realm_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -4054,12 +4042,12 @@
       "context": "child_scope_policy.kind",
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
-      "replacement": "require_scope_circle_id",
+      "replacement": "child_scope_policy",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "The child_scope_policy discriminator now names the concrete field it requires: scope_circle_id.",
+      "notes": "Space placement accepts a boolean child_scope_policy.",
       "match": {
         "kind": "value",
         "values": [
@@ -4511,7 +4499,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm/Circle event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §8.",
+      "notes": "The Agent Sidecar exchange binding (ak.schema.agent_sidecar_event_exchange_binding.v1), exchange control plaintext (ak.schema.agent_sidecar_exchange_control.v1), and exchange_id are legal only inside MLS-encrypted payload/metadata of events whose effective scope is the native Sidecar. They MUST NOT appear in plaintext metadata, account-data keys, shared Realm event payloads, publish output, push previews, notifications, telemetry, or any other shared/public surface. Shared-wire-visible occurrences are schema_violation; material decrypted from a non-Sidecar scope is invalid and never rendered or folded. See zh/models/sidecar.md §8.",
       "match": {
         "kind": "field",
         "values": [
@@ -4637,7 +4625,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Media visibility is aligned with Realm / Circle scope; Space is not a security boundary.",
+      "notes": "Media visibility is aligned with the ordinary Realm scope; Space is not a security boundary.",
       "match": {
         "kind": "value",
         "values": [

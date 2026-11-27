@@ -107,10 +107,6 @@
     "ak.self.authz.invites.read.list.v1": [
       "subject_account_id"
     ],
-    "ak.self.circle.member.command.add.v1": [
-      "join_rule"
-    ],
-    "ak.self.circle.member.resource.delete.v1": [],
     "ak.self.committed_event.stream.subscribe.v1": [
       "rate_limited"
     ],

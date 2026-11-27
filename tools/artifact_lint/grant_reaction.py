@@ -28,8 +28,10 @@ def verified_row(row, keys):
     core = {key: value for key, value in commit.items() if key not in {"commit_id", "signature"}}
     if typed_id("realm_commit", core) != commit["commit_id"]:
         raise ValueError("Commit content identity")
+    if event["scope_ref"] != STREAM:
+        raise ValueError("scope_ref_mismatch")
     if (commit["event_ref"] != event["event_id"] or commit["stream_ref"] != STREAM
-            or event["scope_ref"] != STREAM or event["realm_id"] != REALM
+            or event["realm_id"] != REALM
             or commit["realm_id"] != REALM or event["payload"]["target_ref"] != TARGET
             or event["kind"] not in {"ak.reaction.add", "ak.reaction.remove"}):
         raise ValueError("exact source and target")
@@ -136,6 +138,11 @@ def run_reaction_case(fixture, name):
     model = ReactionReference(keys)
     snapshot = copy.deepcopy(fixture["checkpoints"][-1])
     try:
+        if name == "resigned_reaction_wrong_target_realm":
+            try:
+                return model.receive(fixture["wrong_target_realm"])
+            except ValueError as error:
+                return str(error)
         if name == "complete_ordered_tail":
             for row in rows:
                 model.receive(row)

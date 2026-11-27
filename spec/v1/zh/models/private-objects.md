@@ -39,7 +39,7 @@ Schema id: `ak.schema.read_cursor.v1`
 | `actor_id` | yes | `did_core_id` | 只对该 actor 生效。 | 读取主体。 |
 | `device_id` | yes | `id:device` | `ak:device:<uuidv7>`。多设备收敛 tiebreaker。 | 来源设备。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
-| `read_scope` | yes | `object` | `{kind, container_ref?, track_name?}`。`kind ∈ enum(realm, circle, space, strand, thread)`。`container_ref` 必填规则：`kind=realm` 时 MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 MUST 是 `id:circle`；`kind=space` 时 MUST 是 `id:space`；`kind=strand` 时 MUST 是 `id:strand`；`kind=thread` 时 MUST 是 Thread 根消息的 `id:message`（Thread 是 root message 回复子时间线的投影选择器，不是一等协议对象，已读隔离语义见 [`../discovery/read-receipts.md` §5](../discovery/read-receipts.md)）。`track_name` 仅在 `kind=strand` 时 MAY 出现（限定到该 Strand 的某个 track 时间线，省略表示整个 Strand）；其余 kind MUST 省略 `track_name`。Read Receipt 的 `read_scope` 使用 `object_ref`，与本字段共享同一 discriminator 族，但**两者的 `kind` 取值集合并不相交一致**：Read Cursor 支持 `realm` / `circle` / `space` / `strand` / `thread`，Read Receipt 另支持 `view` / `message` / `morph` 但**不**支持 `circle` / `space`。因此 SDK / 实现 **MUST** 按各自 schema 分别校验 `read_scope.kind`，**MUST NOT** 共用单一 enum 类型（共用会让 `circle` 误用于 Receipt、或 `message` 误用于 Cursor 等错配静默通过）；以各自 schema 为字段形状权威。跨对象 kind 可引用类别的机读真相源是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability`：本字段使用 `read_cursor_scope_kind`、`read_cursor_scope_ref` 与 `read_cursor_thread_root` 类别。 | 已读范围。 |
+| `read_scope` | yes | `object` | `{kind, container_ref?, track_name?}`。`kind ∈ enum(realm, space, strand, thread)`。`container_ref` 必填规则：`kind=realm` 时 MUST 省略（范围即本对象 `realm_id`）；`kind=space` 时 MUST 是 `id:space`；`kind=strand` 时 MUST 是 `id:strand`；`kind=thread` 时 MUST 是 Thread 根消息的 `id:message`（Thread 是 root message 回复子时间线的投影选择器，不是一等协议对象，已读隔离语义见 [`../discovery/read-receipts.md` §5](../discovery/read-receipts.md)）。`track_name` 仅在 `kind=strand` 时 MAY 出现（限定到该 Strand 的某个 track 时间线，省略表示整个 Strand）；其余 kind MUST 省略 `track_name`。Read Receipt 的 `read_scope` 使用 `object_ref`，与本字段共享同一 discriminator 族，但**两者的 `kind` 取值集合并不相交一致**：Read Cursor 支持 `realm` / `space` / `strand` / `thread`，Read Receipt 另支持 `view` / `message` / `morph` 但**不**支持 `space`。因此 SDK / 实现 **MUST** 按各自 schema 分别校验 `read_scope.kind`，**MUST NOT** 共用单一 enum 类型（共用会让 `space` 误用于 Receipt、或 `message` 误用于 Cursor 等错配静默通过）；以各自 schema 为字段形状权威。跨对象 kind 可引用类别的机读真相源是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability`：本字段使用 `read_cursor_scope_kind`、`read_cursor_scope_ref` 与 `read_cursor_thread_root` 类别。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 
 ### 2.3 行为规则
@@ -53,7 +53,7 @@ Schema id: `ak.schema.read_cursor.v1`
   收敛：同一 commit stream 上 `stream_position` 更大者胜出；仅当两者互不支配时才取 HLC 较大者，HLC 全等
   才按 `device_id` 作 actor 域内确定性 tiebreaker；不持有 position 已提交坐标时零写入拒绝，
   不得持久化猜测的 winner。
-- Strand 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [strand-and-message.md §5](./strand-and-message.md)）；Realm 与 Circle 使用统一的 `ak.scope.read_receipt_policy` / `scope_read_receipt_policy` 合同，只消费消息所属 exact scope 的独立策略，不继承或合并父 Realm 策略。Track 级策略不在 v1 范围内。
+- 普通 Strand 的已读回执遵循所属 Realm 的披露策略，并独立检查个人投递资格。
 
 ## 3. Notification
 
@@ -77,7 +77,7 @@ Schema id: `ak.schema.notification.v1`
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | conditional | `id:event` | 与 `source_account_artifact` 恰好一个出现。 | durable Realm Event 来源。 |
 | `source_account_artifact` | conditional | `{kind, id}` | 与 `source_event_id` 恰好一个出现；v1 闭合分支仅 `{kind="agent_runtime_approval", id=<approval_request_id>}`。 | 非 Event 的 account-private 短期 artifact 来源。不得伪造 Event id。 |
-| `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 只允许在 `source_event_id` 分支出现。取值形如 `ak:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。**子集差异（informative）**：本字段允许的 kind 子集与 Relation 端点（[`relation.md` §1](./relation.md)，端点另允许 `realm` / `space` / `actor_profile` / `event` / DID）、Read Cursor `read_scope`（§2.2，scope 限 `realm` / `circle` / `space` / `strand` / `thread`）各自不同；差异由各自语义决定（Notification 渲染目标 = 可被通知指向的内容对象；Relation 端点 = 可连边的图节点；Read Cursor scope = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 kind 子集的机读真相源；本字段对应 `notification_source` 类别。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
+| `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 只允许在 `source_event_id` 分支出现。取值形如 `ak:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。**子集差异（informative）**：本字段允许的 kind 子集与 Relation 端点（[`relation.md` §1](./relation.md)，端点另允许 `realm` / `space` / `actor_profile` / `event` / DID）、Read Cursor `read_scope`（§2.2，scope 限 `realm` / `space` / `strand` / `thread`）各自不同；差异由各自语义决定（Notification 渲染目标 = 可被通知指向的内容对象；Relation 端点 = 可连边的图节点；Read Cursor scope = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 kind 子集的机读真相源；本字段对应 `notification_source` 类别。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
 | `strand_id` | no | `id:strand` |  | 可选 Strand 上下文，用于路由通知。 |
 | `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Strand 上的 track key。 |
 | `notification_kind` | yes | `enum(message, mention, reply, assignment, schedule, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
@@ -105,7 +105,7 @@ Schema id: `ak.schema.notification.v1`
 
 `notification_kind=mention` 覆盖普通 direct mention 与 audience mention（例如 `@all` / `@here`）。派生器 MUST 遵守 [`strand-and-message.md` §9.4](./strand-and-message.md)：
 
-- Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source Event 的 committed stream position、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
+- Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source Event 的 committed stream position、Message effective scope、Realm policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
 - 对同一 `(actor_id, source_event_id, notification_kind)` MUST 去重。一个 Message 中重复 direct mention、direct mention 与 audience mention 同时命中、或 watch / reply / assignment 叠加命中，都不得在同一 push delivery window 内产生多次 wakeup。
 - `actor_id` MUST 是接收 notification 的 actor，而不是发送者。默认发送者自 mention 不产生 notification，除非该 actor 的私有 push rule 显式 opt-in。
 - Station 派生器 MUST 在生成 notification projection 或 wakeup 前执行 access check、history visibility 与服务端可见 `level=muted` gate；失败时不得留下可查询 stub。个人 blocklist、DND 与完整 push-rule chain 只由持钥 receiver 客户端在用户可感知展示前执行，详见 [push-notifications.md §2.1 / §3.3 / §4.3](../discovery/push-notifications.md)；这些加密偏好不抑制服务端 blind wakeup。
@@ -119,7 +119,7 @@ Schema id: `ak.schema.notification.v1`
 - `relation_kind="assigned_to"`。
 - `from_ref` 是 active Strand id，`to_ref` 是完整 ActorId object。
 - Relation create 不是现有 active `(realm_id, relation_kind, from_ref, to_ref)` assignment tuple 的 no-op 重放；同一 `(actor_id, source_event_id, notification_kind=assignment)` 最多生成一个 notification。
-- 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被服务端可见 `level=muted` gate 抑制；客户端展示前另执行私有 blocklist、DND 与完整 push rule。
+- 接收 actor 对该 Strand 的 effective Realm scope 有读取权，且未被服务端可见 `level=muted` gate 抑制；客户端展示前另执行私有 blocklist、DND 与完整 push rule。
 
 派生 notification 的 `actor_id` MUST 是 `to_ref`，`realm_id` MUST 是 Relation 所属 Realm，`source_event_id` MUST 是产生该 Relation create 的 canonical Event id，`source_ref` SHOULD 是新增的 Relation id，`strand_id` MUST 是 `from_ref`。缺少可验证 canonical Event id 时不得生成普通 notification projection；OperationId 不是 EventId，也不得作为本地或 wire `source_event_id` 替代品。
 
@@ -175,7 +175,7 @@ selection 由 Account Authority 持有，寻址键是 `(agent_id, target_scope)`
 （account-data 的 `expected_server_revision` 与本记录的 `expected_version`），两者无法互相推导。记录内容是
 closed `{target_scope, selection, version}`，`selection` 五位恰为
 `{message_creation_allowed, reaction_addition_allowed, reaction_removal_allowed, third_party_mention_delivery_allowed, acting_on_behalf_allowed}`，
-`target_scope` 只允许 realm / circle / strand 的 closed XOR。首次写 `expected_version=0`，每次接受严格 +1。
+`target_scope` 只允许 realm / strand 的 closed XOR。首次写 `expected_version=0`，每次接受严格 +1。
 它不授予 capability、不写 Realm Event、不复制 ceiling/effective；target 在实际动作时将当前 selection 与
 本地 current ceiling、普通 capability 和 lifecycle 求交。
 

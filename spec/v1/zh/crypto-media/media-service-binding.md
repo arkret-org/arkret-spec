@@ -189,7 +189,7 @@ Content-Type: application/json
 - Actor 在 `realm_id` 拥有 `ak.call.join` capability；`desired_media` 不超过授权（`ak.call.screen_share` 等子 capability 检查）。
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ak.realm.media_service.foci[]` 中）。
 - 如果 `call_focus` 已存在 `session_focus`，请求的 `focus_id` 必须与其完全一致；不一致 MUST 返回 `focus_mismatch`。
-- call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
+- call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
 - `ak.realm.media_service` 与 token request 使用同一 current accepted policy projection；stale endpoint 返回 `media_service_binding_uncovered`。若服务将解密媒体，另要求 current MLS group 已覆盖其 current `key_access_revision`（不处于 `epoch_update_required`）；未覆盖返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decryption_allowed=true`），完整执行 §8.2 的三层校验。
 

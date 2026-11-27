@@ -64,8 +64,7 @@ from .schemas import (
     check_account_identity_carrier_closure,
     check_agent_runtime_scope_registry,
     check_canonical_wire_source_closure,
-    check_circle_lifecycle_basis_vector,
-    check_circle_membership_enum_single_source,
+    check_relation_submission_vectors,
     check_classification_context_paths,
     check_blob_identifier_form_closure,
     check_closed_object_required_declared,
@@ -538,8 +537,8 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_content_addressed_ref_sibling_digests(lint),
             ),
             (
-                "circle_lifecycle_basis_vector",
-                lambda: check_circle_lifecycle_basis_vector(lint),
+                "relation_submission_vectors",
+                lambda: check_relation_submission_vectors(lint),
             ),
             (
                 "vector_group_requirements",
@@ -589,7 +588,6 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
             ("account_identity_carriers", lambda: check_account_identity_carrier_closure(lint)),
-            ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
             (
                 "classification_contexts",
                 lambda: check_classification_context_paths(lint),

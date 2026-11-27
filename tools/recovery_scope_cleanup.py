@@ -436,7 +436,7 @@ def qualify_scope_governance(inventory, entry, facts):
     kind = origin['kind']
     is_subject_pcr = entry['effective_scope'] == inventory['pcr_cut']['stream_ref']
     governing_realm_id = entry['effective_scope']['realm_id']
-    if not governing_realm_id or entry['effective_scope']['kind'] not in {'realm', 'circle', 'sidecar'}:
+    if not governing_realm_id or entry['effective_scope']['kind'] not in {'realm', 'sidecar'}:
         raise ValueError('scope has no exact native governing Realm mapping')
     parent_is_subject_pcr = governing_realm_id == inventory['pcr_cut']['stream_ref']['realm_id']
     fixed_station = inventory['replacement']['actor_id']['account_id']['station_id']

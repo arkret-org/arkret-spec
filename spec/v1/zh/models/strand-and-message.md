@@ -17,12 +17,12 @@ updated: 2026-08-18
 - **Strand**（`ak:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`ak:message:`）：Strand `discussion` track 时间线中的原子消息。
 
-Strand 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Strand 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；由本 Circle 的 Genesis 独立激活 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Strand 通过 `tracks` map 表达多种协作能力。普通 Strand 的所有 Track 共享该 Realm 的成员资格、历史可读区间和加密策略。
 
 Strand / Track 的同 scope 适用、Agent 设置继承与上限、retention / legal hold / 明文服务边界见
 [`scope-settings.md`](../governance/scope-settings.md)；容器导航不改变这些设置关系。
 
-Strand 永远只有**一个** effective scope —— 整个 Strand(所有 track)共享同一事件 / 投递 / history 边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Strand + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
+需要独立成员、历史或密钥的讨论在另一个 Realm 建立 Strand。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -61,12 +61,11 @@ Schema id: `ak.schema.strand.v1`
 | `id` | yes | `id:strand` | 以 `ak:strand:` 开头。 | Strand ID。 |
 | `schema` | yes | `ak.schema.strand.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | scope 派生、authority-commit 基线校验、`Event.scope_ref` 对照、只读 projection 与 rebind 规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
 | `schema_refs` | no | `array<string>` | 出现时至少 1 项且唯一，每项形如 `ak.schema.<name>.v1`。容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在此（同 [`morph.md` §4](./morph.md)）。**该 pattern 比 Realm / Morph 的同名字段更严格是有意的**：Realm genesis 的 `schema_refs` 仅额外允许封闭 allowlist 内、create-locked 的结构角色判别式（见 [`realm-and-space.md` §2.3.A](./realm-and-space.md#23a-字段-carrier-inventorynormative)），并不是通用 conformance / policy profile 激活面；Strand 的激活轴则 MUST 只接受 schema id——否则 profile id 会再次变成对象激活 token，正是本字段要消除的歧义。与 Morph 不同，本字段可选：没有 profile 子树的普通讨论 Strand MUST 整体省略，而不是填占位 schema id。**双向共现（normative）**：每个被列出的 profile schema 与其在 `metadata.fields` 下的命名空间子树 MUST 在 post-patch 对象上同时出现或同时不出现，任一方向缺失均 `schema_violation`（Calendar 用 `reason=calendar_activation_mismatch`）。因此 ref 与子树可增可减，但只能整体成对增减。该规则对每一对已登记的 `(schema id, metadata.fields 命名空间)` 生效，并 MUST 在 `strand.schema.json` 中逐对以 `if/then` 机器强制；v1 只登记一对：`ak.schema.calendar_event.v1` ↔ `metadata.fields.calendar`。新增 Strand profile 子树时 MUST 在同一处补齐该对的双向分支，MUST NOT 只写正文。 | `metadata.fields` 下 profile 子树的权威 schema 集合，也是唯一的 profile 激活轴。`metadata.fields.profile` / `profile_refs` 等替代形态 MUST 被拒绝。 |
-| `agent_participation` | no | `object{agent:{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
+| `agent_participation` | no | `object{agent:{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed:boolean}}` | component省略时继承所属 Realm；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；scope 激活 MLS 后必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
-| `topic` | no | `object{space_id:SpaceId,rank:string}` | 仅稳定 DM Realm 的 Chat，引用同 Realm active root Topic Space(kind=topic)；create 必须省略，update 仅显式整体 set/unset 且 required expected_state_digest。详见 Contact／Direct Conversation §8.3.1。 | Realm 内唯一共享分类；不是 Board position，省略表示未分类。 |
+| `topic` | no | `object{space_id:SpaceId,rank:string}` | 普通 Realm 的 Chat 见 §9.4.6，稳定 DM 的 Chat 见 Contact／Direct Conversation §8.3.1。create 必须省略；整体 set/unset 均须提供完整前像的 expected_state_digest。 | Realm 内唯一共享分类；不是 Board position，省略表示未分类。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)；与 `encrypted_content` 二选一。 | Strand 自身的正文，即 UI 的 **Description**。它不属于 synthesis / discussion 任一 track。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand Description 的 ContentBlock。 |
 | `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
@@ -113,7 +112,6 @@ Schema id: `ak.schema.strand.v1`
     },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR",
   "state": "active",
   "stage": "in_progress",
   "created_by": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:webvh:z6mkfixturestationexample"}},
@@ -239,14 +237,14 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - `track.profile` 与 Morph / 标准对象的 [`facets`](./morph.md#5-标准-facets) 同属 declared UI-hint 家族：前者只作用于 Strand track，后者作用于对象 projection；两者都不得改变授权、状态机、reducer 或 wire 互操作。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Strand relation 隐式派生；track 自身不持有 membership，可见成员一律由 Strand 的 effective scope 决定（`scope_circle_id=null` 时为父 Realm 的 membership / capability / policy；`scope_circle_id` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
+- Discussion 的读取以 Realm 成员资格、历史策略和 capability 为准。`assigned_to` 与 Watch 都不授予读权。
 - 当 `discussion` track 不存在或不处于 active 状态时，`ak.message.create`、`ak.message.revise`、`ak.message.redact` MUST 被拒绝。receiver 必须先完成 [`event-and-patch.md` §2.8](./event-and-patch.md) 的目标可见性与授权门；仅对已可见且已授权的目标，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。不可见、不存在、跨 scope 与 tombstone 目标必须保持相同的 `not_found` / opaque denial，不能用该错误泄露 Strand 或 Track 状态。
 
 ### 4.4 Track 是协作面，不是独立 access 域
 
-Track entry 可以携带交互配置；`synthesis` 还携带自己的内容槽，`discussion` 则关联 Message timeline。因此 Track 不是“纯展示标签”。但 Track **不携带独立的 membership / history visibility / E2EE security boundary**：其访问边界继承 Strand 的 effective scope —— `scope_circle_id=null` 时继承父 Realm，`scope_circle_id` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。Action、`allowed_tracks` 与 `allowed_write_fields` 可以在这个共同安全边界内进一步收窄操作权，但不会为 track 创建第二套成员或密钥域。
+Track entry 可以携带交互配置。`synthesis` 承载内容槽，`discussion` 关联 Message 时间线。两者均使用所属 Strand 的访问范围。
 
-Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）—— 任何需要独立访问域的场景必须通过 `Strand.scope_circle_id` 把整个 Strand 落在 [Circle](./circle.md)，或者按 [`circle.md` §7.2](./circle.md) 拆为两个 Strand + Relation。
+Track 配置拒绝 `access` 子对象。独立访问域使用单独的 Realm。
 
 `assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Realm policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
 
@@ -277,7 +275,7 @@ resolved primary 只在调用方明确需要选择一个 track 协作面时提�
 - 切换到 `discussion` track 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
 - 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `ak.strand.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
 - 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `ak.strand.move` 决定。
-- `ak.strand.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 Circle 或修改 Strand 的 `scope_circle_id`；Circle 的生命周期由独立 `ak.circle.*` event 管理（见 [`circle.md`](./circle.md)），Strand 的 scope 改绑默认禁止。
+- `ak.strand.tracks.update` 只改变 Track 配置、primary 和 enabled 状态。
 
 ### 4.7 Track 启用 / 禁用
 
@@ -319,55 +317,9 @@ Strand authoring 复用 current 的 `{value,source:{event_id,depth}}`，不定�
 
 **Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); 每个 track key 必须命中 `track-name-registry.json` 的 active 唯一行；正则匹配不足以准入，未登记名称 MUST `schema_violation`。
 
-## 5. Strand Scope（`scope_circle_id`）
+## 5. Strand 的内容边界
 
-Strand 永远只有**一个** effective scope。整个 Strand（含所有 track：synthesis、discussion 等）共享同一事件 / 投递 / history 边界，要么落在 Realm-default scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Strand 不允许跨两个 effective scope。
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `scope_circle_id` | no | `id:circle` | 派生与校验规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
-
-```json fragment
-{
-  "tracks": {
-    "synthesis": { "is_primary": true },
-    "discussion": { "profile": "review" }
-  },
-  "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR"
-}
-```
-scope 派生、`scope_ref` 对照、projection 与 rebind 的详尽规则以 [`circle.md` §6](./circle.md) 为唯一权威。
-
-- 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
-- Watch、通知、生命周期与独立 MLS 激活等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
-
-### 5.1 Track 与 scope 关系图
-
-Strand 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_circle_id` 决定**整个** Strand 的 effective scope（不是 per-track）。
-
-```mermaid
-flowchart LR
-    subgraph Realm ["ak:realm: — 父 Realm（federation / policy / capability registry）"]
-        direction TB
-        StrandA["ak:strand: F_A<br/>scope_circle_id = null"]
-        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"]
-        RealmScope["Realm-default scope<br/>+ Realm membership"]
-        subgraph Circle ["ak:circle: C — 子事件边界"]
-            direction TB
-            CircleScope["Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility<br/>+ 投递 / 查询裁剪<br/>+ 可选独立 MLS group"]
-        end
-
-        StrandA -. "effective_scope = realm" .-> RealmScope
-        StrandB -. "effective_scope = circle" .-> CircleScope
-    end
-```
-
-读图要点：
-
-- Track 是纯展示 / 时间线分段标识，本身不携带 access；synthesis 与 discussion 在 F_A 上都继承 Realm-default scope，在 F_B 上都继承 Circle scope。
-- `ak.strand.tracks.update` 不修改 `scope_circle_id`；scope 的生命周期事件由 [`circle.md` §5](./circle.md) 的 `ak.circle.*` 系列承担。
-- 想让 discussion 独立 membership / history / delivery 裁剪或 E2EE 时，**正确的做法**是给整个 Strand 设置 `scope_circle_id`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Strand（一个公开 authority commit Strand + 一个 Circle 内 private Strand）+ `confidential_discussion_of` Relation。
-- 能看 Strand 的 effective scope 不等于能改 Strand synthesis 字段或 Board 位置；后者仍按 capability + scope membership 的两层 AND 判断（见 [`circle.md` §8](./circle.md)）。
+普通 Strand 的内容边界由其所属 Realm 唯一确定。所有 Track 共用 Realm 的成员、历史与密钥范围。接纳方 MUST 对照已接纳的 Strand 核验 Event 签名中的 Realm，原 Event 的范围不可改写。独立成员与历史需求通过独立的协作 Realm 表达。
 
 ## 6. Strand 行为规则
 
@@ -417,13 +369,13 @@ UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示�
 
 Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` / `board_space_id` / `list_space_id` / `rank` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ak.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。assignment 名会与 `assigned_to` Relation 及 projection 字段形成双源；三个定位名会与 `strand_position` current state 形成双源。字段式 assignment / placement 都不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中。
 
-Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: ActorId[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
+Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: ActorId[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
 
 ## 8. Watch 与通知订阅
 
 ### 8.1 概念与边界
 
-Watch 是个人通知订阅模型：actor 声明自己对某个 Strand（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（Realm-default 或 Circle）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
+Watch 是个人通知订阅模型：actor 声明自己对某个 Strand（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（所属 Realm）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
 
 Wire 形态：`ak.strand.watch.set` durable event 写入下文 §8.3 描述的 current-value projection current state（current state 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> strand`，见 [relation.md §3](./relation.md)）供查询，但 **`ak.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Strand position 派生 `contains` Relation 的双源约束同模式。
 
@@ -473,7 +425,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 - **current state 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ak.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
 - **精确前态读取**：`ak.self.strand.watch.read.current.v1`（`POST /_arkret/self/strands/watch/current`）只接受 closed `{realm_id,strand_id,watcher_actor_id}`，不列举 watcher。Account Station MUST 从经验证的 current governing Station 在同一次一致观察中核对 current tenure、Strand 的 Realm／effective scope、调用者在该 scope 的当前可读权、该 selector 的 durable typed current row 与对应 stream head。该操作仅供 `watcher_actor_id` 与当前认证的 effective ActorId 完整相等的本人使用；`.others` 写入能力不授予本读取。不可见／不存在／他人 selector 一律 `not_found` 且不得泄露其区别；current authority、membership、head 或 reducer row 未决时 MUST `revision_unavailable`，不能退回本地 Event、snapshot 缺项或旧缓存。
 - 成功响应只在两支中择一：`status=never_written` 表示在所报 `governance_generation` 与 exact `stream_head` 下，该 selector **从未有过 accepted watch 写入**，不携 revision/value；`status=current` 携完整 `current_strand_watch{selector,revision,value}`。已写入又以 `level:null` 清空时仍是 `current`，`value:null` 且 revision 必须存在；绝不能归为 `never_written`。请求和响应的 Realm、selector、effective stream 必须逐字对应。客户端只在经过 current governance 验证、且没有更高 generation 的结果覆盖时使用前态：`never_written` 才可省略 `expected_value`，`current` 必须按完整 value 发送（包括显式 `null` 与 `level_public`）。读后并发变更仍由提交时 whole-value CAS 拒绝；`failed_precondition` 后必须重读并请用户重新确认，不能改用默认值或自动重试覆盖。handoff 后旧 generation 的结果全部废止并重读。
-- current state 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；current state 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → current state 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → current state 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
+- Watch current 的主语包含 watcher 与目标 Strand。原始写入的来源是该 Strand 所属 Realm 的内容流。
 
 ### 8.3.1 跨站本人精确 Watch 读取（normative）
 
@@ -490,8 +442,8 @@ peer 请求 MUST 使用 [HTTP service-to-service 签名](../sync/service-http-bi
 `level_public=true` 均不授权本 peer 面读取他人的 cell；审计读仍走 §8.5 的原闭环。
 
 **治理 cut 与肯定未写入**：治理站 MUST 在同一次一致耐久观察中验证 current tenure、Strand effective scope、
-完整 watcher 的当前 membership／可读权、durable row 和该 scope 的 exact stream head；Circle 必须同时满足当前父 Realm
-及 Circle 门，父 Realm membership 不代替 Circle membership。`current` 的 `source_stream_ref` MUST 等于所报
+完整 watcher 的当前成员资格和可读权、持久化行以及该 Realm 流的准确 head。
+`current` 的 `source_stream_ref` MUST 等于所报
 `stream_head.stream_ref`，revision 必须属于该 stream 的已接纳连续前缀，不得跨 stream 比较 position。
 `never_written` 仅在治理站已证明该 effective namespace 的 accepted Watch 写入来源完整、同 cut durable 物化完整，且
 该完整 selector 从未写入时成立；检查对象是 payload 的 `watcher_actor_id`，不是 envelope author，因此 `.others`
@@ -560,7 +512,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 普通预先 accepted audit ref 不是可重复使用的读票；普通 projection／本人 current read 不接纳 audit 字段或释放他人 cell。
 每次新的观察需新的 audit Event，exact retry 只回放原冻结结果且仍重验当前交付许可。audit payload 不携独立 result id 或自报 head。
 
-当 Strand 设置了 `scope_circle_id` 指向 Circle 时，watch current state 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ak.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Strand。
+Watch 行属于 watcher。读取其他账号的 Watch 继续执行配对审计和权限检查；普通 Realm 成员资格不授予该读取权。
 
 - 仅持有 `ak.realm.notification.audit` 而无 `ak.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
@@ -616,15 +568,9 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 - **Push rule = "通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、DND 例外等。
 - Push rule 引擎 MAY 通过 `watch_state` condition 显式引用本节级别（详见 [push-notifications.md §4.3](../discovery/push-notifications.md)），常见用途是用户显式声明"watching=all 也只想要静默通知"等更细粒度策略。
 
-### 8.9 `scope_circle_id` 场景
+### 8.9 通知的访问边界
 
-当 Strand 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
-
-- Watch current state 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
-- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Station sync surface 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 在 source Event 的 committed Circle-stream position 处不属于 `Circle.members` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
-- Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
-
-换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权；watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
+派发方 MUST 核实接收者对源消息的成员与历史资格，再应用 watch、提及与通知偏好。退出 Realm 后停止新的投递。
 
 ## 9. Message
 
@@ -717,7 +663,6 @@ Schema id: `ak.schema.message.v1`
 ### 9.4 Chat 模式示例
 
 讨论型 Realm 的最小实施序列：创建 Strand（`discussion` 默认 primary）→
-（如需要独立访问域）创建 [Circle](./circle.md) 并设置 `Strand.scope_circle_id` →
 加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
 ```json fragment
@@ -765,7 +710,7 @@ Schema id: `ak.schema.message.v1`
 DM 主 Strand MUST：
 
 - 位于 direct conversation Realm 内。
-- `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。双人 DM Realm 内不得再用 Circle 包一层主聊天，因为 Circle 子集无法提供比两人 Realm 更窄的隐私边界。
+- 主 Chat 使用双人 DM Realm 的 MLS group，所有消息受该 Realm 的成员资格与历史规则约束。
 - 启用 `tracks.discussion` 且 `tracks.discussion.is_primary=true`。
 - `stage` MAY 省略；若携带，MUST 是当前 v1 Strand schema 的合法枚举值。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把 DM 主 Strand 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ak.strand.stage.set` 控件。
 - 由 `ak.direct_conversation.bound` fact 的 `main_strand_id` 标识为该 pair 的 canonical main Strand。`discussion.is_primary=true` 只是 Strand 内默认入口，不能单独证明"这是 DM 主 Strand"。
@@ -883,13 +828,13 @@ v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承
 ```
 字段语义：
 
-- `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Arkret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Arkret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
 - `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source Event 的 committed stream position 处计算，不能信任客户端填入的计数或列表。
 
 `@here` 在 Arkret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="strand_engaged"`，即“曾经参与当前 Strand discussion 或当前有效 watch 该 Strand 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile。该 profile MUST 明确 threat model、可观察面与机器可判定的隐私判据，并至少交付 online/offline 成对负向向量：在输入 Message、授权可见集合与非 presence 状态相同、只改变某 target 的 presence 时，未获该 target presence 读取权的 sender / observer 所见提交响应 status、响应字段集合、recipient count、delivery error、push/fanout 可见副作用与 profile 声明的 timing bucket MUST 相同；任何内部 audience expansion 计数不得返回给该 observer。未定义上述判据、未交付成对向量，或未声明该 profile 时，接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本，不得宣称 presence privacy。
 
-Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST NOT 收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
+Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Realm membership 或 target policy 的 actor MUST NOT 收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 
 #### 9.4.4 Audience mention 授权与防滥用
 
@@ -897,7 +842,7 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 
 - 普通消息写入授权：actor 持有 `ak.message.create` / `ak.message.revise` 对目标 Strand discussion scope 的有效授权。
 - 广播 mention 授权：actor 额外持有 `ak.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operation_count` + `period` + `constraint_scope`）；持有该 action 本身不授权发送消息。
-- Realm / Circle policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
+- Realm policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
 - Dispatcher MUST 在 fanout 前计算 `recipient_count`，并在超过 effective `max_recipients`、rate limit 或 review gate 时拒绝通知派发；不得先推送再异步撤回。
 - 自动化 actor / agent 使用 audience mention 时，Realm policy SHOULD 要求 `accountability_required` 或等价负责主体约束，并 SHOULD 采用更低 quota。
 
@@ -908,10 +853,10 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 dispatcher MUST 先按 [agent-interaction.md](./agent-interaction.md) 判定实际 Realm 的当前模式。
 private／unknown 的第三方 direct／audience mention 不产生 Agent 定向派生；public 再求交下列门。
 主人普通 Realm composer 向自己的 public Agent 请求走共享消息，向 private Agent 请求走 Sidecar；
-Circle 私人请求不跨到 Realm Sidecar。mode 不影响普通 history 可读权；public 转 private 不撤销旧 fanout，
+mode 不影响普通 history 可读权；public 转 private 不撤销旧 fanout，
 但实际共享回复／动作接纳仍须重新通过 current public 门。密文内容门由持钥端承担，服务端强制可验证部分。
 
-当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`third_party_mention_delivery_allowed` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
+当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Realm），并以当前 `controller selection ∩ deployment/Realm/Strand governance policy` 求出 participation gate。`third_party_mention_delivery_allowed` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
 - mention 作者 != controller 且 effective `third_party_mention_delivery_allowed=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.committed_event.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
@@ -924,6 +869,24 @@ Circle 私人请求不跨到 Realm Sidecar。mode 不影响普通 history 可读
 - 本 gate 对每条 message event 在其进入 notification fanout / 投影派生时**一次性**求值，输入是该时刻该 agent 的 effective participation；求值结果（投递或抑制）随该 event 的派生产物固化。
 - participation 的任一来源（controller selection 或任一层级 ceiling）之后发生变化，MUST NOT 触发对既有 event 的重新 fanout：由 `false` 翻转为 `true` 不补发、不回溯派生此前被抑制的 mention notification / inbox row / push wakeup / `ak.self.committed_event.stream.subscribe.v1` 投影条目；由 `true` 翻转为 `false` 也不追溯撤销已派生的 notification（redaction / erasure / retention 等既有机制不受影响）。该时间语义与 `level=muted` 一致：策略只约束变更之后新派生的投递。
 - 抑制只作用于**定向投递平面**。被抑制 mention 所在的 message 仍是普通 shared history；该 agent 此后能否把这条 message 作为普通历史读到，由其对该 scope 的读取授权、[history-visibility](../governance/history-visibility.md) gate 与 E2EE key 可达性决定，与本 gate 无关。实现 MUST NOT 把本 gate 解释或复用为读取权控制；需要对 agent 隐藏消息本体的部署，应使用读取授权 / history visibility 表达。
+
+#### 9.4.6 普通 Realm 的 Chat 分类与 Topic 排序
+
+在普通 Realm 内，active Strand 的 resolved primary track 为 `discussion`（§4.5）时，可以作为 Chat 加入一个 Topic。目标 MUST 为同 Realm、active、没有父 Space 的 `Space.kind=topic`。分类只记录在该 Strand current 的可选字段 `topic={space_id,rank}`，并在该 Strand 的 scope 内共享。它不改变消息顺序、所属 Strand、成员、历史资格或密钥。稳定 Direct Conversation 的 participant 权限仍由 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 规定。
+
+| 用户操作 | 对实际 Chat 提交的 `ak.strand.update` |
+| --- | --- |
+| 加入 Topic 或从一个 Topic 换到另一个 | 整体 set `topic={space_id,rank}`，在一次写入中替换原分类。创建 Strand 时 MUST 省略 `topic`。 |
+| 在同一个 Topic 内排序 | 整体 set 同一 `space_id` 和新的 `rank`。 |
+| 移出 Topic | 对已有 `topic` 显式整体 unset。字段省略表示未分类，Chat 及其消息仍可在原 Strand 读取。 |
+
+三种操作均 MUST 携带 `expected_state_digest`，其值为更新前完整 strand current canonical JSON 的 SHA-256。缺少必要前像、摘要不匹配或同一 patch 的任一操作未获授权时，整次更新零写入。不得写 `topic` 子路径或以 `null` 代替 unset，不派生 Board position 或 canonical `contains`，也不调用 `ak.strand.move/reorder`。Topic 内按 `topic.rank` 升序，格式和插值沿用 [Encoding §9.1](../conformance/encoding.md) 的 1..128 位 ASCII 字母数字规则；同 rank 按 Strand ID 的 canonical bytewise 升序。Topic 自身的排序使用 Space 的 rank，同 rank 按 Space ID。
+
+**谁可调整。** 调整者 MUST 能读取生成摘要所需的完整 Strand 前像，并在 Chat 的 effective scope 具有覆盖实际 Strand 和 `topic` 字段的有效 `ak.strand.update` 授权。set（含换组和排序）须能读取目标 Topic，对无读取权的目标沿用不可枚举的拒绝语义；unset 只校验现有分类和 Chat 的写入权限，可解除已归档 Topic 的引用。管理 Topic 自身沿用 Space 写权限。创建者身份、发消息的资格或持有目标 Space 的管理权限均不单独授予调整权限。
+
+Chat 和 Topic 必须属于同一 Realm。投影先验证请求者对 Topic、Chat 和分类的读取及历史资格，再排序、计数、聚合未读和分页。
+
+归档 Topic 或 Chat 保留分类，不级联归档另一端。目标 Topic 已归档时不得新加入或重排，仍可从 active Chat 显式移出或换到合格的 Topic。Chat 归档后须先恢复才能调整；track 变更本身不改写分类，失去 Chat 资格的 Strand 不进入 Topic 的 Chat 列表，仍可在 active 时显式 unset。Space tombstone 的活依赖及并发规则见 [Realm and Space §3.4](./realm-and-space.md)。不得通过改绑 scope 或把已用作分类的 root Topic 改为子 Space 绕过上述端点条件；若允许这类变更，MUST 先按完整已确认依赖检查，拒绝会使现有分类违反条件的变更。并发变更使已保存的引用不再满足条件时，读投影 MUST 隐藏失效的归属，保留 canonical 引用供显式修复。既有 Event 的历史 scope 不随分类或改绑变化。
 
 ### 9.5 冲突与收敛规则
 

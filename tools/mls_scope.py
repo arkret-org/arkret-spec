@@ -10,9 +10,6 @@ def canonical_mls_group_id(scope: dict) -> str:
     fields = {"kind", "realm_id"}
     if kind == "realm":
         key = scope.get("realm_id")
-    elif kind == "circle":
-        fields.add("circle_id")
-        key = scope.get("circle_id")
     elif kind == "sidecar":
         fields.add("sidecar_id")
         realm, sidecar = scope.get("realm_id"), scope.get("sidecar_id")

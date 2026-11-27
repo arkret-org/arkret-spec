@@ -33,7 +33,7 @@ COMPONENT_NAMESPACES = frozenset({"schemas", "requestBodies", "parameters", "res
                                   "securitySchemes", "links", "callbacks", "pathItems", "mediaTypes"})
 SCALAR_PARAMETER_REFS = {
     **{name: f"common-ids.schema.json#/$defs/{name}" for name in
-       ("applet_id", "circle_id", "realm_id", "event_id", "sidecar_id")},
+       ("applet_id", "realm_id", "event_id", "sidecar_id")},
     **{name: "common-ids.schema.json#/$defs/did_core_id" for name in
        ("agent_id", "principal_id", "organization_id", "station_id", "service_id")},
     "snapshot_id": "common-ids.schema.json#/$defs/realm_snapshot_id",

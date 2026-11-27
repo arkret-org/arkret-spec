@@ -21,7 +21,7 @@ Arkret 的权限模型采用 capability 思路，而不是只依赖成员关系�
 这样做的原因是：
 
 - `strand`、`message`、`realm`、`morph`、`view` 的动作集不同。
-- Strand 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Strand 永远单一 scope，不存在 per-track 安全边界。
+- Strand 的所有 track 共享所属 Realm 的成员和历史边界。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -209,7 +209,7 @@ Capability grant wire body MUST NOT 携带 registry version、timestamp 或 dige
 
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ak.capability.grant` action"误当作"可凭空铸造任意 capability"。
 - 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在接纳判定点不再持有某 action，则不得据此签发包含该 action 的首发 grant。
-- Realm 的结构角色（由签名 genesis `purpose` 决定）不得扩张 owner ceiling，Realm `schema_refs` 中的任何 schema id 同样不得。`ak.realm.owner.grant_authority_actions` 是 fixed reducer semantics bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 显式 application exceptions 是 `ak.applet.bridge_error`、`ak.rsvp.set` 与 `ak.pin.add` / `ak.pin.remove` / `ak.pin.reorder`。`ak.applet.bridge_error` 只扩展 grant issuer 上界，不给 owner 直接 Event coverage；grant 和后续 Event 仍 MUST 命中 `ak.profile.applet_bridge.v1`、精确 active installation、registration epoch、effective scope、完整 Service Account subject 与专用 native Service actor 映射，保留 producer 签名和当前 revoke fence；MUST NOT 由此推导其它 Applet action 的 owner authority 或通用 Account/Service 身份等价（见 `applet-integration.md` §4b/§8）。Pin 三项只扩展 grant issuer 上界，不给 owner 直接 Event coverage；使用时仍 MUST 命中 `ak.profile.pinned_items.v1` 的有效 profile、精确 resource / constraint 与 `pins.md` §3 的目标可见性和 effective scope guard，MUST NOT 从 `pin_scope` 推导成员资格或跨 Circle 读取权限。`ak.rsvp.set` 的 grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 fixed reducer semantics 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
+- Realm 的结构角色（由签名 genesis `purpose` 决定）不得扩张 owner ceiling，Realm `schema_refs` 中的任何 schema id 同样不得。`ak.realm.owner.grant_authority_actions` 是 fixed reducer semantics bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 显式 application exceptions 是 `ak.applet.bridge_error`、`ak.rsvp.set` 与 `ak.pin.add` / `ak.pin.remove` / `ak.pin.reorder`。`ak.applet.bridge_error` 只扩展 grant issuer 上界，不给 owner 直接 Event coverage；grant 和后续 Event 仍 MUST 命中 `ak.profile.applet_bridge.v1`、精确 active installation、registration epoch、effective scope、完整 Service Account subject 与专用 native Service actor 映射，保留 producer 签名和当前 revoke fence；MUST NOT 由此推导其它 Applet action 的 owner authority 或通用 Account/Service 身份等价（见 `applet-integration.md` §4b/§8）。Pin 三项只扩展 grant issuer 上界，不给 owner 直接 Event coverage；使用时仍 MUST 命中 `ak.profile.pinned_items.v1` 的有效 profile、精确 resource / constraint 与 `pins.md` §3 的目标可见性和 effective scope guard，MUST NOT 从 `pin_scope` 推导成员资格或跨 Realm 读取权限。`ak.rsvp.set` 的 grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 fixed reducer semantics 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
 - 此规则关闭"窄 `ak.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ak.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
 - v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` current state，它由 `ak.realm.create` 的注册 reducer contract 在 genesis RealmCommit 的同一接纳事务内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm fixed reducer semantics 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。current state 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
 - 除该 registered authority root 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免，也不承认任何形态的 creator / owner omnipotence 捷径。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
@@ -251,7 +251,6 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 - `realm`
 - `space`
-- `circle`
 - `strand`
 - `message`
 - `morph`
@@ -288,7 +287,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ak.realm.admin` → registry 中声明的 Realm policy facet events；`ak.policy.manage` → `ak.policy.*` 与 `ak.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Strand / Morph / Space 等同语义 event | `ak.object.archive` → `{ak.strand.archive, ak.morph.archive}`；`ak.object.restore` → `{ak.strand.restore, ak.morph.restore, ak.space.restore}`；`ak.object.stage.set` → `{ak.strand.stage.set, ak.morph.stage.set}` |
-| **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.create, ak.call.state}`；`ak.circle.member.add` → `ak.circle.member.state` |
+| **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.create, ak.call.state}` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ak.message.redact` → `{ak.message.redact, ak.redaction}` |
 
 `ak.mls.commit` action 只授权提交 `ak.mls.commit` Event。Commit 校验失败是本地 operation outcome，不产生共享诊断 Event。
@@ -327,7 +326,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | --- | --- | --- |
 | `owner` | 对象最高权，含转让与销毁等 admin 不可推导的能力 | `ak.realm.owner`（112 event kinds） |
 | `admin` | 治理面全权，不含所有权转移 | `ak.realm.admin`（26）、`ak.strand.admin` |
-| `manage` | 单一子域的聚合管理权 | `ak.policy.manage`（16）、`ak.circle.manage`（4）、`ak.circle.member.manage` |
+| `manage` | 单一子域的聚合管理权 | `ak.policy.manage` |
 
 持有上位词 **MUST NOT** 在授权层自动等价于持有下位词（§5 的逐字命中规则照常适用）；层级只表达覆盖面的包含关系与风险排序。`ak.realm.owner` 的末段是名词而非动词，属 §5.0.2-A 的**已登记专名例外**。
 
@@ -395,9 +394,9 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ak.morph.create`(默认 required constraint:`allowed_morph_kinds`)
 - `ak.morph.update`(默认 required constraint:`allowed_write_fields`)
 
-Strand 权限只覆盖 Strand 自身字段、track entry 和 position / relation 管理。`ak.strand.update` 的 `allowed_write_fields` MUST 把 Strand Description（`content` / `encrypted_content`）与 Synthesis track 正文（`tracks.synthesis.content` / `tracks.synthesis.encrypted_content`）当作互不蕴含的独立路径：允许写其中一组 MUST NOT 自动允许另一组。`ak.strand.tracks.update` 只管理 track 的启用、primary、profile、template 与 track-local metadata，MUST NOT 用来写 Description 或 Synthesis 正文。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
+Strand 权限只覆盖 Strand 自身字段、track entry 和 position / relation 管理。`ak.strand.update` 的 `allowed_write_fields` MUST 把 Strand Description（`content` / `encrypted_content`）与 Synthesis track 正文（`tracks.synthesis.content` / `tracks.synthesis.encrypted_content`）当作互不蕴含的独立路径：允许写其中一组 MUST NOT 自动允许另一组。`ak.strand.tracks.update` 只管理 track 的启用、primary、profile、template 与 track-local metadata，MUST NOT 用来写 Description 或 Synthesis 正文。Message 正文写入须同时通过 Realm 成员资格与 action 授权检查。
 
-Circle membership 是 `commit-ordered projection`。缺少必要授权/确认依赖时 pending；已确认非成员时 deny；验证到同高度两个冲突确认时停止该安全域并保留故障证据。不得把安全故障解释成一个可 join 的成员多头状态，普通消息也不因此要求全局最新 RealmCommit。
+普通 Realm 中调整 Chat 分类由目标 Strand 的 `ak.strand.update` 控制，`allowed_write_fields` 必须覆盖整体 `topic`；混合 patch 中的其它字段分别授权。目标 Topic 读取与完整前像要求见 [Strand and Message §9.4.6](../models/strand-and-message.md#946-普通-realm-的-chat-分类与-topic-排序)。此动作不要求 `ak.space.update`。
 
 Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_kinds` constraint 进一步限定可创建或操作的 `morph_kind`。
 
@@ -405,7 +404,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 - `ak.event.read`
 - `ak.message.create`
-- `ak.message.mention.broadcast`（high risk；允许在 `ak.message.create` / `ak.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operation_count` + `period` + `constraint_scope`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
+- `ak.message.mention.broadcast`（high risk；允许在 `ak.message.create` / `ak.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operation_count` + `period` + `constraint_scope`），Realm policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
 - `ak.message.revise`
 - `ak.message.revise.own`
 - `ak.message.redact`
@@ -418,12 +417,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 
 ### 5.4 管理动作
 
-- `ak.circle.create`（创建 Circle；默认不进入普通成员 bundle；Realm 管理员交接若希望接手者能继续创建 Circle，必须显式把本 action 纳入交接 bundle 或产品管理员角色）
-- `ak.circle.manage`（管理 Circle lifecycle / metadata；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄；不得由 `ak.realm.admin`、Realm owner transfer 或无约束 Realm-wide grant 隐式推出）
-- `ak.circle.member.add`（自助加入 / 接受邀请 / 自助离开，受 Circle join_rule 与父 Realm membership gate 约束）
-- `ak.circle.member.manage`（邀请、移除或 ban 他人；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄；Realm admin transfer 不自动赋予本 action，也不自动创建 Circle membership）
-- `ak.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ak.audit.accessed` 配对）
-- `ak.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ak.audit.accessed` 配对）
 - `ak.realm.admin`
 - `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root current state 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`；授权 installed Applet Service 提交 `actor_role="ghost"` 的 `ak.realm.actor.create`，由所属 Realm 私有控制流原子接纳主体及外部映射；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration。批准资格按显式 `ak.realm.admin` grant 核验，见 [constraint-schema.md §9.1](constraint-schema.md)；本 action 不授予普通 Account 创建、PCR 或 Profile 通用写入权）
@@ -447,11 +440,11 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.agent.action_request`(agent-initiated action request;target=`ak.agent.action_request`)
 - `ak.agent.action_approve`(controller-only;target=`ak.agent.action_approve`)
 - `ak.agent.action_reject`(controller-only;target=`ak.agent.action_reject`)
-- `ak.self.agent.sidecar.command.ensure.v1`（aggregate admin action，`target_event_kinds=[ak.sidecar.create,ak.sidecar.context.attach]`，profile=`ak.profile.agent_sidecar.v1`）。该 action MAY 由 H 作为 self-scoped default capability 授予本人已授权的设备；create 建立 Event-derived Sidecar 原生 scope，attach 只登记现有 source context，不创建 Circle、membership、Strand 或 Relation。
+- `ak.self.agent.sidecar.command.ensure.v1`（aggregate admin action，`target_event_kinds=[ak.sidecar.create,ak.sidecar.context.attach]`，profile=`ak.profile.agent_sidecar.v1`）。该 action MAY 由 H 作为 self-scoped default capability 授予本人已授权的设备；create 建立 Event-derived Sidecar 原生 scope，attach 只登记现有 source context，不创建 membership、Strand 或 Relation。
 - `ak.agent.sidecar.write`（profile action；`target_event_kinds=[ak.message.create]`，resource 必须限定 controller 自己的原生 Sidecar scope，H 须验证主人在该 Sidecar 显式授予私人回复、actor 仍为该主人自有且实际端点已完成 MLS consume）
 - `ak.agent.sidecar.exchange.control`（controller-only profile action；target 为同名 Event，resource 必须限定自己的原生 Sidecar scope；Agent capability 即使包含普通 Sidecar write 也不得 author control）
 - `ak.agent.sidecar.publish`（profile action；target event kinds 由最终发布目标决定，至少包括 `ak.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束）
-- `ak.self.agent.participation.resource.replace.v1`（controller-only private Account Data replace；profile=`ak.profile.agent_participation_policy.v1`）。请求为 closed `{target_scope,selection,expected_version}`，selection 是 required 五位 `{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}`。该操作只保存 controller 偏好并推进 CAS version，不创建或撤销 capability。实际动作把当前 selection 与 target-local deployment safety、Realm/Circle/Strand policy 逐位求交，再独立校验普通 capability、session scope、membership 与 lifecycle；任一 required 输入 unknown/stale/fork 均 fail closed（reason `agent_participation_ceiling_unresolved`：该 gate 把未决 policy 视为全 false，controller 的私有 selection 保持不变）。`message_creation_allowed`只治理`ak.message.create`；reactions 分别治理其 action；mention 只治理 fanout；act-on-behalf 必须保留 controller/Agent attribution 与 approval/accountability。
+- `ak.self.agent.participation.resource.replace.v1`（controller-only private Account Data replace；profile=`ak.profile.agent_participation_policy.v1`）。请求为 closed `{target_scope,selection,expected_version}`，selection 是 required 五位 `{message_creation_allowed,reaction_addition_allowed,reaction_removal_allowed,third_party_mention_delivery_allowed,acting_on_behalf_allowed}`。该操作只保存 controller 偏好并推进 CAS version，不创建或撤销 capability。实际动作把当前 selection 与 target-local deployment safety、Realm/Strand policy 逐位求交，再独立校验普通 capability、session scope、membership 与 lifecycle；任一 required 输入 unknown/stale/fork 均 fail closed（reason `agent_participation_ceiling_unresolved`：该 gate 把未决 policy 视为全 false，controller 的私有 selection 保持不变）。`message_creation_allowed`只治理`ak.message.create`；reactions 分别治理其 action；mention 只治理 fanout；act-on-behalf 必须保留 controller/Agent attribution 与 approval/accountability。
 - `ak.policy.manage`
 - `ak.policy.set`
 - `ak.policy.action`（登记 policy 动作的**审批配置**，target=`ak.policy.action`；配置不是执行回执也不是审批授权，见 [`models/governance-objects.md` §3.4](../models/governance-objects.md)）
@@ -525,7 +518,6 @@ effective_expires_at = min(global_allow_temporal.expires_at[]?)
 | `denied_view_kinds` | `scope_limitation` | — | `denied_view_kinds` |
 | `allowed_view_renderers` | `scope_limitation` | — | `allowed_view_renderers` |
 | `denied_view_renderers` | `scope_limitation` | — | `denied_view_renderers` |
-| `allowed_circle_ids` | `scope_limitation` | — | `allowed_circle_ids`（限定 Circle-scoped capability 动作到列出的 Circle id，配合 `resource-selector-grammar.md` §2.2 的 Circle selector；Realm-wide 无收窄的 Circle 管理 grant 不是正常授权形态） |
 | `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
 | `denied_tracks` | `scope_limitation` | — | `denied_tracks` |
 | `allowed_relation_kinds` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_relation_kinds` |
@@ -663,10 +655,10 @@ canonical 展开表:
 
 | 预设 | Canonical actions | Required constraints | Resource scope | 语义 / 边界 |
 | --- | --- | --- | --- | --- |
-| `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.committed_event.read.scan.v1` / `ak.self.committed_event.stream.subscribe.v1`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、MLS private state 或 MLS membership。 |
+| `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.committed_event.read.scan.v1` / `ak.self.committed_event.stream.subscribe.v1`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、MLS private state 或 MLS membership。 |
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
 | `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求。`ak.agent.draft.propose` 只让 Station 保存带 controller-device HPKE handoff 的 pending intent；controller holder 随后用 account secret 与唯一 `ak.account_data.set` CAS 创建 `ak.agent.draft.v1` encrypted account data（见 [`../models/actor-private-effects.md` §3.2](../models/actor-private-effects.md#32-agent-draftrequest-与-rejection)）。Station 不生成密文。两个 action 均 profile-gated 于 `ak.profile.agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
-| `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
+| `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
 | `acting_on_behalf_allowed` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
 
@@ -675,7 +667,7 @@ canonical 展开表:
 **Agent 全局 ceiling 的子集判定（normative）。** `POST /_arkret/self/agents` 的 `requested_scope` 是必填且创建后 immutable；改变或扩大该值必须创建新的 Agent principal。其后接受的 `ak.agent.key.authorize.payload.agent_key_scope`、Realm-scoped grant 与 session request 都 MUST 是该 ceiling 的收窄子集，而非必须与其完全相等。Participation 不派生 grant，也不进入本子集关系；它在动作时作为额外 deny gate 独立求值。子集判定固定如下：
 
 - `actions[]`：子项逐字包含于父 ceiling；不得依靠 action family、前缀或 subsumption 补回未列 action。
-- `resources[]`：子项中的每个 selector 必须被至少一个父 selector 覆盖。`operation` / `service` 只覆盖同 kind 且对应 `operation` / `service_id` 相同或父字段省略的服务资源；这两种服务 selector 不得携带内容字段。内容 kind 固定为 `realm` / `space` / `circle` / `strand` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob`，不得把 `operation` / `service` 或 `*` 当作内容 kind。父 `kind=realm` 覆盖匹配 Realm 内的全部上述 Realm-local content kinds；其它父 content kind 只覆盖同 kind。父省略 `realm_id` 表示跨 Realm ceiling wildcard，省略精确 ref 表示该 kind / Realm 内 wildcard；父声明的字段必须与子项逐字相同。grant 的 `space_id` / `circle_id` / `strand_id` / `message_id` / `morph_id` / `object_ref` / `relation_id` / `view_id` / `event_id` / `actor_id` / `schema_ref` / `policy_id` / `invite_id` / `blob_ref` 分别映射为 ceiling selector 的 `resource_ref`（`schema_ref` 使用同名 ceiling 字段）后再判定；`notification` / `read_cursor` 仅按 `realm_id` 收窄。没有内容 selector 时，只表示 provision ceiling 未额外限制后续 grant 的具体内容资源；它不授予内容 wildcard，实际资源仍必须来自独立 Realm grant。
+- `resources[]`：子项中的每个 selector 必须被至少一个父 selector 覆盖。`operation` / `service` 只覆盖同 kind 且对应 `operation` / `service_id` 相同或父字段省略的服务资源；这两种服务 selector 不得携带内容字段。内容 kind 固定为 `realm` / `space` / `strand` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob`，不得把 `operation` / `service` 或 `*` 当作内容 kind。父 `kind=realm` 覆盖匹配 Realm 内的全部上述 Realm-local content kinds；其它父 content kind 只覆盖同 kind。父省略 `realm_id` 表示跨 Realm ceiling wildcard，省略精确 ref 表示该 kind / Realm 内 wildcard；父声明的字段必须与子项逐字相同。grant 的 `space_id` / `strand_id` / `message_id` / `morph_id` / `object_ref` / `relation_id` / `view_id` / `event_id` / `actor_id` / `schema_ref` / `policy_id` / `invite_id` / `blob_ref` 分别映射为 ceiling selector 的 `resource_ref`（`schema_ref` 使用同名 ceiling 字段）后再判定；`notification` / `read_cursor` 仅按 `realm_id` 收窄。没有内容 selector 时，只表示 provision ceiling 未额外限制后续 grant 的具体内容资源；它不授予内容 wildcard，实际资源仍必须来自独立 Realm grant。
 - `constraints[]`：provision ceiling 中的每条 constraint 都是全局 mandatory constraint；key authorization、grant/session 的有效求值必须继续与其做 AND。任何下游 scope 不得删除或放宽这些 constraint，可以增加更严格的 constraint。若下游对象无法直接承载该 constraint，authz evaluator 仍必须从 immutable provision state 注入并强制执行；不可解析时 fail closed。
 
 **Ceiling 权威绑定与私有披露（normative）。** Provisioning MUST 只把 `requested_scope_digest` 固定到 Agent DID accepted create-locked bootstrap history entry 1 中唯一 `ArkretPrincipalControlRealm.serviceEndpoint`；entry 0 不含 PCR binding 或该 digest。该 endpoint 的闭合四元组见 [`../identity/key-management.md` §4.1](../identity/key-management.md)，公开 DID Document 与可解析历史 MUST NOT 包含完整 `requested_scope`。digest 固定为 `sha256(canonical_json({"agent_id": <Agent DID>, "controller_principal_id": <controller principal core>, "kind": "ak.agent.requested_scope_commitment.v1", "requested_scope": <完整 AgentKeyScope>}))`。完整 scope 只通过 controller 签名的 [`agent-requested-scope-disclosure.schema.json`](../../artifacts/schemas/agent-requested-scope-disclosure.schema.json) 私有出示：disclosure MUST 绑定 verifier DID、audience、presentation request、不可预测 challenge 与不超过 300 秒的接收窗口；proof MUST 覆盖去掉 `proofs` 后的完整对象。Receiver MUST 在 authorizing Event / grant 的 accepted-at 时点解析 Agent DID history，验证 disclosure 的当前 controller proof、单次 challenge、audience/freshness，重算 digest 与公开 commitment 相等，再以披露 scope 执行本节子集判定。只读 service-local Agent record、当前时刻 DID document、调用方自报 scope 或未绑定 verifier/challenge 的缓存均不构成权威证据。首次 accepted binding 后任何 DID update 若删除或改变 `realm_id`、`controller_did`、`authorization_ref` 或 `requested_scope_digest`，该 Agent binding 对新 key/grant/session MUST fail closed；需要改变 ceiling 必须 provision 新 Agent DID。成功验证的披露 MAY 仅以加密 verifier-private evidence 缓存，并由 accepted-at digest/controller lifecycle 约束；不得把完整 scope 复制到 pairing code、通知、runtime private key、Realm plaintext、durable Event 或其它公开记录。
@@ -889,7 +881,7 @@ Arkret v1 至少区分：
 
 - 修改 Strand synthesis。
 - 开启或关闭 discussion track。
-- 管理 Realm 成员（`ak.realm.admin` 管理 `ak.member.state` 写入）或 Circle 成员（`ak.circle.member.manage` / `ak.circle.member.add.others` 管理 `ak.circle.member.state` 写入，见 [`../models/circle.md`](../models/circle.md)）。
+- 管理 Realm 成员（`ak.realm.admin` 管理 `ak.member.state` 写入）。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
@@ -897,7 +889,7 @@ Arkret v1 至少区分：
 - 撤回任意消息。
 - 切换 primary track。
 
-这能避免把"能改 Strand"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Strand 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
+讨论写入需通过所属 Realm 的消息写入授权。
 
 profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员快照中的身份**不是**授权真源。例如 `ak.profile.calendar_event.v1` 的 `ak.rsvp.set`，其准入完全由覆盖该精确 Strand / effective scope 的 grant 决定——attendee 身份 MUST NOT 自动授予该动作，持有精确 capability 的非 attendee 也 MUST NOT 被 reducer 用隐式身份判断拒绝。产品若要求"只有 attendees 能回应"，MUST 通过 grant materialization 或 profile policy 实现。完整 admission predicate（目标 Realm / lifecycle / calendar status / basis 两级校验与反枚举要求）见 [`../models/calendar-event.md` §8.4](../models/calendar-event.md)。
 
@@ -958,7 +950,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 Event 或确认控制面 RealmCommit 并更新相关 current state 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ak.member.state` event，但产生的 current state 变化同样属于"membership 变化"，MUST 触发 cache invalidation。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点接受 Event 或确认控制面 RealmCommit 并更新相关 current state 的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。
 - **Moderation 依赖由 reducer 派生**：cache 构造 MUST 从已验证 grant 的已登记语义计算依赖 `D(g)`，而不是接受 producer 的 cache hint。以下任一条件成立即为 true：(1) subject／condition selector 的语义引用 moderation current；(2) actions 含 `ak.moderation.decision` 或 `ak.moderation.decision.lift`；(3) typed constraint 的语义引用 moderation state/tag。条件 2 保持保守覆盖，不借本次精简收窄。
   - `D(g)=true` 时 moderation current 变化 MUST 在同一提交事务令相应 cache stale。未知 critical 语义 MUST fail closed，不能当成无依赖。依赖字段不进入 grant wire、constraint 或 materialized grant；closed schema MUST 拒绝未登记 hint。
   - 本地实现 MAY 额外保守失效 cache，但不能据此改变授权。其它 grant/revoke/membership/policy/claim/session 失效、evaluation_class 限制与 current 检查全部保留。
@@ -982,7 +974,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 Arkret v1 固定：
 
 - 权限采用 capability 模型。
-- Strand、discussion、agent 执行都使用统一 grant 体系；Strand track 不携带独立 access，整个 Strand 通过 Realm-default scope 或 Circle scope 形成单一安全边界。
+- Strand、discussion 和 Agent 执行统一使用 grant；同一普通 Strand 的各 track 共享 Realm。
 - `ak.message.revise.own` 与 `ak.message.redact` 分开。
 - invite / notification / read cursor 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

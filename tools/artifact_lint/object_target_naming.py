@@ -10,7 +10,7 @@ from .naming_contracts import resolve_terminal_constraints
 
 # common-fields.md 2.1.1 distinguishes these materialized objects from artifacts.
 MATERIALIZED_KINDS = frozenset({
-    'realm', 'space', 'circle', 'strand', 'message', 'morph', 'relation',
+    'realm', 'space', 'strand', 'message', 'morph', 'relation',
     'view', 'policy', 'actor_profile',
 })
 

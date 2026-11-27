@@ -26,7 +26,7 @@ Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、S
 
 ## 2. Pin Scope
 
-Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `strand`、`realm`、`circle` 或 `space`。
+Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `strand`、`realm` 或 `space`。
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 
@@ -34,7 +34,7 @@ Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 
 
 ## 3. Scope Safety
 
-目标对象必须落在 resolved effective scope 内，或在该 scope 内可见。Public Space 不得 pin Circle-private object；Realm-wide pin 不得泄露 Circle-scoped Message 的存在性。若目标不可见或跨 scope 不合法，reducer MUST fail closed，并对调用方返回与不可见对象一致的 `not_found`；错误形态不得向无权 actor 泄露目标是否存在。内部审计 MAY 记录更具体的 scope mismatch 诊断。
+Pin MUST 按原始目标已接纳的 Realm 和调用者的读取权核验，拒绝跨 Realm 的目标且不得泄露其存在性。
 
 Pin note 若存在 MUST 使用 `EncryptedPayload` 加密；v1 不提供 plaintext-visible note 分支。需要公开说明时应创建普通 Message / Morph 并 pin 该对象，不得把 Pin 元数据变成额外明文通道。
 

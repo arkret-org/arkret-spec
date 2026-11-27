@@ -31,7 +31,7 @@ see_also:
 
 ## 2. 核心术语
 
-> **排序说明**：本表按术语**主题分组**排列（身份 / 边界对象 / 事件与同步 / 授权 / 服务角色等），便于按语义聚类阅读，**不是** canonical 对象序。canonical 对象清单及其权威顺序（Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability）以 [`index.md` §1](../index.md) 为准；§6 等引用对象集合时以该清单为锚点。
+> **排序说明**：本表按术语**主题分组**排列（身份 / 边界对象 / 事件与同步 / 授权 / 服务角色等），便于按语义聚类阅读，**不是** canonical 对象序。canonical 对象清单及其权威顺序（Realm / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability）以 [`index.md` §1](../index.md) 为准；§6 等引用对象集合时以该清单为锚点。
 
 *Table 1. 术语表（normative）。本表行内的大写规范关键字（MUST / MUST NOT 等）具规范约束力；声明"以本条为单一锚点"的条目即为该约束的 canonical 权威位置。这是 [normative-language.md §4](../conformance/normative-language.md) 容器表默认 informative 规则的已登记例外。*
 
@@ -68,12 +68,10 @@ see_also:
 | Space Hierarchy | Space 层级 | Space 之间通过 `parent_space_id` + `ak.space.parent` 表达同一 Realm 内的父子关系；跨 Realm 展示使用 View / 普通引用，不传播权限或密钥。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Strand | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
-| Track | Strand 轨道 | Strand 内的协作面：`Strand.tracks` map 的 key 与对应 entry。TrackName 以 [`track-name-registry.json`](../../artifacts/registry/track-name-registry.json) 为 canonical 集合；`^[a-z][a-z0-9_]{0,63}$` 只是登记语法，未登记名称 fail closed。当前 active 名称为 `discussion` 与 `synthesis`。Track 可持有自己的配置；`synthesis` entry 还可持有独立正文。Track 不携带独立的 membership / history visibility / E2EE security boundary——整个 Strand 共享单一 effective scope（由 `scope_circle_id` 决定）。默认入口按 track primary 解析规则得到（见 Strand primary track 条目）。详见 [`../models/strand-and-message.md` §4.4](../models/strand-and-message.md) 与 [`spec-map.md` §3.2](../spec-map.md)。 |
+| Track | Strand 轨道 | Strand 内的协作面：`Strand.tracks` map 的 key 与对应 entry。TrackName 以 [`track-name-registry.json`](../../artifacts/registry/track-name-registry.json) 为 canonical 集合；`^[a-z][a-z0-9_]{0,63}$` 只是登记语法，未登记名称 fail closed。当前 active 名称为 `discussion` 与 `synthesis`。Track 可持有自己的配置；`synthesis` entry 还可持有独立正文。Track 不携带独立的 membership / history visibility / E2EE security boundary——整个 Strand 共享单一 effective scope（取自所属 Realm）。默认入口按 track primary 解析规则得到（见 Strand primary track 条目）。详见 [`../models/strand-and-message.md` §4.4](../models/strand-and-message.md) 与 [`spec-map.md` §3.2](../spec-map.md)。 |
 | Strand primary track | Strand 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | synthesis track | 正式表达轨道 | Strand 的 `synthesis` 轨道，其独立正文位于 `tracks.synthesis.content` / `tracks.synthesis.encrypted_content`。Strand 顶层 `content` / `encrypted_content` 是 Description；标题、摘要、结构化字段与 stage 仍属于 Strand 本体，不因默认入口而归入 Synthesis。完整字段、profile、适用场景以 [`../models/strand-and-message.md` §4.2](../models/strand-and-message.md) 为准。 |
-| discussion track | 讨论轨道 | Strand 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Strand 整体的 `scope_circle_id` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Strand 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/strand-and-message.md` §4.3](../models/strand-and-message.md) 为准。 |
-| Circle | 子事件边界 / scoped 协作圈 | `ak:circle:` 对象，Realm 内的子集成员 + 独立 history visibility + 投递 / 查询 / projection 裁剪边界。**译名注意**：不要叫"信任圈"——Circle 不构成信任域，避免与 Trust Domain 混淆。**不**持有 federation identity。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的协作圈"；由本 Circle 的 Genesis 独立激活 MLS group。详见 [`../models/circle.md`](../models/circle.md)。 |
-| Circle scope / `scope_circle_id` | 对象 effective scope 引用 | 对象（Strand / Space / Morph / Relation）的 `scope_circle_id` 字段；`null` = Realm-default scope，否则指向同 Realm 的 Circle。Message 不携带该字段，其 effective scope 从所属 Strand 派生。producer 将解析结果写入签名 `Event.scope_ref`，receiver 对冻结前态复核；MLS-backed scope 中同一值进入 E2EE AAD。 |
+| discussion track | 讨论轨道 | 承载 Strand 的消息与讨论时间线，沿用所属 Realm 的成员、历史与 MLS 边界。[Strand 模型](../models/strand-and-message.md) |
 | `scope_ref` / effective scope | 签名 scope 与只读投影 | `Event.scope_ref` 是 producer 必填、proof 覆盖并由 receiver 验证的 immutable tagged scope。对象或 read projection MAY 暴露名为 `effective_scope` 的派生字段，但它不得替代、改写或晚于签名 scope 决定 Event 授权。 |
 | Board | 看板 | `ak:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `ak:space: kind=list`，挂到 Board Space 下、承载 Strand 位置关系的列容器。**与包装词 `List` 的消歧（normative）**：SDK 读模型包装词表（`*List` / `*Row` / `*View` 一族）也含 `List`（`AgentPage` = agent 的集合）。二者靠位置区分——`kind=list` 是 **Space 的取值**，`*List` 是**类型名末词**。为防止真实碰撞，Space 的集合类型 MUST NOT 命名为 `SpaceList`；需要表达 Space 集合时使用 `SpaceView` 的集合或带领域主语的名字（如 `BoardChildList`）。v1 当前不存在同时可读作两义的名字。 |
@@ -125,7 +123,7 @@ see_also:
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
 | Data Plane | 数据面 | 消息、reaction、对象字段、排序、协作文本与计数等业务 Event；共享持久 Event 均由当前治理 Station 接纳并进入对应独立 stream。 |
 | Control Plane | 控制面 | membership、capability、policy、lifecycle 与 MLS epoch 等治理 Event；它们与业务 Event 使用相同的 producer Event + authority commit 路径，并由各自 typed payload 定义额外 signer 与 domain invariant。 |
-| authority commit | 权威提交 | 当前治理 Station 对一个 producer Event 的接纳记录。Realm、每个 Circle、每个 Sidecar 各有独立连续 stream；只有 RealmCommit 携带同 stream 的 `previous_commit_ref`。 |
+| authority commit | 权威提交 | 当前治理 Station 对一个 producer Event 的接纳记录。Realm 与每个 Sidecar 各有独立连续 stream；只有 RealmCommit 携带同 stream 的 `previous_commit_ref`。 |
 | Authority Set | 权威集合 | 在某个 authority-commit basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
 | IngressReceipt | 入口签收回执 | 接收方对某个 exact Event 的签收记录；不证明 reducer acceptance、投影可见性或 RealmCommit finality。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
@@ -133,7 +131,7 @@ see_also:
 | SecurityRotationTransaction | 安全轮换事务 | 固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、erase confirmation 与 local commit 的 SecurityTransaction。 |
 | Rejected | 已拒绝 | 当前治理 Station 在格式、签名、schema、授权、stream head 或领域不变量校验上拒绝 Event；拒绝不写入共享 stream。 |
 | RealmCommit | 权威提交记录 | 当前治理 Station 对单个 producer Event 签发的接纳记录，包含 `commit_id`、authority generation、stream ref/position、同 stream `previous_commit_ref`、Event ID/digest、接纳时间与 Station 签名。 |
-| Genesis RealmCommit | Stream 根提交 | 某条 Realm/Circle/Sidecar stream 的 position 0 提交；其 `previous_commit_ref=null`，并接纳该 stream 的首个 closed create Event。 |
+| Genesis RealmCommit | Stream 根提交 | 某条 Realm/Sidecar stream 的 position 0 提交；其 `previous_commit_ref=null`，并接纳该 stream 的首个 closed create Event。 |
 | current state | 领域当前结果 | 治理 Station 按同一 stream 的 commit 顺序执行特定领域 reducer 后得到的 current projection；其 schema、revision 与来源 committed Event references 由对应领域合同定义。 |
 | Reset | 重置语义 | capability 使用 revoke + reissue；身份恢复使用已授权 re-anchor。普通寄存器用引用当前来源的有权因果后继继续编辑，安全状态不能任意 reset。 |
 | Governance Binding Payload | 治理绑定 payload | 每个 `ak.mls.commit` 携带的闭合 binding，把 effective scope、base、previous/next epoch 与 authority-committed `key_access_revision` 同时绑定到 Event payload 和 MLS GroupContext。GroupContext 进入 key schedule，GroupInfo 签名覆盖 GroupContext；epoch 0 不笼统描述为“进入 transcript hash”。 |
@@ -141,7 +139,7 @@ see_also:
 | MLS Welcome | MLS 欢迎私密投递 | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) Welcome bytes，经 recipient-scoped `MlsWelcomeDelivery` queue 私密投递并显式 ACK，不进入共享 Event stream。 |
 | MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Arkret 扩展：作为 `ak.mls.commit` durable Event 进入 Realm history，并 MUST 携带与 Event payload 逐字段相等的 `governance_binding`（GroupContext extension `mls_governance_binding`）。GroupContext 进入 key schedule，GroupInfo 签名覆盖 GroupContext，后续 GroupContextExtensions proposal 进入相应 Commit transcript；不把 epoch 0 的空 confirmed transcript 概括为“checkpoint 总是哈希进 transcript”。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
 | MLS Proposal | MLS 提案 | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) Proposal 只作为 `MlsCommitSubmission` 的 Commit 输入；它不是独立共享 Event。 |
-| Governance Station | 治理 Station | 每个 authority generation 唯一接纳 shared persistent Event 并为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit 的 Station。由 genesis 与连续 handoff chain 确定。 |
+| Governance Station | 治理 Station | 每个 authority generation 唯一接纳 shared persistent Event 并为 Realm 与每个 Sidecar 的独立 stream 签发 RealmCommit 的 Station。由 genesis 与连续 handoff chain 确定。 |
 | RealmAuthorityHandoff | 治理方交接记录 | 旧治理 Station 冻结所有独立 stream 并承诺各自 final head，新治理 Station 验证完整前缀后签署 acceptance；成功后 generation 递增。 |
 | Consent | 同意 | Holder-private 决策：“我同意接收来自 X 的某种不以 Contact 为授权依据的动作”。表达为 consent Event 的签名 `kind + payload`，并由 registered reducer projection 写入 consent current state。Consent 可服务 invite 等非 Contact 路径，但不得参与 Contact-based create/send或Personal DM；后二者只读取双方 holder-signed directional Contact heads。 |
 | Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `voice_call` / `video_call` / `presence`。 |
@@ -155,7 +153,7 @@ see_also:
 | Provisional state family | provisional 状态族 | `provisional` 是“尚未达到所属 owner 的最终可用/可验证条件”的限定词，不是可跨 Realm bootstrap、Contact、MLS 或 resolver 复用的统一 wire 状态。规范与 UI 必须保留完整限定名，并由对应 owner 文档定义进入、退出和失败条件。 |
 | Reducer | 归约器 | 确定性领域函数，从 schema-validated `Event.kind + payload` 与当前领域 revision 产生 current state；治理 Station 按同一 stream 的 commit 顺序执行。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Strand、Relation、View。 |
-| Stream Head | 提交流头 | 某条 Realm/Circle/Sidecar authority stream 的最新 `{commit_id,stream_position}`；只证明该 stream 的连续位置，不代表其它 stream。 |
+| Stream Head | 提交流头 | 某条 Realm/Sidecar authority stream 的最新 `{commit_id,stream_position}`；只证明该 stream 的连续位置，不代表其它 stream。 |
 | epoch | 代际 | 由具体协议定义的代际，不存在通用授权 epoch：(1) **MLS epoch**，见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)；(2) **history visibility epoch 边界**，见 [`../governance/history-visibility.md`](../governance/history-visibility.md)；(3) **private contact discovery VOPRF key_epoch**，见 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)。普通 Event 的 AuthContext 不重复这些字段；设备 generation 与 Agent key 授权实例按各自确切安全来源验证。 |
 | Causal Barrier | 因果一致性屏障 | 客户端或可选受托 projection 服务在返回查询结果前，依据本地 sync checkpoint 等待特定写入前沿到达的机制；用于保障 read-your-writes 体验。定义见 [`overview/architecture.md` §3.4](./architecture.md)。 |
 | read-your-writes barrier | 读己之所写屏障 | 由 barrier `cursor` 表达，绑定目标 authority stream 的 RealmCommit position；读取至少覆盖该 position 后满足屏障。见 [`overview/architecture.md` §3.4 / §6.3](./architecture.md) 与 [`sync/client-sync.md`](../sync/client-sync.md)。 |
@@ -169,13 +167,13 @@ see_also:
 | Bot | Applet Bot（canonical） | Applet 创建或托管的自动化 Actor；Actor Profile 分类为 `actor_kind=bot`。Bot 的 lifecycle 与授权根来自 Applet registration/install/provisioning，不得以 Profile `actor_kind=agent` 冒充 Agent，也不进入 Agent provisioning、pairing、Sidecar 或 controller membership cascade。 |
 | Agent Runtime | Agent 运行时 | 执行 Agent 业务逻辑的进程或容器；通过 `ak.gate.account.command.pair_agent_key.v1` pairing 持有 Agent key。Agent Runtime 是部署单元，不是 protocol principal；它代表的 principal 只能是 Agent。Applet Bot 使用 Applet runtime/registration 路径，不称 Agent Runtime。 |
 | Ghost Actor | 幽灵 actor | 外部网络主体在 Arkret 中的 Applet-managed 镜像 provenance，不是独立 `actor_kind`，也不是 Agent 子类。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；外部账号/集成镜像的 Actor Profile 使用 `actor_kind=integration`，外部 Bot 镜像使用 `actor_kind=bot`，不得使用 `agent`。其安全来源由 Applet provisioning/registration、`accountable_principal_ids` 与 capability 证明，Profile 分类不扩权。 |
-| Member | 成员 | 已加入某 Realm 或 Circle 的 actor；具体由 membership current state `member_state` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
+| Member | 成员 | 已加入某 Realm 的 actor；具体由 membership current state `member_state` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
 | Subject | 授权对象 | Capability grant 的授予对象；`subject` 字段值是 DID（具体 principal）或机器 registry 明确登记的 condition selector（如 role / federated trust scope）。Actor Profile `actor_kind` 不是授权 selector。具体使用约束见 [`common-fields.md` §4.1](../models/common-fields.md#41-did-适用边界)。 |
 | participant | _local-context only_ | 不是通用术语。仅允许在 SFU stream binding、Mermaid sequence 图、call participant_id 等明确局部上下文出现；prose normative 段落 MUST 使用 actor / member / subject 视语义选用，不得用 `participant` 表达通用主体语义。 |
 | Operation | 操作（canonical operation_id） | API wire-binding 抽象单元，由 canonical `operation_id` 标识；定义见 [`api-conventions.md` §2.4](../sync/api-conventions.md)。Operation 不等同于 wire event kind——前者是 RPC / sync 单元，后者是 reducer-input event family；MUST NOT 互换。 |
 | Patch | 字段增量（`ak.schema.patch.v1`） | `ak.schema.patch.v1` field 增量 payload 格式，统一表达 canonical object 字段级更新；路径与 op 规则见 [`event-and-patch.md` §4](../models/event-and-patch.md)。新对象的字段更新槽 SHOULD 通过 Patch 表达，不再造单字段 update event。 |
 | Push terminology layering | push / notification / notify / wakeup 词汇分层 | 四个词在 v1 严格分层，不互换：**Push** = transport 层（push gateway 投递）；**Notification** = projection object（`ak.notification` current state value，inbox 派生对象）；**Notify** = push rule action（`ak.push_rules` 的 action enum 值）；**Wakeup** = payload disclosure class（`ak.profile.push_gateway.blind_wakeup.v1` 等 wakeup 信封）。Normative prose MUST 按上述分层选词。 |
-| Display naming | display_name / title 命名规则 | `display_name` 用于 actor / user-facing identity profile 以及 device record 的用户可读设备名（可变、UI-only，无唯一性约束）；`title` 用于结构对象 Realm / Space / Circle 的人类可读名（可变、无唯一性约束）。v1 内两个字段不互改；新增 wire 字段按对象类别选用，不得用 `name`、`device_label` 等别名替代（见 [`common-fields.md` §3](../models/common-fields.md)）。 |
+| Display naming | display_name / title 命名规则 | `display_name` 用于 actor / user-facing identity profile 以及 device record 的用户可读设备名（可变、UI-only，无唯一性约束）；`title` 用于结构对象 Realm / Space 的人类可读名（可变、无唯一性约束）。v1 内两个字段不互改；新增 wire 字段按对象类别选用，不得用 `name`、`device_label` 等别名替代（见 [`common-fields.md` §3](../models/common-fields.md)）。 |
 | Home Realm | 主 Realm | 对象 `realm_id` 字段指向的 Realm；每个 object 有 exactly one home Realm，是该对象 metadata 授权、policy、capability、E2EE key 的根。Space、Strand、Message、Morph 等 canonical object 均通过 `realm_id` 解析 home Realm。 |
 | Group (capability subject) | 大写 Group（授权主体集合） | 大写 **Group** 表示作为 capability grant subject 的 principal / actor 集合（即"一组主体被授予同一 capability"），与 **MLS group**（小写，MLS 加密会话）无关。当两者并列出现时，prose MUST 加限定词：`capability subject Group` vs `MLS group`，不得仅写裸 `group`。 |
 | Provision vs Register vs Install | provision / register / install 用词分工 | 三者不互换：**provision** = principal 主体一等创建（如 `ak.self.agent.command.provision.v1`），主体身份进入协议线；**registration** = service / applet 描述符接入（如 `ak.applet.registration`），描述符进入 directory / registry；**install** = client-side 软件安装（应用商店安装、桌面安装），**不**进入 wire。Normative prose 描述 protocol 主体生命周期时 MUST 使用 provision，不得写 "install agent"。 |

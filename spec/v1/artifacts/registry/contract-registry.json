@@ -75,7 +75,7 @@
         {
           "event_kind": "ak.strand.create",
           "presence": "required",
-          "condition": "main_strand_and_scope_circle_id_is_null",
+          "condition": "main_strand_in_ordinary_realm",
           "id_source": "event_derived"
         }
       ],
@@ -307,7 +307,7 @@
           "realm_main_strand_and_target_scope_exact",
           "unique_scope_derived_group_state_cross_binding_exact",
           "realm_binding_and_target_strand_non_terminal_or_suspended",
-          "resource_within_dm_realm_non_circle_discussion_scope",
+          "resource_within_dm_realm_discussion_scope",
           "current_authorization_basis_gate_for_send_like_actions_contact_or_owned_agent_controller",
           "action_specific_self_device_mls_and_agent_gates"
         ],
@@ -331,8 +331,8 @@
         ],
         "structural_contract": {
           "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
-          "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
-          "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+          "canonical_main": "active_same_realm_primary_discussion_anchor_independent_of_actual_target",
+          "chat_create": "event_derived_same_realm_active_primary_discussion_without_content_or_extra_tracks",
           "chat_update_paths": [
             "encrypted_metadata",
             "topic"
@@ -361,7 +361,7 @@
         "personal_watch_contract": {
           "action": "ak.strand.watch.set",
           "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
-          "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+          "target": "actual_chat_strand_in_same_direct_realm",
           "authority": "stable_participant_and_unique_binding_confirmation_only",
           "bootstrap": "forbidden",
           "others": "forbidden_including_the_other_stable_participant",
@@ -980,14 +980,14 @@
     },
     "registry_rules": [
       "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
-      "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm, Circle, or Sidecar stream.",
-      "Stream identity is derived from the Event's closed scope. Realm, each Circle, and each Sidecar have independent commit streams; no Realm-global total chain exists.",
+      "An accepted durable Event becomes shared history only when the current authority includes its exact bytes in a signed RealmCommit for the Event's own Realm or Sidecar stream.",
+      "Stream identity is derived from the Event's closed scope. The Realm and each Sidecar have independent commit streams; no Realm-global total chain exists.",
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current state by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current state the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-      "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 124 of the 128 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+      "state_writes[] is the machine contract for which typed current state one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 117 of the 121 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no current-state row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite state_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY current state its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
       "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed effect_ownership object. A typed_state_writer owns non-empty state_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no current-state write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/state_writes[] fail tools/artifact_lint:effect_ownership.",
-      "transition_contracts declares the lifecycle axis of a current state family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition state_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
+      "transition_contracts declares the lifecycle axis of a current state family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition state_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over three normative chapters (zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
       "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
     ],
     "payload_schema_contract": {
@@ -1252,7 +1252,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "agent_controller_self_authored_proof",
-        "payload": "Controller-only per-Realm interaction mode with exact expected_commit_id CAS; plaintext control, never a membership, Account Data or private participation write. Circle and Strand inherit the Realm mode and only narrow ordinary permissions. Verified never-written defaults to private; unknown fails closed. Mode transitions do not change membership or Sidecar MLS participants. models/agent-interaction.md sections 1-5.",
+        "payload": "Controller-only per-Realm interaction mode with exact expected_commit_id CAS; plaintext control, never a membership, Account Data or private participation write. Strands inherit the Realm mode and only narrow ordinary permissions. Verified never-written defaults to private; unknown fails closed. Mode transitions do not change membership or Sidecar MLS participants. models/agent-interaction.md sections 1-5.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
         "id_source": "not_an_object_id",
         "state_writes": [
@@ -1693,7 +1693,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
-            "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_commit_id is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream, including Circle installation intents. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
+            "notes": "extensions/applet-schema.md section 1. Within the Realm, exact AppletId and ServiceId select one registration. Installer-signed expected_commit_id is a nullable CAS against this pair; null means never written. Same-epoch security-equivalent reassertion preserves the original accepted instance. Publisher/controller must match the immutable Applet source; adding a Service does not close another Service registration, invalidate its grants or transfer any actor. The CAS is excluded from registration_epoch security material. All guards and grants commit atomically. Registration Events and their current source stream are always the owning Realm stream. Each newly accepted Event advances current revision; equal security bindings preserve the continuous authorization instance rather than suppressing the current write. Exact Event replay returns its original result."
           }
         ]
       },
@@ -1705,7 +1705,7 @@
         "verb_form_rationale": "Pure audit announcement: the Event records the accomplished fact that a privileged read or privacy-sensitive paired write already happened, and carries no reducer action to perform.",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
+        "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes such as watch_set_others, late recovery, and policy reads.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_accessed_payload",
         "id_source": "not_an_object_id",
         "effect_ownership": {
@@ -2304,501 +2304,6 @@
           "Exact Applet Service issuer may revoke only its own accepted terminal managed child, with exact revision/CAS and historical source; no general revoke power or active business parent is needed to close that child. Retained legal Service authentication and current signer eligibility still required.",
           "Original Service issuer child cleanup derives source from that accepted child and its original parent ancestry, regardless of parent business expiry/revoke or inactive business installation. Authenticate the original Realm/Applet/Service pair current legal registration/key; no retired-key/bare-DID fallback, third-party revoke or general new permission. Preserve exact scalar CAS and immutable accepted outcome. First new Revoke uses the current original pair key/epoch for both Event producer proof and HTTP; its accepted signer fact freezes that current source, independently of the old target child/parent epoch. Exact already-accepted old Revoke preserves original proof/fact at original acceptance, with fresh current HTTP authentication; no rewriting or today-key reinterpretation."
         ]
-      },
-      {
-        "event_kind": "ak.circle.archive",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle archive lifecycle facet (active -> archived).",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-        "id_source": "not_an_object_id",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle",
-              "field": "payload.target_ref"
-            },
-            "state_projection": {
-              "kind": "apply_patch",
-              "allowed_paths": []
-            },
-            "derived_members": [
-              {
-                "name": "state",
-                "derivation": "object_lifecycle_state"
-              },
-              {
-                "name": "state_changed_at",
-                "derivation": "object_state_transition_time"
-              },
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "retained_members": [
-              "schema",
-              "realm_id",
-              "profile_ref",
-              "title",
-              "summary",
-              "display",
-              "directory_visibility",
-              "join_rule",
-              "history_access",
-              "agent_participation",
-              "mls_group_id",
-              "created_by",
-              "created_at"
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at state_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.create",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle create (intra-Realm scoped event/message boundary). The Circle scope stays plaintext until its own ak.mls.genesis is accepted.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_create_payload",
-        "id_source": "event_derived",
-        "id_kind": "circle",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "profile_ref",
-                    "field": "payload.object.profile_ref"
-                  },
-                  {
-                    "name": "title",
-                    "field": "payload.object.title"
-                  },
-                  {
-                    "name": "summary",
-                    "field": "payload.object.summary"
-                  },
-                  {
-                    "name": "display",
-                    "field": "payload.object.display"
-                  },
-                  {
-                    "name": "directory_visibility",
-                    "field": "payload.object.directory_visibility"
-                  },
-                  {
-                    "name": "join_rule",
-                    "field": "payload.object.join_rule"
-                  },
-                  {
-                    "name": "history_access",
-                    "field": "payload.object.history_access"
-                  },
-                  {
-                    "name": "agent_participation",
-                    "field": "payload.object.agent_participation"
-                  }
-                ]
-              }
-            },
-            "derived_members": [
-              {
-                "name": "schema",
-                "derivation": "object_schema_identifier"
-              },
-              {
-                "name": "realm_id",
-                "derivation": "object_realm_binding"
-              },
-              {
-                "name": "state",
-                "derivation": "object_initial_state"
-              },
-              {
-                "name": "created_by",
-                "derivation": "object_create_actor"
-              },
-              {
-                "name": "created_at",
-                "derivation": "object_create_time"
-              },
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/circle.md sections 3 and 5. The selector retypes this create Event id. The author projection contains only Circle business fields; schema, Realm binding, initial lifecycle and audit timestamps are derived from the accepted envelope. id and mls_group_id are never author input, and mls_group_id remains absent until the Circle scope accepts its own MLS genesis."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.history_access",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Dedicated per-Circle monotone history-access FSM transition; only all_history_for_current_members to since_join is state-changing after create.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_history_access_payload",
-        "id_source": "not_an_object_id",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle",
-              "field": "payload.circle_id"
-            },
-            "state_projection": {
-              "kind": "merge",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "history_access",
-                    "field": "payload.to"
-                  }
-                ]
-              }
-            },
-            "derived_members": [
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "retained_members": [
-              "schema",
-              "realm_id",
-              "title",
-              "display",
-              "directory_visibility",
-              "join_rule",
-              "state",
-              "created_by",
-              "created_at"
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/circle.md sections 3 and 5. The reducer first compares payload.from with the selected Circle history_access value, permits only the monotone all_history_for_current_members -> since_join edge after create, and rejects widening, stale from values, inactive targets and malformed replays with zero side effects. The accepted write replaces only history_access, derives update metadata from the envelope and retains every required identity, policy and lifecycle member."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.member.state",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. A join carries the producer-signed parent_membership_revision; admission MUST verify in the accepting cut that the complete member_id's parent Realm member_state current is `join` at exactly that revision, otherwise failed_precondition reason=circle_member_must_be_realm_member. Effective Circle membership additionally requires the parent current to still carry that revision; parent leave, ban or rejoin never synthesizes this Event and never revives an old Circle join. See zh/models/circle.md §9.1. Every illegal membership FSM edge, including an unregistered same-state transition, is rejected with failed_precondition reason_code=invalid_membership_transition and zero writes. An authorized Circle administrator may perform leave->join with ak.circle.member.add.others and the required same-unit audit, without a Circle invitation workflow; parent join revision, Circle active status, ban and MLS gates remain mandatory.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
-        "id_source": "not_an_object_id",
-        "state_writes": [
-          {
-            "state_family": "circle_member_state",
-            "state_selector": {
-              "kind": "composite",
-              "components": [
-                "payload.circle_id",
-                {
-                  "kind": "canonical_json",
-                  "field": "payload.member_id"
-                }
-              ]
-            },
-            "condition": {
-              "kind": "field_present",
-              "field": "payload.effective_at"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "membership",
-                    "field": "payload.membership"
-                  },
-                  {
-                    "name": "parent_membership_revision",
-                    "field": "payload.parent_membership_revision",
-                    "optional": true
-                  },
-                  {
-                    "name": "effective_at",
-                    "field": "payload.effective_at"
-                  }
-                ]
-              }
-            },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/circle_member_state_value",
-            "notes": "zh/models/circle.md section 9.1. The subject is the exact Circle plus the complete ActorId. This branch preserves a signed effective_at. expected_membership is a three-state CAS guard and is never stored. parent_membership_revision is present exactly on join and is copied verbatim, never derived, so snapshot and replica consumers compare it with the parent Realm member_state current revision in the same cut. Parent-Realm membership at that exact revision, Circle join rule, transition legality and cross-actor authority are checked before the atomic set; rejection writes nothing."
-          },
-          {
-            "state_family": "circle_member_state",
-            "state_selector": {
-              "kind": "composite",
-              "components": [
-                "payload.circle_id",
-                {
-                  "kind": "canonical_json",
-                  "field": "payload.member_id"
-                }
-              ]
-            },
-            "condition": {
-              "kind": "field_absent",
-              "field": "payload.effective_at"
-            },
-            "state_projection": {
-              "kind": "set",
-              "value_projection": {
-                "kind": "object",
-                "members": [
-                  {
-                    "name": "membership",
-                    "field": "payload.membership"
-                  },
-                  {
-                    "name": "parent_membership_revision",
-                    "field": "payload.parent_membership_revision",
-                    "optional": true
-                  },
-                  {
-                    "name": "effective_at",
-                    "envelope_field": "created_at"
-                  }
-                ]
-              }
-            },
-            "value_schema_ref": "schemas/current-state.schema.json#/$defs/circle_member_state_value",
-            "notes": "zh/models/circle.md section 9.1. When effective_at is absent, the accepted Event created_at is the canonical transition time. This branch is complementary to the signed-time branch and shares its exact subject, CAS, FSM, parent_membership_revision copy, parent-membership and zero-side-effect rejection contract."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.restore",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle restore lifecycle facet (archived -> active).",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-        "id_source": "not_an_object_id",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle",
-              "field": "payload.target_ref"
-            },
-            "state_projection": {
-              "kind": "apply_patch",
-              "allowed_paths": []
-            },
-            "derived_members": [
-              {
-                "name": "state",
-                "derivation": "object_lifecycle_state"
-              },
-              {
-                "name": "state_changed_at",
-                "derivation": "object_state_transition_time"
-              },
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "retained_members": [
-              "schema",
-              "realm_id",
-              "profile_ref",
-              "title",
-              "summary",
-              "display",
-              "directory_visibility",
-              "join_rule",
-              "history_access",
-              "agent_participation",
-              "mls_group_id",
-              "created_by",
-              "created_at"
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at state_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.tombstone",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
-        "id_source": "not_an_object_id",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle",
-              "field": "payload.target_ref"
-            },
-            "state_projection": {
-              "kind": "apply_patch",
-              "allowed_paths": []
-            },
-            "derived_members": [
-              {
-                "name": "state",
-                "derivation": "object_lifecycle_state"
-              },
-              {
-                "name": "state_changed_at",
-                "derivation": "object_state_transition_time"
-              },
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "retained_members": [
-              "schema",
-              "realm_id",
-              "profile_ref",
-              "title",
-              "summary",
-              "display",
-              "directory_visibility",
-              "join_rule",
-              "history_access",
-              "agent_participation",
-              "mls_group_id",
-              "created_by",
-              "created_at"
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at state_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
-      },
-      {
-        "event_kind": "ak.circle.update",
-        "category": "circle",
-        "status": "active",
-        "verb_form": "base",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Circle metadata patch. history_access, realm_id and MLS identity fields are create-locked.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
-        "id_source": "reference",
-        "state_writes": [
-          {
-            "state_family": "circle",
-            "state_selector": {
-              "kind": "id:circle",
-              "field": "payload.circle_id"
-            },
-            "state_projection": {
-              "kind": "apply_patch",
-              "patch": {
-                "field": "payload.patch"
-              },
-              "allowed_paths": [
-                "title",
-                "summary",
-                "display",
-                "directory_visibility",
-                "join_rule"
-              ]
-            },
-            "derived_members": [
-              {
-                "name": "updated_by",
-                "derivation": "object_update_actor"
-              },
-              {
-                "name": "updated_at",
-                "derivation": "object_update_time"
-              }
-            ],
-            "retained_members": [
-              "schema",
-              "realm_id",
-              "profile_ref",
-              "history_access",
-              "agent_participation",
-              "mls_group_id",
-              "state",
-              "state_changed_at",
-              "created_by",
-              "created_at"
-            ],
-            "value_schema_ref": "schemas/circle.schema.json",
-            "notes": "zh/models/circle.md section 5. The patch surface is exactly title, summary, display, directory_visibility and join_rule. profile_ref, history_access, Realm/MLS identity and lifecycle paths remain create-locked or dedicated-event-owned. expected_state_digest guards the exact selected pre-state; an inactive target, forbidden path or failed digest check rejects the whole write with no derived metadata update."
-          }
-        ],
-        "effect_ownership": {
-          "kind": "typed_state_writer"
-        }
       },
       {
         "event_kind": "ak.consent.replace",
@@ -4033,7 +3538,7 @@
         "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the creating Event's full 33-byte / 44-character content-bound token.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_create_payload",
         "reducer_effects": [
-          "for ak.content.poll, materialize the accepted Message as the sole poll definition in its exact Realm and Circle scope",
+          "for ak.content.poll, materialize the accepted Message as the sole poll definition in its exact Realm scope",
           "for ak.content.poll.response, reject missing/cross-scope poll refs, unknown answers and over-selection without filtering or truncation",
           "retain every accepted response with its identity, selections, stream_position and poll_response_heads; derive one current vote per actor from the greatest stream_position in its exact poll partition, never from Event digest or arrival time"
         ],
@@ -4322,7 +3827,6 @@
           "comparison": "canonical_timestamp_string_equality",
           "effective_scope_kinds": [
             "realm",
-            "circle",
             "sidecar"
           ],
           "check_phase": "before_any_accepted_effect",
@@ -4465,7 +3969,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "schema_refs",
               "morph_kind",
               "facets",
@@ -4509,10 +4012,6 @@
               "value_projection": {
                 "kind": "object",
                 "members": [
-                  {
-                    "name": "scope_circle_id",
-                    "field": "payload.object.scope_circle_id"
-                  },
                   {
                     "name": "schema_refs",
                     "field": "payload.object.schema_refs"
@@ -4628,7 +4127,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "schema_refs",
               "morph_kind",
               "facets",
@@ -4732,7 +4230,6 @@
                 "field": "payload.patch"
               },
               "allowed_paths": [
-                "scope_circle_id",
                 "facets",
                 "metadata",
                 "encrypted_metadata",
@@ -7645,7 +7142,6 @@
                 "field": "payload.patch"
               },
               "allowed_paths": [
-                "scope_circle_id",
                 "rank",
                 "fields"
               ]
@@ -7756,20 +7252,12 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Scope-local read receipt policy (disclosure / visibility); signed scope_ref selects exactly one Realm or Circle, with no inheritance or parent floor; see zh/discovery/read-receipts.md §2.5",
+        "payload": "Replace the disclosure and visibility policy of the signed Realm.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
         "state_writes": [
           {
             "state_family": "scope_read_receipt_policy",
-            "state_selector": {
-              "kind": "composite",
-              "components": [
-                {
-                  "kind": "canonical_json",
-                  "field": "envelope.scope_ref"
-                }
-              ]
-            },
+            "state_selector": null,
             "state_projection": {
               "kind": "set",
               "value": {
@@ -7777,7 +7265,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
-            "notes": "The sole writer replaces the complete signed payload for exactly envelope.scope_ref. The subject is the canonical scope_ref; source_stream_ref MUST identify that same Realm or Circle stream. Defaults are read-side only after verified same-scope absence; no parent, sibling, or historical value merge."
+            "notes": "Singleton in the signed Realm stream. Replace the entire policy at the accepted revision."
           }
         ],
         "id_source": "not_an_object_id",
@@ -7785,9 +7273,7 @@
           "kind": "typed_state_writer"
         },
         "admission_requirements": [
-          "The signed scope_ref is realm or circle and its realm_id equals the enclosing Event realm_id; the covering RealmCommit stream_ref identifies that exact scope.",
-          "Admission checks ak.policy.manage against the target scope at the same transaction cut; Circle grants must cover the exact Circle and cannot authorize the parent or siblings. Lifecycle and effective membership gates remain applicable.",
-          "Event, covering RealmCommit and whole-value current replacement commit atomically; invalid scope, unauthorized write or unavailable current basis produces zero accepted effects."
+          "Verify ak.policy.manage authority for the target Realm at the accepting transaction cut."
         ]
       },
       {
@@ -8120,7 +7606,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "kind",
               "rank",
               "schema_refs",
@@ -8214,7 +7699,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-            "notes": "Genesis write of the declared policy from the signed create object. models/circle.md section 7.1 is authoritative for the enum and the reducer obligations; section 6.3 for why it is not interchangeable with Space.scope_circle_id. The write is conditional on the dedicated top-level child_scope_policy member of space_patch_payload, never on the generic patch: that payload forbids the patch from reaching the path at all and its own description makes a policy member select security execution, so the two branches of the payload's anyOf are two different admission paths rather than two spellings of one. An absent member means the Event is the metadata-patch branch and writes nothing here; it does not mean allow_any."
+            "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
           },
           {
             "state_family": "space_child_scope_policy",
@@ -8232,7 +7717,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-            "notes": "models/circle.md section 7.1 makes the policy optional, so the undeclared state is a real state and gets written explicitly as null rather than left as an absent register. The reducer MUST NOT synthesize the allow_any object here: a projection may only write what the signed Event or the envelope supplies, and null is the one registered spelling of the absent state. models/circle.md section 7.1 is authoritative for the enum and the reducer obligations; section 6.3 for why it is not interchangeable with Space.scope_circle_id. The write is conditional on the dedicated top-level child_scope_policy member of space_patch_payload, never on the generic patch: that payload forbids the patch from reaching the path at all and its own description makes a policy member select security execution, so the two branches of the payload's anyOf are two different admission paths rather than two spellings of one. An absent member means the Event is the metadata-patch branch and writes nothing here; it does not mean allow_any."
+            "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
           },
           {
             "state_family": "space",
@@ -8244,10 +7729,6 @@
               "value_projection": {
                 "kind": "object",
                 "members": [
-                  {
-                    "name": "scope_circle_id",
-                    "field": "payload.object.scope_circle_id"
-                  },
                   {
                     "name": "kind",
                     "field": "payload.object.kind"
@@ -8334,7 +7815,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space parent declaration. Parent is another ak:space: in the same actual Realm, or null. Cross-Realm parent is forbidden at create and reparent. Parent never propagates capabilities or Circle visibility.",
+        "payload": "Space parent declaration. Parent is another ak:space: in the same actual Realm, or null. Cross-Realm parent is forbidden at create and reparent. Parent never propagates capabilities or membership.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_parent_payload",
         "state_writes": [
           {
@@ -8424,7 +7905,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "kind",
               "rank",
               "schema_refs",
@@ -8486,7 +7966,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "kind",
               "rank",
               "schema_refs",
@@ -8556,14 +8035,13 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "state",
               "state_changed_at",
               "created_by",
               "created_at"
             ],
             "value_schema_ref": "schemas/space.schema.json",
-            "notes": "zh/models/realm-and-space.md section 3.2. The metadata branch is conditional on payload.patch and writes the Space object family; the sibling child_scope_policy branch remains a separate typed result. scope_circle_id, parent_space_id, child_scope_policy, identity and lifecycle fields are not generic patch paths. expected_state_digest and active-state checks run before both branches, and a combined accepted Event updates them atomically."
+            "notes": "zh/models/realm-and-space.md section 3.2. The metadata branch is conditional on payload.patch and writes the Space object family; the sibling child_scope_policy branch remains a separate typed result. parent_space_id, child_scope_policy, identity and lifecycle fields are not generic patch paths. expected_state_digest and active-state checks run before both branches, and a combined accepted Event updates them atomically."
           },
           {
             "state_family": "space_child_scope_policy",
@@ -8582,7 +8060,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-            "notes": "The dedicated non-patch policy write. models/circle.md section 7.1 is authoritative for the enum and the reducer obligations; section 6.3 for why it is not interchangeable with Space.scope_circle_id. The write is conditional on the dedicated top-level child_scope_policy member of space_patch_payload, never on the generic patch: that payload forbids the patch from reaching the path at all and its own description makes a policy member select security execution, so the two branches of the payload's anyOf are two different admission paths rather than two spellings of one. An absent member means the Event is the metadata-patch branch and writes nothing here; it does not mean allow_any."
+            "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
           }
         ],
         "id_source": "not_an_object_id",
@@ -8632,7 +8110,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "schema_refs",
               "agent_participation",
               "metadata",
@@ -8706,10 +8183,6 @@
               "value_projection": {
                 "kind": "object",
                 "members": [
-                  {
-                    "name": "scope_circle_id",
-                    "field": "payload.object.scope_circle_id"
-                  },
                   {
                     "name": "schema_refs",
                     "field": "payload.object.schema_refs"
@@ -8987,7 +8460,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "scope_circle_id",
               "schema_refs",
               "agent_participation",
               "metadata",
@@ -9242,7 +8714,6 @@
                 "field": "payload.patch"
               },
               "allowed_paths": [
-                "scope_circle_id",
                 "schema_refs",
                 "agent_participation",
                 "metadata",
@@ -9274,7 +8745,7 @@
               "created_at"
             ],
             "value_schema_ref": "schemas/strand.schema.json",
-            "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects. Whole topic set/unset is admitted only in a stably bound Direct Conversation with required expected_state_digest; topic is single-sourced by the strand current."
+            "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. For Synthesis content writes the track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects. Whole topic set/unset requires expected_state_digest over the full strand current. In an ordinary Realm the effective Strand update grant must cover topic; set requires a readable active root Topic Space in the same Realm, at the Chat's own Realm. Classification stays in the Strand scope. A stably bound Direct Conversation uses its participant contract and Realm targets."
           },
           {
             "state_family": "calendar_schedule_source",
@@ -9349,7 +8820,7 @@
               }
             },
             "value_schema_ref": "schemas/current-state.schema.json#/$defs/strand_watch_value",
-            "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Null clears the explicit watch value and normalizes to the mentions_only default. expected_value is a whole-value CAS guard and is not stored. The self/others authorization, Circle membership and mandatory audit-pair checks precede this atomic clear."
+            "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Null clears the explicit watch value and normalizes to the mentions_only default. expected_value is a whole-value CAS guard and is not stored. The self/others authorization, Realm membership and mandatory audit-pair checks precede this atomic clear."
           },
           {
             "state_family": "strand_watch",
@@ -10272,7 +9743,7 @@
       "ak.strand.create"
     ],
     "authority_commit_admission_contract": {
-      "applies_to": "Every durable Event accepted into a Realm, Circle, Sidecar or private realm_control authority stream.",
+      "applies_to": "Every durable Event accepted into a Realm, Sidecar or private realm_control authority stream.",
       "consumer_contexts": [
         "backfill",
         "shared_read",
@@ -10787,13 +10258,13 @@
         "schema_id": "ak.schema.agent_sidecar.v1",
         "file": "schemas/agent-sidecar.schema.json",
         "status": "active",
-        "description": "Controller-owned private AI workspace with native Sidecar scope and ownership-derived Agent access. It is not a Circle profile and has no backing Circle or editable membership. See zh/models/sidecar.md."
+        "description": "Controller-owned private AI workspace with native Sidecar scope and ownership-derived Agent access. Its participant set is fixed by its controller binding. See zh/models/sidecar.md."
       },
       {
         "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
         "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
         "status": "active",
-        "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 8."
+        "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm events. See zh/models/sidecar.md section 8."
       },
       {
         "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
@@ -11049,17 +10520,6 @@
         "file": "schemas/capability-grant.schema.json"
       },
       {
-        "schema_id": "ak.schema.circle.v1",
-        "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity. see zh/models/circle.md."
-      },
-      {
-        "schema_id": "ak.schema.circle_operations.v1",
-        "file": "schemas/circle-operations.schema.json",
-        "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
-      },
-      {
         "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
         "file": "schemas/committed-event-subscribe-frame.schema.json",
         "status": "active",
@@ -11069,7 +10529,7 @@
         "schema_id": "ak.schema.common_ids.v1",
         "file": "schemas/common-ids.schema.json",
         "status": "active",
-        "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
+        "description": "Defs-only shared typed-ID patterns (e.g. strand_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
       },
       {
         "schema_id": "ak.schema.consent_operations.v1",
@@ -11862,7 +11322,7 @@
         "schema_id": "ak.schema.realm_commit.v1",
         "file": "schemas/realm-commit.schema.json",
         "status": "active",
-        "description": "Authority-signed finality record for one Realm, Circle or Sidecar stream."
+        "description": "Authority-signed finality record for one Realm or Sidecar stream."
       },
       {
         "schema_id": "ak.schema.realm_genesis.v1",
@@ -12091,7 +11551,7 @@
         "schema_id": "ak.schema.signal_envelope.v1",
         "file": "schemas/signal-envelope.schema.json",
         "status": "active",
-        "description": "Encrypted-only Signal envelope with exact scope authority_commit_id and Circle-only parent_realm_authority_commit_id; both enter proof digest and pre-encryption AAD. Product payloads remain encrypted."
+        "description": "Encrypted-only Signal envelope with exact ordinary Realm authority_commit_id; it enters proof digest and pre-encryption AAD. Product payloads remain encrypted."
       },
       {
         "schema_id": "ak.schema.signal_message_stream.v1",
@@ -12799,21 +12259,6 @@
         "description": "Realm state snapshot or blob chunk ID",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
-      },
-      {
-        "kind": "circle",
-        "category": "core_object",
-        "status": "active",
-        "wire_form": "ak:circle:<44-char-event-token>",
-        "referenceability": [
-          "read_cursor_scope_ref"
-        ],
-        "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or capability registry — those remain on the parent Realm. See zh/models/circle.md.",
-        "id_form": "event_derived",
-        "identity_authority": "event",
-        "genesis_event_kinds": [
-          "ak.circle.create"
-        ]
       },
       {
         "kind": "claim",
@@ -13787,7 +13232,6 @@
           "ak.self.realm_state_snapshot.read.by_ref.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.events.command.submit.v1",
-          "ak.self.circle.command.rotate_scope.v1",
           "ak.self.realm_actor.read.material.v1",
           "ak.self.keys.backups.resource.replace.v1",
           "ak.self.keys.backups.read.list.v1",
@@ -14231,18 +13675,6 @@
         "surface_class": "extension"
       },
       {
-        "surface": "circle_management",
-        "operations": [
-          "ak.self.circle.command.create.v1",
-          "ak.self.circle.read.list.v1",
-          "ak.self.circle.resource.get.v1",
-          "ak.self.circle.member.command.add.v1",
-          "ak.self.circle.member.resource.delete.v1",
-          "ak.self.circle.command.rotate_scope.v1"
-        ],
-        "surface_class": "extension"
-      },
-      {
         "surface": "realm_governance_links",
         "operations": [
           "ak.self.realm_link.read.list.v1",
@@ -14612,7 +14044,7 @@
               "event_kind": "ak.key_backup.active_series",
               "payload_actor_kind": "realm",
               "producer": "actual_current_manager_Service",
-              "target": "full_payload_RealmActor_and_exact_existing_Realm_or_Circle_of_that_Realm",
+              "target": "full_payload_RealmActor_and_its_exact_Realm",
               "submission_operation_id": "ak.edge.applet.command.transaction.v1",
               "submission_member": "events",
               "required_checks": [
@@ -14641,7 +14073,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery. Historical creation completion is independent of current business installation, subject to exact private material eligibility; continuing business requires current installation and action authorization. Recovery follows its independent authority. Refreshed material/new governor uses a new delivery identity while original creation Event/Commit/fact remains immutable. Only native payload.actor_id.kind=realm ak.key_backup.active_series has the disjoint realm_actor_backup standing manager-maintenance branch: no executed_by/authorization_ref or business active-install/grant gate. Actual HTTP/producer/record Ed, accepted registration/current manager, known exact scope, original recipient/recovery refs, pending=null, both statuses non-retired, Realm nonterminal and CAS remain mandatory; owner/governance paused and recovery disabled do not deny this maintenance. All ordinary business Event and Device PUT gates are unchanged. Managed terminal Grant/original-issuer child Revoke use Realm governance Event/Commit source and the accepted-parent/child-derived exact Realm/Circle installation tuple. Current HTTP pair and stable delivery identity remain independent. An accepted Event may recover its immutable outcome under a new authorized delivery identity without re-admission or quota; same delivery identity with changed stable authentication record remains duplicate_conflict."
+        "notes": "Exact Applet/Service registration, current epoch and HTTP proof authenticate transport; original Event producers are verified independently. Authoring context carries accepted Service material and exact Realm actor material, never foreign PCR roots. Account Device committed delivery retains original account-device evidence. Realm Device delivery instead carries its immutable Commit-bound realm_device fact. Control material is only disclosed by the dedicated exact material operation; no general private stream delivery. Historical creation completion is independent of current business installation, subject to exact private material eligibility; continuing business requires current installation and action authorization. Recovery follows its independent authority. Refreshed material/new governor uses a new delivery identity while original creation Event/Commit/fact remains immutable. Only native payload.actor_id.kind=realm ak.key_backup.active_series has the disjoint realm_actor_backup standing manager-maintenance branch: no executed_by/authorization_ref or business active-install/grant gate. Actual HTTP/producer/record Ed, accepted registration/current manager, known exact scope, original recipient/recovery refs, pending=null, both statuses non-retired, Realm nonterminal and CAS remain mandatory; owner/governance paused and recovery disabled do not deny this maintenance. All ordinary business Event and Device PUT gates are unchanged. Managed terminal Grant/original-issuer child Revoke use Realm governance Event/Commit source and the accepted-parent/child-derived exact Realm installation tuple. Current HTTP pair and stable delivery identity remain independent. An accepted Event may recover its immutable outcome under a new authorized delivery identity without re-admission or quota; same delivery identity with changed stable authentication record remains duplicate_conflict."
       },
       {
         "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -16483,7 +15915,7 @@
         "http": "GET /_arkret/self/agent-sidecars",
         "grpc": "SelfAgent/SidecarList",
         "mq": "self.agent.sidecar.query.list",
-        "notes": "Controller-only paginated Sidecar list, optionally filtered by realm_id. Returns only Sidecars owned by the authenticated controller and never ordinary Circles or another controller's existence stubs.",
+        "notes": "Controller-only paginated Sidecar list, optionally filtered by realm_id. Returns only Sidecars owned by the authenticated controller and never another controller's existence stubs.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_page"
@@ -16751,118 +16183,6 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         }
-      },
-      {
-        "operation_id": "ak.self.circle.command.create.v1",
-        "http": "POST /_arkret/self/circles",
-        "grpc": "SelfCircle/Create",
-        "mq": "self.circle.command.create",
-        "notes": "Submits the caller-signed ak.circle.create Event carried in create_event through authority Event submission; the parent Realm is create_event.event.realm_id. The Circle id is retype(create_event.event.event_id), so the service MUST NOT mint it, and MUST NOT co-sign, rebuild or synthesize the Event. Reducer-locked fields (mls_group_id, state) MUST NOT be actor-supplied; the Circle scope stays plaintext until its own ak.mls.genesis is accepted.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.circle.read.list.v1"
-        },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.create"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.circle.command.rotate_scope.v1",
-        "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
-        "grpc": "SelfCircle/ScopeRotate",
-        "mq": "self.circle.command.rotate_scope",
-        "notes": "Narrow Circle-path convenience binding of the existing complete MlsCommitSubmission. commit_event must name exactly this Circle and its parent Realm in scope_ref, and contain one member-sent RFC 9420 public Commit with an UpdatePath for the scope's already accepted current MLS group. The current base, epoch, key-access revision, effective parent/Circle membership, producer, capability, native Device scope and installation, policy, approvals and every Welcome remain the ordinary MLS accepting transaction's independent gates. The service never creates Genesis, signs for the caller or partially submits Events. CircleManage grants no MLS permission and is not an extra requirement of this binding. One Commit and all Welcomes are accepted atomically; return the actual AuthoritySubmitResponseBody. The complete unchanged retry unit returns its original accepted or rejected outcome after the existing producer/recovery identity check, before today's epoch or business authorization is rejudged; the same retry key with changed complete body is duplicate_conflict. Standard MLS forwarding preserves this exact original without a new origin-operation carrier. Public RFC verification establishes UpdatePath structure, not honest producer entropy or secret-dependent confirmation; those remain member responsibilities. This is the client NoRecoverySource specialization; owning-Station recovery_source is forbidden here. Every first ak.mls.commit uses the complete carrier even when welcomes is empty; raw Event submission is not an alternate first-admission path. Full source-bound results survive generic cache eviction and eligible handoff while the source is retained. An authenticated exact original may recover its actual authority outcome from its origin transport journal without rejudging current business state or claiming local read readiness. Retained for exact URL-to-Circle binding and mandatory UpdatePath validation.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "idempotency_mechanism": "canonical_hash",
-        "retry_safe": true,
-        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_response_body",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.mls.commit"
-          ]
-        },
-        "canonical_hash_input": "full_body",
-        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/client_mls_commit_submission",
-        "auth_requirements": {
-          "managed_device_signature": {
-            "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
-            "alternative_to_session_grant": true,
-            "contract": "Exact accepted Circle-scoped Realm actor/Device; original submitted MLS business actions and all current native gates remain mandatory."
-          }
-        }
-      },
-      {
-        "operation_id": "ak.self.circle.member.command.add.v1",
-        "http": "POST /_arkret/self/circles/{circle_id}/members",
-        "grpc": "SelfCircle/MemberAdd",
-        "mq": "self.circle.member.command.add",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission; payload.circle_id MUST equal the path circle_id and the complete target ActorId is payload.member_id. Moving another actor to join requires ak.circle.member.manage narrowed to this Circle, evaluated against projected grants rather than asserted by the request, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule. The service MUST NOT co-sign, rebuild or synthesize the Event, nor add a capability verdict to the closed payload.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.self.circle.resource.get.v1"
-        },
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.member.state"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.circle.member.resource.delete.v1",
-        "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
-        "grpc": "SelfCircle/MemberRemove",
-        "mq": "self.circle.member.resource.delete",
-        "notes": "Submits the caller-signed ak.circle.member.state Event carried in member_event through authority Event submission. Path actor_id is one percent-encoded canonical JSON ActorId segment, not a bare principal DID; it is a route selector and does not rename the Event field. The Event membership MUST be leave and payload.expected_membership MUST carry the concrete current membership as its signed whole-membership guard; payload.circle_id MUST equal its path identifier and payload.member_id MUST equal the entire decoded path ActorId, including Station and branch. event.realm_id MUST equal the path Circle's parent Realm. Removing another actor requires ak.circle.member.manage narrowed to this Circle. The service MUST NOT co-sign, rebuild or synthesize the Event.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_delete_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_response_body",
-        "durable_effect": {
-          "kind": "event_log",
-          "event_kinds": [
-            "ak.circle.member.state"
-          ]
-        }
-      },
-      {
-        "operation_id": "ak.self.circle.read.list.v1",
-        "http": "GET /_arkret/self/circles",
-        "grpc": "SelfCircle/List",
-        "mq": "self.circle.query.list",
-        "notes": "Lists Circles the caller may see within one parent Realm (required realm_id query). The circles array contains full CircleView for Circle members and the fixed CirclePreview for parent-Realm members when directory_visibility=realm_members; invisible Circles are omitted.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list"
-      },
-      {
-        "operation_id": "ak.self.circle.resource.get.v1",
-        "http": "GET /_arkret/self/circles/{circle_id}",
-        "grpc": "SelfCircle/Get",
-        "mq": "self.circle.resource.get",
-        "notes": "Reads a full CircleView for joined Circle members, or fixed CirclePreview for joined parent-Realm non-members when directory_visibility=realm_members and state=active. Invisible and absent Circles have the same not_found envelope.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view"
       },
       {
         "operation_id": "ak.self.consent.command.replace.v1",
@@ -17195,7 +16515,7 @@
         "http": "POST /_arkret/self/streams/scan",
         "grpc": "SelfStreams/Scan",
         "mq": "self.streams.read.scan",
-        "notes": "Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
+        "notes": "Read one authorized Realm or Sidecar stream by continuous stream_position. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Realm actor, Device, scope and current installation. Existing SessionGrant paths are unchanged. Agent PCR original-history reads additionally require the registered current_agent_history_custodian policy and the exact accepted immutable provision; no other cross-principal scope is authorized.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request_body",
@@ -17447,7 +16767,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_response_body",
-        "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing. Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT. Native realm_actor_id uses deepObject/explode=true with both typed realm_id/principal_id components; optional circle_id selects exact scope; reject partial, duplicate, unknown and agent_id mixtures. The disjoint archive_inventory query is current-manager Service only, no circle/series/class filter; complete frozen all-scope manifest includes first-PUT packets regardless of Event success and immutable original producer sources. Cursor and digest bind actor/manager/role/full physical cut; no private keys are disclosed. Native Device series_predecessor returns metadata plus minimal immutable admission only, maximum one current head, empty for empty series, no cursor/limit/previous-series/ciphertext. Full original requires exact-head unlock.",
+        "notes": "Optional owned-Agent query selector selects only an accepted same-Station owned Agent subject. Current controller custody is required; AccountId and PCR in active_series are the selected Agent, never the caller. No arbitrary cross-actor listing. Realm-native backup and native predecessor/manager archive roles are closed by realm_actor_contract.content_backup_contract. Never supply a fake Account/PCR or widen another Device/scope; local freeze is not a durable PUT. Native realm_actor_id uses deepObject/explode=true with both typed realm_id/principal_id components; the authenticated subject fixes its Realm; reject partial, duplicate, unknown and agent_id mixtures. The disjoint archive_inventory query is current-manager Service only, no scope/series/class filter; complete frozen all-scope manifest includes first-PUT packets regardless of Event success and immutable original producer sources. Cursor and digest bind actor/manager/role/full physical cut; no private keys are disclosed. Native Device series_predecessor returns metadata plus minimal immutable admission only, maximum one current head, empty for empty series, no cursor/limit/previous-series/ciphertext. Full original requires exact-head unlock.",
         "query_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list_query",
         "auth_requirements": {
           "managed_device_signature": {
@@ -18322,7 +17642,7 @@
         "http": "POST /_arkret/self/strands/watch/audit-read",
         "grpc": "SelfStrandWatch/AuditRead",
         "mq": "self.strand.watch.command.audit_read",
-        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Scope/Circle/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
+        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Realm/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request_body",
@@ -18343,7 +17663,7 @@
         "http": "POST /_arkret/peer/strands/watch/audit-read",
         "grpc": "PeerStrandWatch/AuditRead",
         "mq": "peer.strand.watch.command.audit_read",
-        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Scope/Circle/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
+        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Realm/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request_body",
@@ -18576,7 +17896,7 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_source",
         "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_response_body",
-        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing removed/terminated terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes. Deterministic first domain failures bind the full-body and challenge outcome; current authentication and source windows precede replay, while temporary native unavailability does not finalize the intent. A pending retirement followed by renewed participation converges only through the normal verified rekeyed path. One durable scope/episode terminal excludes a second retirement after rekeyed and directly releases its own temporary blocker, preserving old observations and the permanent endpoint fence. A protected durable acceptance retains its exact transcript, keys, acceptance time and qualified source/route context; restart rechecks the current reader and episode without imposing a new delivery lease. Unknown scope origins never fall back to ordinary Realm handoff eligibility; fixed Human/managed-Agent PCR and Direct origins remain nonmigratable. Circle/Sidecar authority follows its exact native governing Realm. The proof cut is target-local, while a registered cascade may commit an actual upstream terminal source from a different private stream; native causal qualification remains mandatory and no upstream coordinates are disclosed. A qualified request durably reserves subject/episode/nonce to exact I before first domain rejection; the origin enforces this across all governors before signing any source. Reservation alone creates no scope fence or blocker. Fresh challenge cannot change I; a different business intent needs a fresh nonce. Accepted predecessor safety obligations survive replacement loss and source expiry. Only a private native audit CAS with a qualified same-Actor/scope/genesis successor chain, exact safe terminal source, complete predecessor endpoint/admission coverage and retained permanent fences releases that predecessor blocker. It never rewrites old proofs/observations, grants old reader authority, substitutes an old cleanup result or creates a fourth cleanup state. Successor preparation includes all unresolved predecessor scopes and ready checks their settlement. Lawful handoff imports rejected reservations, obligations and satisfaction records as well as terminals. Outward current-scope completion is withheld until all related predecessor obligations are durably settled; use the existing typed response, not a private cross-service boolean receipt. A predecessor native terminal that won first remains immutable and needs no synthetic satisfaction record. The source includes required canonical predecessor_authorization_event_refs: origin attests complete native supersedes/generation causality for these prior same-scope authorizations, frozen with I even after a first domain rejection. The governor verifies the signed statement and its own retained obligations, not private account PCR originals. Changed association under the same I conflicts; unknown or omitted unresolved local predecessors fail closed. No extra endpoint or ordinary-reader disclosure. A predecessor already fulfilled by another episode is verified and reused as its original immutable audit, not rewritten for this successor. Recheck exact intent, signed original causal source, historical method, safe terminal/cut and full coverage, plus current native keeper authority, actual complete retention/import and permanent fences. A map key or old verified flag is insufficient. Missing sources remain unavailable; an explicit different audit candidate still conflicts. Ready and completion share this read predicate, while a terminated source forbids post-terminal rekeying and preserves already lawful earlier history; it never restores present write authority. Exact committed references match independently qualified native originals in all four members; changing Event/stream/position under one Commit ID is invalid. Advertise only when the authenticated route and durable cleanup are operational.",
+        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing removed/terminated terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes. Deterministic first domain failures bind the full-body and challenge outcome; current authentication and source windows precede replay, while temporary native unavailability does not finalize the intent. A pending retirement followed by renewed participation converges only through the normal verified rekeyed path. One durable scope/episode terminal excludes a second retirement after rekeyed and directly releases its own temporary blocker, preserving old observations and the permanent endpoint fence. A protected durable acceptance retains its exact transcript, keys, acceptance time and qualified source/route context; restart rechecks the current reader and episode without imposing a new delivery lease. Unknown scope origins never fall back to ordinary Realm handoff eligibility; fixed Human/managed-Agent PCR and Direct origins remain nonmigratable. Sidecar authority follows its exact native governing Realm. The proof cut is target-local, while a registered cascade may commit an actual upstream terminal source from a different private stream; native causal qualification remains mandatory and no upstream coordinates are disclosed. A qualified request durably reserves subject/episode/nonce to exact I before first domain rejection; the origin enforces this across all governors before signing any source. Reservation alone creates no scope fence or blocker. Fresh challenge cannot change I; a different business intent needs a fresh nonce. Accepted predecessor safety obligations survive replacement loss and source expiry. Only a private native audit CAS with a qualified same-Actor/scope/genesis successor chain, exact safe terminal source, complete predecessor endpoint/admission coverage and retained permanent fences releases that predecessor blocker. It never rewrites old proofs/observations, grants old reader authority, substitutes an old cleanup result or creates a fourth cleanup state. Successor preparation includes all unresolved predecessor scopes and ready checks their settlement. Lawful handoff imports rejected reservations, obligations and satisfaction records as well as terminals. Outward current-scope completion is withheld until all related predecessor obligations are durably settled; use the existing typed response, not a private cross-service boolean receipt. A predecessor native terminal that won first remains immutable and needs no synthetic satisfaction record. The source includes required canonical predecessor_authorization_event_refs: origin attests complete native supersedes/generation causality for these prior same-scope authorizations, frozen with I even after a first domain rejection. The governor verifies the signed statement and its own retained obligations, not private account PCR originals. Changed association under the same I conflicts; unknown or omitted unresolved local predecessors fail closed. No extra endpoint or ordinary-reader disclosure. A predecessor already fulfilled by another episode is verified and reused as its original immutable audit, not rewritten for this successor. Recheck exact intent, signed original causal source, historical method, safe terminal/cut and full coverage, plus current native keeper authority, actual complete retention/import and permanent fences. A map key or old verified flag is insufficient. Missing sources remain unavailable; an explicit different audit candidate still conflicts. Ready and completion share this read predicate, while a terminated source forbids post-terminal rekeying and preserves already lawful earlier history; it never restores present write authority. Exact committed references match independently qualified native originals in all four members; changing Event/stream/position under one Commit ID is invalid. Advertise only when the authenticated route and durable cleanup are operational.",
         "idempotency_mechanism": "canonical_hash",
         "retry_safe": true,
         "canonical_hash_input": "full_body",
@@ -18594,7 +17914,7 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_request_body",
         "response_schema_ref": "schemas/content-encryption.schema.json#/$defs/recovery_scope_cleanup_self_response_body",
-        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing removed/terminated terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes. Self wraps the unchanged peer delivery and separately projects proof-digest-bound historical and delivery-digest-bound current governor keys. Bare cached proof is not a fresh response. Deterministic first domain failures bind the full-body and challenge outcome; current authentication and source windows precede replay, while temporary native unavailability does not finalize the intent. A pending retirement followed by renewed participation converges only through the normal verified rekeyed path. One durable scope/episode terminal excludes a second retirement after rekeyed and directly releases its own temporary blocker, preserving old observations and the permanent endpoint fence. A protected durable acceptance retains its exact transcript, keys, acceptance time and qualified source/route context; restart rechecks the current reader and episode without imposing a new delivery lease. Unknown scope origins never fall back to ordinary Realm handoff eligibility; fixed Human/managed-Agent PCR and Direct origins remain nonmigratable. Circle/Sidecar authority follows its exact native governing Realm. The proof cut is target-local, while a registered cascade may commit an actual upstream terminal source from a different private stream; native causal qualification remains mandatory and no upstream coordinates are disclosed. A qualified request durably reserves subject/episode/nonce to exact I before first domain rejection; the origin enforces this across all governors before signing any source. Reservation alone creates no scope fence or blocker. Fresh challenge cannot change I; a different business intent needs a fresh nonce. Accepted predecessor safety obligations survive replacement loss and source expiry. Only a private native audit CAS with a qualified same-Actor/scope/genesis successor chain, exact safe terminal source, complete predecessor endpoint/admission coverage and retained permanent fences releases that predecessor blocker. It never rewrites old proofs/observations, grants old reader authority, substitutes an old cleanup result or creates a fourth cleanup state. Successor preparation includes all unresolved predecessor scopes and ready checks their settlement. Lawful handoff imports rejected reservations, obligations and satisfaction records as well as terminals. Outward current-scope completion is withheld until all related predecessor obligations are durably settled; use the existing typed response, not a private cross-service boolean receipt. A predecessor native terminal that won first remains immutable and needs no synthetic satisfaction record. The source includes required canonical predecessor_authorization_event_refs: origin attests complete native supersedes/generation causality for these prior same-scope authorizations, frozen with I even after a first domain rejection. The governor verifies the signed statement and its own retained obligations, not private account PCR originals. Changed association under the same I conflicts; unknown or omitted unresolved local predecessors fail closed. No extra endpoint or ordinary-reader disclosure. A predecessor already fulfilled by another episode is verified and reused as its original immutable audit, not rewritten for this successor. Recheck exact intent, signed original causal source, historical method, safe terminal/cut and full coverage, plus current native keeper authority, actual complete retention/import and permanent fences. A map key or old verified flag is insufficient. Missing sources remain unavailable; an explicit different audit candidate still conflicts. Ready and completion share this read predicate, while a terminated source forbids post-terminal rekeying and preserves already lawful earlier history; it never restores present write authority. Exact committed references match independently qualified native originals in all four members; changing Event/stream/position under one Commit ID is invalid. Advertise only when the authenticated route and durable cleanup are operational.",
+        "notes": "content-history.md section 10.1. Full-body outer request idempotency plus durable native subject/episode/nonce intent settlement. Stable I excludes signed current destination and fresh delivery challenge. Authenticate the current subject/custodian and origin first; use an existing removed/terminated terminal before any first-finalization membership gate. New terminal requires lost eligibility and actual absence or irreversible termination. The current governor verifies native proof/fence retention or lawful handoff import and signs a short-lived delivery attestation binding the original proof, fresh authorization and challenge. Historical proof, current reader and current delivery have separate verification inputs. Missing import/fence fails closed; a valid signature or a caller boolean does not establish native facts. The pending observation is immutable for its full-body retry and challenge, but native intent settlement may progress; observe again with a fresh challenge. No rejoin, private PCR coordinates, roots, new identity or ordinary group-chat archive guarantee. Same-body outer replay rechecks current authorization and returns the stored still-valid response or deterministic failed_precondition, never updates its bytes. Self wraps the unchanged peer delivery and separately projects proof-digest-bound historical and delivery-digest-bound current governor keys. Bare cached proof is not a fresh response. Deterministic first domain failures bind the full-body and challenge outcome; current authentication and source windows precede replay, while temporary native unavailability does not finalize the intent. A pending retirement followed by renewed participation converges only through the normal verified rekeyed path. One durable scope/episode terminal excludes a second retirement after rekeyed and directly releases its own temporary blocker, preserving old observations and the permanent endpoint fence. A protected durable acceptance retains its exact transcript, keys, acceptance time and qualified source/route context; restart rechecks the current reader and episode without imposing a new delivery lease. Unknown scope origins never fall back to ordinary Realm handoff eligibility; fixed Human/managed-Agent PCR and Direct origins remain nonmigratable. Sidecar authority follows its exact native governing Realm. The proof cut is target-local, while a registered cascade may commit an actual upstream terminal source from a different private stream; native causal qualification remains mandatory and no upstream coordinates are disclosed. A qualified request durably reserves subject/episode/nonce to exact I before first domain rejection; the origin enforces this across all governors before signing any source. Reservation alone creates no scope fence or blocker. Fresh challenge cannot change I; a different business intent needs a fresh nonce. Accepted predecessor safety obligations survive replacement loss and source expiry. Only a private native audit CAS with a qualified same-Actor/scope/genesis successor chain, exact safe terminal source, complete predecessor endpoint/admission coverage and retained permanent fences releases that predecessor blocker. It never rewrites old proofs/observations, grants old reader authority, substitutes an old cleanup result or creates a fourth cleanup state. Successor preparation includes all unresolved predecessor scopes and ready checks their settlement. Lawful handoff imports rejected reservations, obligations and satisfaction records as well as terminals. Outward current-scope completion is withheld until all related predecessor obligations are durably settled; use the existing typed response, not a private cross-service boolean receipt. A predecessor native terminal that won first remains immutable and needs no synthetic satisfaction record. The source includes required canonical predecessor_authorization_event_refs: origin attests complete native supersedes/generation causality for these prior same-scope authorizations, frozen with I even after a first domain rejection. The governor verifies the signed statement and its own retained obligations, not private account PCR originals. Changed association under the same I conflicts; unknown or omitted unresolved local predecessors fail closed. No extra endpoint or ordinary-reader disclosure. A predecessor already fulfilled by another episode is verified and reused as its original immutable audit, not rewritten for this successor. Recheck exact intent, signed original causal source, historical method, safe terminal/cut and full coverage, plus current native keeper authority, actual complete retention/import and permanent fences. A map key or old verified flag is insufficient. Missing sources remain unavailable; an explicit different audit candidate still conflicts. Ready and completion share this read predicate, while a terminated source forbids post-terminal rekeying and preserves already lawful earlier history; it never restores present write authority. Exact committed references match independently qualified native originals in all four members; changing Event/stream/position under one Commit ID is invalid. Advertise only when the authenticated route and durable cleanup are operational.",
         "idempotency_mechanism": "canonical_hash",
         "retry_safe": true,
         "canonical_hash_input": "full_body",
@@ -19707,30 +19027,6 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.self.circle.command.create.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.command.rotate_scope.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.member.command.add.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.member.resource.delete.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.read.list.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.circle.resource.get.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.self.committed_event.read.scan.v1",
             "binding_kind": "http_json"
           },
@@ -20377,7 +19673,7 @@
       "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
       "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
       "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-      "applet_managed_self_join requires the candidate's actual accepted managed Bot/Ghost Realm Device, actor equal to member_id, membership=join and the exact native Realm/Circle scope, with accepted realm_actor identity, current manager/installation and original Device bounds. It is an additional management/governance gate, never an unconditional Circle action; ak.circle.member.add, parent membership and independent MLS consent remain separate.",
+      "applet_managed_self_join requires the candidate's actual accepted managed Bot/Ghost Realm Device, actor equal to member_id, membership=join and the exact native Realm scope, with accepted realm_actor identity, current manager/installation and original Device bounds. It is an additional management/governance gate. Subject, registered join rule and managed Device authorization remain required.",
       "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant, except for a root_control_only or subject_only action, whose authority is the registered root-control or subject binding, and except for the subject-bound branches the owning section registers for that event kind (the invitee decline and the joined inviter self-cancel of ak.invite.cancel, zh/models/governance-objects.md section 5.3).",
       "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
       "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
@@ -20603,12 +19899,11 @@
           "applet_managed_self_join"
         ],
         "target_event_kinds": [
-          "ak.circle.member.state",
           "ak.member.state"
         ],
         "profile": null,
         "event_mapping_kind": "operation_verb",
-        "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
+        "notes": "Additional managed Bot/Ghost self-join governance label for the original Realm Device-signed Realm membership join. The applet_managed_self_join context check is mandatory. It never grants another subject's signature, membership or MLS consent."
       },
       {
         "action": "ak.applet.publish",
@@ -20761,95 +20056,6 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.circle.audit",
-        "category": "audit",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "required_evaluator_checks": [
-          "audit_pair_required"
-        ],
-        "target_event_kinds": [],
-        "profile": null,
-        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ak.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
-        "event_mapping_kind": "non_event_surface"
-      },
-      {
-        "action": "ak.circle.create",
-        "category": "general",
-        "risk_tier": "medium",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.circle.create"
-        ],
-        "profile": null,
-        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed through its own accepted Genesis, independently of Realm-default encryption). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.circle.manage",
-        "category": "general",
-        "risk_tier": "medium",
-        "required_constraints": [
-          "allowed_circle_ids"
-        ],
-        "target_event_kinds": [
-          "ak.circle.history_access",
-          "ak.circle.update",
-          "ak.circle.archive",
-          "ak.circle.restore",
-          "ak.circle.tombstone"
-        ],
-        "profile": null,
-        "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission.",
-        "event_mapping_kind": "aggregate_admin"
-      },
-      {
-        "action": "ak.circle.member.add",
-        "category": "general",
-        "risk_tier": "low",
-        "required_constraints": [],
-        "target_event_kinds": [
-          "ak.circle.member.state"
-        ],
-        "profile": null,
-        "notes": "Self-service join of a join_rule=public Circle or own leave. The complete actor equals the membership subject and all transition/parent membership gates remain mandatory; self-unbanning is forbidden. v1 invite-rule Circle entry uses the registered administrator audit-paired add-others path, not a Circle invite/accept workflow.",
-        "event_mapping_kind": "scope_suffix_variant"
-      },
-      {
-        "action": "ak.circle.member.add.others",
-        "category": "audit",
-        "risk_tier": "high",
-        "required_constraints": [
-          "allowed_circle_ids"
-        ],
-        "required_evaluator_checks": [
-          "audit_pair_required"
-        ],
-        "target_event_kinds": [
-          "ak.circle.member.state"
-        ],
-        "profile": null,
-        "notes": "Cross-actor write (rare). MUST carry ak.audit.accessed pair (same model as ak.strand.watch.set.others).",
-        "event_mapping_kind": "scope_suffix_variant"
-      },
-      {
-        "action": "ak.circle.member.manage",
-        "category": "general",
-        "risk_tier": "medium",
-        "required_constraints": [
-          "allowed_circle_ids"
-        ],
-        "target_event_kinds": [
-          "ak.circle.member.state"
-        ],
-        "profile": null,
-        "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId. Every cross-actor change requires the registered audit_paired_event unit; this grant does not bypass audit or grant private content read.",
-        "event_mapping_kind": "scope_suffix_variant",
-        "required_evaluator_checks": [
-          "audit_pair_required"
-        ]
       },
       {
         "action": "ak.consent.replace",
@@ -21047,7 +20253,7 @@
         ],
         "profile": null,
         "event_mapping_kind": "scope_suffix_variant",
-        "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
+        "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
       },
       {
         "action": "ak.message.redact",
@@ -21422,7 +20628,7 @@
         ],
         "profile": null,
         "event_mapping_kind": "aggregate_admin",
-        "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
+        "notes": "Read-receipt policy management is authorized against the exact signed Realm scope, never inherited from a parent policy value."
       },
       {
         "action": "ak.policy.set",
@@ -21550,7 +20756,7 @@
         ],
         "profile": null,
         "event_mapping_kind": "aggregate_admin",
-        "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
+        "notes": "Read-receipt policy management is authorized against the exact signed Realm scope, never inherited from a parent policy value."
       },
       {
         "action": "ak.realm.alias",
@@ -21693,13 +20899,6 @@
           "ak.call.state",
           "ak.capability.grant",
           "ak.capability.revoke",
-          "ak.circle.archive",
-          "ak.circle.create",
-          "ak.circle.history_access",
-          "ak.circle.member.state",
-          "ak.circle.restore",
-          "ak.circle.tombstone",
-          "ak.circle.update",
           "ak.invite.cancel",
           "ak.invite.create",
           "ak.invite.revoke",
@@ -21795,12 +20994,6 @@
           "ak.call.transcribe",
           "ak.capability.grant",
           "ak.capability.revoke",
-          "ak.circle.audit",
-          "ak.circle.create",
-          "ak.circle.manage",
-          "ak.circle.member.add",
-          "ak.circle.member.add.others",
-          "ak.circle.member.manage",
           "ak.event.read",
           "ak.invite.cancel",
           "ak.invite.create",
@@ -23920,10 +23113,9 @@
           "class": "admission_input",
           "consumed_by": [
             "models/realm-and-space.md §2.7",
-            "governance/join-policy.md §4",
-            "models/circle.md §9.1"
+            "governance/join-policy.md §4"
           ],
-          "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction. Circle join admission and effective Circle membership compare its revision with the Circle join's parent_membership_revision."
+          "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction."
         }
       },
       {
@@ -24245,7 +23437,7 @@
           "consumed_by": [
             "discovery/read-receipts.md §2.5"
           ],
-          "note": "Scope-local disclosure and visibility govern receipt sending and rendering only inside the exact signed Realm/Circle scope; no parent or sibling policy participates."
+          "note": "The sole Realm-local policy controls disclosure and visibility for receipts within the verified Realm stream."
         }
       },
       {
@@ -24364,9 +23556,9 @@
         "consumption": {
           "class": "admission_input",
           "consumed_by": [
-            "models/circle.md §7.1"
+            "models/realm-and-space.md §3.3"
           ],
-          "note": "Whether a child Space's scope narrowing is admissible is decided against this policy."
+          "note": "Placement reads the requirement in the target Space and the accepted Realm MLS activation."
         }
       },
       {
@@ -24540,18 +23732,6 @@
         }
       },
       {
-        "state_kind": "circle",
-        "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle",
-        "consumption": {
-          "class": "admission_input",
-          "consumed_by": [
-            "zh/models/circle.md",
-            "zh/models/common-fields.md section 5.2"
-          ],
-          "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
-        }
-      },
-      {
         "state_kind": "morph",
         "schema_ref": "schemas/current-state.schema.json#/$defs/current_morph",
         "consumption": {
@@ -24718,19 +23898,6 @@
             "models/realm-and-space.md §2.3.0"
           ],
           "note": "Organization views and official-badge rendering read the latest verified relationship statement."
-        }
-      },
-      {
-        "state_kind": "circle_member_state",
-        "schema_ref": "schemas/current-state.schema.json#/$defs/current_circle_member_state",
-        "consumption": {
-          "class": "admission_input",
-          "consumed_by": [
-            "models/circle.md §9.1",
-            "crypto-media/encryption-and-audit.md §2.4.1",
-            "governance/history-visibility.md §3.1"
-          ],
-          "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis. Effective Circle membership, the MLS send and Add gate for parent-invalidated leaves, and the Circle readable floor and historical-cut membership read the join value's parent_membership_revision against the parent Realm member_state current in the same cut."
         }
       },
       {
@@ -24963,7 +24130,7 @@
             "identity/key-management.md native Realm actor archive series",
             "extensions/realm-actors.md native content backup"
           ],
-          "note": "Exact full Realm actor, exact Realm/Circle scope and secret_storage. Current manager selects; Device only consumes authenticated public next_prepare_input and cannot select series or read other scope predecessors."
+          "note": "Exact full Realm actor, exact Realm scope and secret_storage. Current manager selects; Device only consumes authenticated public next_prepare_input and cannot select series or read other scope predecessors."
         }
       }
     ],
@@ -25026,7 +24193,7 @@
       "Only registered closed typed branches may use atomic admission; no client-supplied Event list, predicate or workflow DSL.",
       "Common execution is exact-byte freeze, authority/scope and producer/approval validation, business-specific staged checks/CAS, atomic Event/Commit/current/outbox/outcome persistence, and original-result replay.",
       "Authority-forward first admission and source-committed replica materialization are distinct; only audit_paired_event extends forward in this decision. Existing self-only unit restrictions remain.",
-      "One governance Station and one Realm/Circle/Sidecar stream per public Event unit. Cross-stream parent authorization reads do not create cross-stream Event atomicity.",
+      "One governance Station and one Realm/Sidecar stream per public Event unit. Cross-stream parent authorization reads do not create cross-stream Event atomicity.",
       "MLS Commit plus Welcome deliveries is a specialized atomic submission; Recovery/SecurityRotation are durable workflows and do not become public Event units."
     ],
     "units": [
@@ -25094,16 +24261,6 @@
         "business_actions": [
           "ak.strand.watch.set.others"
         ]
-      },
-      {
-        "event_kind": "ak.circle.member.state",
-        "access_kind": "circle_member_set_others",
-        "target_actor_path": "/payload/member_id",
-        "target_ref_path": "/payload/circle_id",
-        "business_actions": [
-          "ak.circle.member.manage",
-          "ak.circle.member.add.others"
-        ]
       }
     ],
     "audit_read": {
@@ -25119,12 +24276,6 @@
       "selector_source": "signed_audit_event_payload",
       "replay": "frozen_original_observation_under_current_disclosure_and_delivery_not_new_query",
       "current_response_head": "audit_commit",
-      "circle_authorization": {
-        "current_parent_realm_membership": true,
-        "effective_circle_member_or_scoped_circle_audit": true,
-        "nonmember_exception": "watch_audit_read_command_audit_event_only",
-        "no_membership_content_history_or_mls_key_grant": true
-      },
       "producer_classes": [
         "account_device",
         "agent_runtime"
@@ -25149,8 +24300,7 @@
       "realm_actor_key_backup_active_series"
     ],
     "business_scopes": [
-      "realm",
-      "circle"
+      "realm"
     ],
     "private_stream_public_scan": false,
     "initialize_stream": "first_accepted_actor_create_position_zero",
@@ -25700,7 +24850,7 @@
           "event_kind": "ak.key_backup.active_series",
           "payload_actor_kind": "realm",
           "producer": "actual_current_manager_Service",
-          "target": "full_payload_RealmActor_and_exact_existing_Realm_or_Circle_of_that_Realm",
+          "target": "full_payload_RealmActor_and_its_exact_Realm",
           "submission_operation_id": "ak.edge.applet.command.transaction.v1",
           "submission_member": "events",
           "required_checks": [
@@ -25735,7 +24885,7 @@
           "historical_producer_fact",
           "governance_history_bundle",
           "current_or_historical_DID_bundle",
-          "unrelated_Circle_names",
+          "unrelated_Realm_names",
           "client_governance_discovery",
           "new_receipt_signer_network_lookup"
         ],
@@ -25997,8 +25147,8 @@
     "branches": [
       {
         "kind": "realm_default",
-        "scope_source_schema_ref": "schemas/strand.schema.json#/properties/scope_circle_id",
-        "scope_rule": "accepted_strand_in_same_realm_with_scope_circle_id_null",
+        "scope_source_schema_ref": "schemas/strand.schema.json#/properties/realm_id",
+        "scope_rule": "accepted_strand_in_same_realm",
         "source_operations": [
           "ak.self.current_state.read.exact.v1",
           "ak.self.committed_event.read.scan.v1"
@@ -26006,20 +25156,9 @@
         "encryption_rule": "accepted_mls_group_current_and_local_private_state_or_explicit_plaintext_when_inactive"
       },
       {
-        "kind": "circle",
-        "scope_source_schema_ref": "schemas/strand.schema.json#/properties/scope_circle_id",
-        "scope_rule": "actual_accepted_same_realm_circle_id_and_independent_current_membership",
-        "source_operations": [
-          "ak.self.current_state.read.exact.v1",
-          "ak.self.committed_event.read.scan.v1",
-          "ak.self.mls.read.group_state_material.v1"
-        ],
-        "encryption_rule": "that_circle_public_group_and_matching_local_private_state"
-      },
-      {
         "kind": "sidecar",
         "scope_source_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view",
-        "scope_rule": "accepted_native_sidecar_identity_owner_and_current_participants_not_circle_or_display_context",
+        "scope_rule": "accepted_native_sidecar_identity_owner_and_current_participants",
         "source_operations": [
           "ak.self.agent.sidecar.resource.get.v1",
           "ak.self.current_state.read.exact.v1"
@@ -26215,7 +25354,7 @@
     },
     "realm_actor_native_custody": {
       "contract_ref": "registry/contract-registry.json#/realm_actor_contract/content_backup_contract",
-      "scope": "exact_full_RealmActor_and_Realm_or_Circle",
+      "scope": "exact_full_RealmActor_and_its_Realm",
       "first_use": "native_Device_real_root_PUT_before_salt_and_Event",
       "native_origin": "owning_Realm_current_governance_Station_with_exact_accepted_tenure_and_handoff_archive_import",
       "account_origin_unchanged": true,

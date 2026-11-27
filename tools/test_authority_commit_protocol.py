@@ -226,18 +226,18 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         self.assertFalse(request["additionalProperties"])
         commit = request["properties"]["membership_commit_id"]
         self.assertEqual(commit["$ref"], "./common-ids.schema.json#/$defs/realm_commit_id")
-        self.assertIn("ak.circle.member.state{join}", commit["description"])
-        self.assertIn("cannot replace", commit["description"])
+        self.assertIn("ak.member.state{join}", commit["description"])
+        self.assertIn("exact Realm stream", commit["description"])
         self.assertIn("own history floors", definitions["peer_bootstrap_response_body"]["description"])
         prose = (ROOT / "spec/v1/zh/sync/federation.md").read_text(encoding="utf-8")
-        self.assertIn("Circle stream 的 `ak.circle.member.state{join}`", prose)
-        self.assertIn("不能以父 Realm join 替代", prose)
+        self.assertIn("Realm stream 的 `ak.member.state{join}`", prose)
+        self.assertIn("定向 invite 的 `ak.invite.accept`", prose)
 
-    def test_registered_circle_current_families_are_reachable(self):
+    def test_retired_circle_current_families_are_unreachable(self):
         schema = read("schemas/current-state.schema.json")
         reachable = {branch.get("$ref") for branch in schema["oneOf"]}
         for name in ("current_circle", "current_circle_member_state"):
-            self.assertIn(f"#/$defs/{name}", reachable)
+            self.assertNotIn(f"#/$defs/{name}", reachable)
 
     def test_every_current_state_binds_exact_source_stream(self):
         schema = read("schemas/current-state.schema.json")
@@ -256,6 +256,8 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
                     if name.startswith("current_realm_actor_")
                     else {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"}
                 )
+                if name == "current_scope_read_receipt_policy":
+                    expected_stream["$ref"] += "/oneOf/0"
                 if name == "current_applet_registration":
                     expected_stream["properties"] = {"kind": {"const": "realm"}}
                 self.assertEqual(
@@ -320,8 +322,9 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         streams = fixture["independent_streams"]
         self.assertEqual(
             [stream["stream_ref"]["kind"] for stream in streams],
-            ["realm", "circle", "sidecar"],
+            ["realm", "realm", "sidecar"],
         )
+        self.assertNotEqual(streams[0]["stream_ref"]["realm_id"], streams[1]["stream_ref"]["realm_id"])
         for stream in streams:
             commits = stream["commits"]
             self.assertEqual(commits[0]["stream_position"], 0)
@@ -503,17 +506,16 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         self.assertTrue(removed.isdisjoint(event["required"]))
         self.assertTrue(removed.isdisjoint(event["properties"]))
 
-    def test_realm_circle_and_sidecar_are_independent_streams(self):
+    def test_realm_and_sidecar_are_independent_streams(self):
         stream = read("schemas/realm-commit.schema.json")["$defs"]["stream_ref"]
         branches = stream["oneOf"]
         self.assertEqual(
             [branch["properties"]["kind"]["const"] for branch in branches],
-            ["realm", "circle", "sidecar", "realm_control"],
+            ["realm", "sidecar", "realm_control"],
         )
         required = [set(branch["required"]) for branch in branches]
         self.assertEqual(required[0], {"kind", "realm_id"})
-        self.assertEqual(required[1], {"kind", "realm_id", "circle_id"})
-        self.assertEqual(required[2], {"kind", "realm_id", "sidecar_id"})
+        self.assertEqual(required[1], {"kind", "realm_id", "sidecar_id"})
 
     def test_predecessor_is_commit_owned_not_event_owned(self):
         event = read("schemas/event-envelope.schema.json")

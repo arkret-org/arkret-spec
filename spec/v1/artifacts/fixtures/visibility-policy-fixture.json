@@ -1,5 +1,5 @@
 {
-  "profile": "ak.profile.circle_conformance.v1",
+  "profile": "ak.profile.core_event_store.v1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.visibility.policy.v1"
@@ -8,9 +8,6 @@
     "ak.vector.e2ee.mls_activation_irreversible.v1",
     "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
     "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
-    "ak.vector.circle.activation_independent_of_realm.v1",
-    "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
-    "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
     "ak.vector.history_access.since_join_prejoin_denied.v1",
     "ak.vector.preview.token_scoped_stripped_state.v1"
   ],
@@ -150,118 +147,6 @@
         "encrypted prepare and self or peer authority-forward submit into a definitely inactive scope return generic failed_precondition without a special reason",
         "the refusal has no durable Event or RealmCommit write",
         "a temporarily unreadable current MLS result uses temporarily_unavailable and permits only byte-identical exact retry before a Commit"
-      ]
-    },
-    {
-      "name": "circle_activation_independent_of_realm",
-      "vector_id": "ak.vector.circle.activation_independent_of_realm.v1",
-      "kind": "mls_activation",
-      "scope": "circle",
-      "expected": {
-        "outcome": "accepted"
-      },
-      "controls": [
-        {
-          "realm_state": "activated",
-          "circle_state": "plaintext",
-          "write": "plaintext_content",
-          "outcome": "accepted"
-        },
-        {
-          "realm_state": "plaintext",
-          "circle_state": "activated",
-          "write": "plaintext_content",
-          "outcome": "failed_precondition",
-          "reason": "mls_activation_required"
-        }
-      ],
-      "assertions": [
-        "a Circle activates through its own accepted ak.mls.genesis",
-        "Realm-default activation does not activate a Circle scope and the reverse also holds",
-        "each scope enforces mls_activation_required only from its own accepted activation"
-      ]
-    },
-    {
-      "name": "circle_directory_visibility_members_indistinguishable",
-      "vector_id": "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
-      "kind": "directory_visibility",
-      "directory_visibility": "members",
-      "viewer": "realm_member_not_circle_member",
-      "expected": {
-        "non_member_projection": "not_found",
-        "absent_projection": "not_found",
-        "timing_bucket": "circle_locked_v1",
-        "error_code": "not_found",
-        "list_behavior": "omit",
-        "forbidden_fields": [
-          "title",
-          "display",
-          "short_name",
-          "member_ids",
-          "created_by",
-          "members",
-          "join_history"
-        ]
-      },
-      "control": {
-        "circle_member_projection": "full_metadata"
-      },
-      "assertions": [
-        "a Realm member outside the Circle receives the same not_found error envelope as an absent Circle",
-        "invisible and absent Circle GETs share the same error field set and processing category; list omits both",
-        "the Circle member control can see metadata without changing the non-member shape"
-      ]
-    },
-    {
-      "name": "circle_directory_visibility_realm_members_indistinguishable",
-      "vector_id": "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
-      "kind": "directory_visibility",
-      "directory_visibility": "realm_members",
-      "viewer": "realm_member_not_circle_member",
-      "expected": {
-        "realm_member_projection": "realm_member_preview",
-        "non_realm_projection": "not_found",
-        "absent_projection": "not_found",
-        "timing_bucket": "circle_locked_v1",
-        "error_code": "not_found",
-        "list_behavior": "omit",
-        "preview_member_count_buckets": [
-          "0",
-          "1",
-          "2-3",
-          "4-7",
-          "8-15",
-          "16-31",
-          "32-63",
-          "64-127",
-          "128+"
-        ],
-        "opaque_commitment_encoding": "sha256_lower_hex_realm_and_circle_ids",
-        "preview_keys": [
-          "circle_id",
-          "display",
-          "join_rule",
-          "member_count_bucket",
-          "opaque_commitment",
-          "realm_id",
-          "visibility"
-        ],
-        "forbidden_fields": [
-          "title",
-          "summary",
-          "short_name",
-          "member_ids",
-          "members",
-          "member_dids",
-          "created_by",
-          "join_history",
-          "private_event_refs"
-        ]
-      },
-      "assertions": [
-        "Realm members outside the Circle see only the fixed preview whitelist",
-        "non-Realm callers receive the same not_found envelope as absent and members-only Circles",
-        "raw member counts, titles, creator ids, members and private event refs are not projected"
       ]
     },
     {

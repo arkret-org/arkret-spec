@@ -1625,34 +1625,6 @@
                     }
                   },
                   "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "kind",
-                    "realm_id",
-                    "circle_id"
-                  ],
-                  "properties": {
-                    "kind": {
-                      "const": "circle",
-                      "x-arkret-value-ownership": {
-                        "class": "owned_symbol",
-                        "authority": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/1/properties/kind",
-                        "owner": "keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body/oneOf/1/properties/effective_scope/oneOf/1/properties/kind",
-                        "values": [
-                          "circle"
-                        ]
-                      }
-                    },
-                    "realm_id": {
-                      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                    },
-                    "circle_id": {
-                      "$ref": "./common-ids.schema.json#/$defs/circle_id"
-                    }
-                  },
-                  "additionalProperties": false
                 }
               ]
             },
@@ -1999,34 +1971,6 @@
                 }
               },
               "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_active_series_state/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
-                }
-              },
-              "additionalProperties": false
             }
           ]
         },
@@ -2094,13 +2038,10 @@
             },
             "realm_actor_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_actor_id"
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
             }
           },
           "additionalProperties": false,
-          "description": "realm_actor_id is a standard deepObject/explode=true query parameter. Both realm_actor_id[realm_id] and realm_actor_id[principal_id] are required together; percent-encode brackets. circle_id absent selects the Realm, present selects only that exact Circle. Raw typed parser rejects partial, duplicate, unknown or agent_id-mixed keys; no generic JSON-query decoder. Device actor/scope must exactly match signed metadata. Only current selected series current head, or empty for an empty series. Device cursor, limit, arbitrary series_id and backup_kind filters are forbidden. This gives ciphertext for exact same-scope continuation/current-root identity only, not archive private keys, plaintext roots or Event history. Sibling authors verify using their immutable first-PUT source, never today's Device directory."
+          "description": "realm_actor_id is a standard deepObject/explode=true query parameter. Both realm_actor_id[realm_id] and realm_actor_id[principal_id] are required together; percent-encode brackets. The full actor ID selects its Realm. Raw typed parser rejects partial, duplicate, unknown or agent_id-mixed keys; no generic JSON-query decoder. Device actor/scope must exactly match signed metadata. Only current selected series current head, or empty for an empty series. Device cursor, limit, arbitrary series_id and backup_kind filters are forbidden. This gives ciphertext for exact same-scope continuation/current-root identity only, not archive private keys, plaintext roots or Event history. Sibling authors verify using their immutable first-PUT source, never today's Device directory."
         },
         {
           "type": "object",
@@ -2133,7 +2074,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "Only current manager Service; same standard deepObject complete realm_actor_id encoding, no Device/Account, circle_id, series_id, backup_kind or agent_id. This all-scope view closes first-PUT custody inventory, not ordinary history enumeration."
+          "description": "Only current manager Service; same standard deepObject complete realm_actor_id encoding, no Device/Account, series_id, backup_kind or agent_id. This all-scope view closes first-PUT custody inventory, not ordinary history enumeration."
         },
         {
           "type": "object",
@@ -2206,34 +2147,6 @@
                 },
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
                 }
               },
               "additionalProperties": false
@@ -2391,34 +2304,6 @@
                 },
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "keys-operations.schema.json#/$defs/realm_actor_archive_series_entry/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
                 }
               },
               "additionalProperties": false
@@ -2631,7 +2516,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Manager-Service-only complete archive inventory. Current actor/manager/role, frozen full namespace cut, inventory digest, page position and authorization epoch bind the opaque cursor. Independent all-page collection verifies exact completeness and full manifest digest. Device/Account requests, circle/series filters, partial/mixed selectors, duplicate/unknown raw keys and stale/foreign cursor are refused. Native immutable admission receipts and original authorities are verified historically. Maximum canonical body4MiB; no private key is returned.",
+      "description": "Manager-Service-only complete archive inventory. Current actor/manager/role, frozen full namespace cut, inventory digest, page position and authorization epoch bind the opaque cursor. Independent all-page collection verifies exact completeness and full manifest digest. Device/Account requests, series filters, partial/mixed selectors, duplicate/unknown raw keys and stale/foreign cursor are refused. Native immutable admission receipts and original authorities are verified historically. Maximum canonical body4MiB; no private key is returned.",
       "x-arkret-name-role": "page",
       "x-arkret-max-canonical-bytes": 4194304,
       "allOf": [
@@ -3063,7 +2948,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Exact current-head metadata plus minimum immutable first-PUT admission receipt only. No full native_source, sibling DeviceAuthorize Event, original fact, governance/DID bundle or unrelated Circle scope appears. Own Station independently verifies and durably retains full immutable source. Device validates the authenticated own-Station bound result and exact receipt/metadata actor, scope, original author key and complete packet digest; metadata is not full packet signature proof. No new receipt-signer network or governance discovery is allowed."
+      "description": "Exact current-head metadata plus minimum immutable first-PUT admission receipt only. No full native_source, sibling DeviceAuthorize Event, original fact, governance/DID bundle or unrelated scope appears. Own Station independently verifies and durably retains full immutable source. Device validates the authenticated own-Station bound result and exact receipt/metadata actor, scope, original author key and complete packet digest; metadata is not full packet signature proof. No new receipt-signer network or governance discovery is allowed."
     },
     "realm_actor_backup_unlock_response_body": {
       "type": "object",
@@ -3091,7 +2976,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Native Device-only complete current selected-series head and minimal immutable admission. No full native_source, sibling authorization original/fact, governance/DID bundle or unrelated Circle scope. Own Station verifies and retains full immutable accepted-at source before producing its authenticated current bound result. After verifying that own-Station result, Device checks receipt exact actor/scope/packet/ciphertext digest/authorization coordinates and uses receipt.device_public_key_base64url to independently verify the actual original KeyBackup Ed proof, including a sibling or revoked old author. Never substitute today's key, assume own authorization, query a new receipt signer network, or perform client governance discovery. Ciphertext/receipt alone grants no history/plaintext-root authority."
+      "description": "Native Device-only complete current selected-series head and minimal immutable admission. No full native_source, sibling authorization original/fact, governance/DID bundle or unrelated scope. Own Station verifies and retains full immutable accepted-at source before producing its authenticated current bound result. After verifying that own-Station result, Device checks receipt exact actor/scope/packet/ciphertext digest/authorization coordinates and uses receipt.device_public_key_base64url to independently verify the actual original KeyBackup Ed proof, including a sibling or revoked old author. Never substitute today's key, assume own authorization, query a new receipt signer network, or perform client governance discovery. Ciphertext/receipt alone grants no history/plaintext-root authority."
     },
     "keys_backups_unlock_response_body": {
       "oneOf": [
@@ -3223,34 +3108,6 @@
                 },
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "keys-operations.schema.json#/$defs/realm_actor_content_backup_admission_signature_input/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
                 }
               },
               "additionalProperties": false
@@ -3555,34 +3412,6 @@
                 },
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "realm_id",
-                "circle_id"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "circle",
-                  "x-arkret-value-ownership": {
-                    "class": "owned_symbol",
-                    "authority": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/1/properties/kind",
-                    "owner": "keys-operations.schema.json#/$defs/realm_actor_backup_unlock_challenge/properties/effective_scope/oneOf/1/properties/kind",
-                    "values": [
-                      "circle"
-                    ]
-                  }
-                },
-                "realm_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/realm_id"
-                },
-                "circle_id": {
-                  "$ref": "./common-ids.schema.json#/$defs/circle_id"
                 }
               },
               "additionalProperties": false

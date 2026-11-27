@@ -106,13 +106,6 @@ grpc:
       ScopeUpdate: ak.self.contact.command.scope_update.v1
     SelfInvites:
       Dispatch: ak.self.invites.command.dispatch.v1
-    SelfCircle:
-      Create: ak.self.circle.command.create.v1
-      List: ak.self.circle.read.list.v1
-      Get: ak.self.circle.resource.get.v1
-      MemberAdd: ak.self.circle.member.command.add.v1
-      MemberRemove: ak.self.circle.member.resource.delete.v1
-      ScopeRotate: ak.self.circle.command.rotate_scope.v1
     SelfRealmLink:
       List: ak.self.realm_link.read.list.v1
     SelfRealmOrganization:
@@ -413,12 +406,6 @@ mq:
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get.v1
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace.v1
     self.direct_conversation.query.resolve: ak.self.direct_conversation.read.resolve.v1
-    self.circle.command.create: ak.self.circle.command.create.v1
-    self.circle.query.list: ak.self.circle.read.list.v1
-    self.circle.resource.get: ak.self.circle.resource.get.v1
-    self.circle.member.command.add: ak.self.circle.member.command.add.v1
-    self.circle.member.resource.delete: ak.self.circle.member.resource.delete.v1
-    self.circle.command.rotate_scope: ak.self.circle.command.rotate_scope.v1
     self.realm_link.query.list: ak.self.realm_link.read.list.v1
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1

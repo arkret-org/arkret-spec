@@ -14,7 +14,7 @@ const capabilities = [
   {
     mark: "E2EE",
     title: "加密正文，由授权端点解密",
-    body: "启用 MLS 的 Realm、Circle 与 Agent Sidecar 各有独立加密边界。Station 无需解密正文即可接纳和同步事件；发送者、路由与活动时序等元数据仍可见。",
+    body: "启用 MLS 的 Realm 和个人 Sidecar 各自维护密钥。Station 可以接纳和同步加密事件，发送者、路由与活动时序等元数据仍可见。",
   },
   {
     mark: "Human + Agent",
@@ -59,8 +59,8 @@ const scenarios = [
 const foundations = [
   {
     plane: "Boundary",
-    name: "Realm / Circle / Sidecar",
-    what: "Realm 定义治理与联邦边界；Circle 裁剪成员和历史范围；Sidecar 承载项目内的个人 Agent 上下文。各边界有独立的可见事件流。",
+    name: "Realm / Sidecar",
+    what: "Realm 管理普通协作的成员和历史。个人 Sidecar 由主人的归属 Station 托管，可引用项目上下文，并维护独立的事件流。",
     outcome: "谁能参与、能看到什么",
   },
   {

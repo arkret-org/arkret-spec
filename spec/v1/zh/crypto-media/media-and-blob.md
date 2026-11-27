@@ -55,7 +55,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - `encryption` 缺失不得猜测为明文；非 null 为密文，服务端 MUST 持久化分类且 MUST 拒绝 presign。完整附件 descriptor 只留在获准 Content Block 中，不上传给 Blob storage。密文 transport `media_type` MUST 为 `application/octet-stream`，不得嗅探或公开明文 MIME。
 - `media_type` 表单字段存在时是声明 MIME；content part `Content-Type` 同时存在且不同则以 `schema_violation` 拒绝并零写入。无表单字段时使用 content part 类型；均无则 octet-stream。只有 `encryption=null` 时允许下述内容校正。
 - 上传请求不承载自由 `purpose`；用途权限来自 owning Realm policy 与已验证 source refs，不得以客户端自报 purpose 扩大 scope / privacy / presign 权限。
-- Realm Bot／Ghost 的首次用途建立遵守 [device-lifecycle §16.1](device-lifecycle.md#161-原签-scopeaction-配对normative)：现有 Device 签名中的 exact scope 仅表达创建目标，治理方从 accepted Realm／Circle 独立核实目标、当前成员及原上传权限后，MUST 在同一接受事务保存 Blob metadata、配额结果与不可变私有上传绑定。绑定包含完整 BlobRef、exact ScopeRef、实际上传 Actor、原 Device／authorization 实例和接受时间；同 BlobRef 的重试保留原记录，异 scope／上传者／授权实例不得覆盖。上传成功不授发布或读取权；后续内容来源、history、当前权限与隐私门分别验证。该私态随 Realm 治理交接完整移交，缺项不得默认补全。不新增 multipart 字段，不改变普通 Account 合同。
+- Realm Bot／Ghost 的首次用途建立遵守 [device-lifecycle §16.1](device-lifecycle.md#161-原签-scopeaction-配对normative)：现有 Device 签名中的 exact scope 仅表达创建目标，治理方从 accepted Realm 独立核实目标、当前成员及原上传权限后，MUST 在同一接受事务保存 Blob metadata、配额结果与不可变私有上传绑定。绑定包含完整 BlobRef、exact ScopeRef、实际上传 Actor、原 Device／authorization 实例和接受时间；同 BlobRef 的重试保留原记录，异 scope／上传者／授权实例不得覆盖。上传成功不授发布或读取权；后续内容来源、history、当前权限与隐私门分别验证。该私态随 Realm 治理交接完整移交，缺项不得默认补全。不新增 multipart 字段，不改变普通 Account 合同。
 
 - Canonical HTTP upload body MUST be `multipart/form-data` with a required `content` binary part and required `size_bytes` metadata field and required `encryption` UTF-8 JSON metadata part (`null` or the closed storage classification above). The `content` part `Content-Type` is optional; its default value is `application/octet-stream`.
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。
@@ -419,13 +419,13 @@ GET /_arkret/self/blob/get?blob_ref=<ref>
 服务 MUST check:
 
 - actor authorization
-- Realm / Circle scope visibility
+- Realm scope visibility
 - retention / legal hold
 - unsafe media policy
 
 Retention 与 erasure 规则：
 
-跨 Realm-default / Circle / Sidecar 的来源 scope、Blob owning Realm、实际保留副本与 hold 的适用边界见
+跨 Realm / Sidecar 的来源 scope、Blob owning Realm、实际保留副本与 hold 的适用边界见
 [`scope-settings.md` §4](../governance/scope-settings.md#4-retention-与-legal-hold-的跨-scope-适用边界)。
 保留副本不授予读取／解密；已覆盖该对象的 hold 不因导航移动或普通披露失效而解除。
 
@@ -535,7 +535,7 @@ Cache-Control: public, immutable, max-age=31536000
 - 缩略图 descriptor MUST 至少绑定 content-addressed `source_blob_ref`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by?`、`visibility` 和 `derivation_profile`；两项 ref 的内嵌 digest 分别是 exact stored bytes 的唯一承诺，descriptor 不携 `source_ciphertext_digest` / `thumbnail_ciphertext_digest`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，密钥按 §3.0 的独立 salt 派生，AAD 使用 §3.1 的 `purpose="blob-attachment"`；两项 ref、尺寸和生成参数由外层已认证 thumbnail descriptor 绑定，`thumbnail_blob_ref` 不进入 KDF／AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只含 `media-metadata.schema.json` 的 `preview_blob_ref`、缺少 `thumbnails[]` descriptor 的 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
-`media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。
+`media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。
 
 ### 5.4 Pre-Signed URL（浏览器原生标签认证例外）
 

@@ -169,7 +169,7 @@ Projection 只减少返回字段，不提升权限。
 - 对 query 做 schema validation。
 - 对 Realm、Strand、Message、Morph、Relation、View 和字段做 authorization filtering。
 - 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
-- 对 Strand 的所有 track 按 Strand 的 effective scope 做 membership / history visibility 检查：`Strand.scope_circle_id=null` 时按父 Realm 的 Realm-default scope；`scope_circle_id` 指向同 Realm 的 [Circle](../models/circle.md) 时按该 Circle 独立裁剪。Synthesis 与 discussion 同 scope，不存在 per-track 安全边界。
+- 对 Strand 的所有 track 按所属 Realm 检查成员资格和历史可见性；synthesis 与 discussion 共享相同读取边界。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。
 - 在 E2EE Realm 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。

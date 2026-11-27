@@ -33,8 +33,8 @@ class AgentInteractionContractTest(unittest.TestCase):
     def test_public_owner_does_not_route_private(self):
         self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == 'current_public_owned_mention_routes_original_strand').update(expected='sidecar')))
 
-    def test_circle_cannot_route_private_to_realm(self):
-        self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == 'circle_private_mention_never_routes_realm_sidecar').update(expected='sidecar')))
+    def test_direct_cannot_route_private_to_realm(self):
+        self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == 'composer_route_6').update(expected='sidecar')))
 
     def test_prior_private_history_does_not_supply_a_current_target(self):
         for name in ['no_agent_after_private_session', 'no_agent_after_restored_private_history', 'deleted_private_token_does_not_reuse_last_request', 'public_mention_after_private_history']:

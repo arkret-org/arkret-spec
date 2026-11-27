@@ -70,7 +70,7 @@ def path_allows(path, case):
         if case['action'] in READ_ACTIONS:
             return kind == 'sidecar_read'
         return kind == 'sidecar_private_reply' and case['action'] == 'ak.message.create'
-    if profile not in ('realm', 'circle'):
+    if profile != 'realm':
         return False
     return kind == 'capability_grant' or (kind == 'membership_read' and case['action'] in READ_ACTIONS)
 

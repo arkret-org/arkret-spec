@@ -377,7 +377,7 @@ refresh；只可在同一实际 stream 比较，无法确认来源则失败关�
 
 #### 5.3.1 Start 来源与 epoch
 
-recording Start 的 `capture_metadata.key_ref` MUST 是现 closed MLS 引用 `{algorithm:"MLS",group_state_ref}`（`blob.schema.json` 的同一字段类型）。首次接纳 MUST 从真实来源核对该引用对应同一 effective ScopeRef（含 Circle／Sidecar）、immutable genesis 和当前 accepted winning MLS state；该判定与原 Start 的接纳截点一致。不得用 timestamp 跨 stream 猜顺序、用 bare epoch 或 ready 时的 latest state 补值，也不得把引用存在或持钥等同授权。Event ref／等价 Event-content hash 的解析、producer proof、治理接受、winning state、scope 和独立历史读取资格沿 `media-and-blob.md` §3；不新增 hash 查询接口。
+recording Start 的 `capture_metadata.key_ref` MUST 是现 closed MLS 引用 `{algorithm:"MLS",group_state_ref}`（`blob.schema.json` 的同一字段类型）。首次接纳 MUST 从真实来源核对该引用对应同一 effective ScopeRef（含 Sidecar）、immutable genesis 和当前 accepted winning MLS state；该判定与原 Start 的接纳截点一致。不得用 timestamp 跨 stream 猜顺序、用 bare epoch 或 ready 时的 latest state 补值，也不得把引用存在或持钥等同授权。Event ref／等价 Event-content hash 的解析、producer proof、治理接受、winning state、scope 和独立历史读取资格沿 `media-and-blob.md` §3；不新增 hash 查询接口。
 
 Start 原件与其 accepted key source 必须可从原接受来源重建；pending current details MUST 复制原 `key_ref`、retention 并附原完整 `recording_start_event_id`。后继唯一 artifact 的 `encryption.key_ref` MUST 与原 signed Start 的引用 byte-equivalent，不能换成相同 epoch 的另一 raw 表示。它是后继自足解密描述与前态选择的固定绑定，不是独立可改写镜像。
 

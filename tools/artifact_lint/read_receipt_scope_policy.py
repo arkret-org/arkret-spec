@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .core import ARTIFACTS, Lint, canonical_json, load_json, schema_validator
+from .core import ARTIFACTS, Lint, load_json, schema_validator
 
 FIXTURE = ARTIFACTS / "fixtures/read-receipt-scope-policy-fixture.json"
 KIND = "ak.scope.read_receipt_policy"
@@ -13,7 +13,7 @@ def decide(value: dict) -> dict:
     """Evaluate already authenticated inputs; this does not verify signatures."""
     denied = {"send": False, "display": False}
     scope = value["scope_ref"]
-    if scope.get("kind") not in {"realm", "circle"}:
+    if scope.get("kind") != "realm":
         return denied
     if not all(value[key] for key in (
         "basis_verified", "complete", "scope_authorized", "target_verified"
@@ -21,9 +21,7 @@ def decide(value: dict) -> dict:
         "signal_scope_ref", "target_scope_ref", "basis_scope_ref"
     )):
         return denied
-    rows = [row for row in value["policies"] if row["selector"] == {
-        "kind": FAMILY, "scope_ref": scope
-    }]
+    rows = [row for row in value["policies"] if row["owner_realm_id"] == scope["realm_id"]]
     if value["current_status"] == "never_written" and not rows:
         policy = {}
     elif value["current_status"] == "present" and len(rows) == 1:
@@ -34,7 +32,7 @@ def decide(value: dict) -> dict:
             ARTIFACTS / "schemas/current-state.schema.json",
             "#/$defs/current_scope_read_receipt_policy",
         )
-        if list(validator.iter_errors(row)):
+        if list(validator.iter_errors({k: v for k, v in row.items() if k != "owner_realm_id"})):
             return denied
         policy = row["value"]
     else:
@@ -66,9 +64,7 @@ def check_read_receipt_scope_policy(lint: Lint) -> None:
         if len(writers) != 1 or writers[0][0]["event_kind"] != KIND:
             raise ValueError("one scope policy Event must be the sole current writer")
         event, write = writers[0]
-        if write["state_selector"] != {"kind": "composite", "components": [
-            {"kind": "canonical_json", "field": "envelope.scope_ref"}
-        ]} or write["state_projection"] != {"kind": "set", "value": {"field": "payload"}}:
+        if write["state_selector"] is not None or write["state_projection"] != {"kind": "set", "value": {"field": "payload"}}:
             raise ValueError("scope selector and complete payload replacement are mandatory")
         if event["payload_schema_ref"] != "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload":
             raise ValueError("the shared closed payload is required")
@@ -82,7 +78,7 @@ def check_read_receipt_scope_policy(lint: Lint) -> None:
         branch = next(row["then"] for row in envelope["allOf"]
                       if row.get("if", {}).get("properties", {}).get("kind", {}).get("const") == KIND)
         if branch["properties"]["scope_ref"] != {"$ref": "#/$defs/read_receipt_policy_scope_ref"}:
-            raise ValueError("policy Event must restrict its signed scope to Realm/Circle")
+            raise ValueError("policy Event must restrict its signed scope to the signed Realm")
         names = set()
         for row in fixture["schema_cases"]:
             name = row["name"]
@@ -96,10 +92,10 @@ def check_read_receipt_scope_policy(lint: Lint) -> None:
         if len(names) < 23:
             raise ValueError("missing closed schema probes")
         required = {
-            "realm_disabled_does_not_disable_circle", "realm_required_does_not_override_circle_disabled",
-            "circle_disabled_does_not_disable_realm", "sibling_disabled_does_not_override_circle",
-            "verified_circle_absence_uses_own_defaults", "unverified_absence", "incomplete_absence",
-            "wrong_signal_scope", "wrong_target_scope", "realm_member_without_circle_access",
+            "foreign_disabled_does_not_disable_target", "foreign_required_does_not_override_disabled",
+            "disabled_policy_is_local_to_its_realm", "third_realm_policy_is_isolated",
+            "foreign_policy_does_not_fill_verified_absence", "unverified_absence", "incomplete_absence",
+            "wrong_signal_scope", "wrong_target_scope", "unauthorized_reader",
             "private_same_principal_other_station", "wrong_source_stream", "missing_current",
         }
         names = [row["name"] for row in fixture["decision_cases"]]
@@ -124,9 +120,5 @@ def check_read_receipt_scope_policy(lint: Lint) -> None:
                 decisions.append(seen)
             if decisions != row["expected_display"]:
                 raise ValueError("existing display transition mismatch: " + row["name"])
-        subjects = [canonical_json(row["instance"]) for row in fixture["schema_cases"]
-                    if row["name"] in {"scope_realm", "scope_circle", "scope_sibling"}]
-        if len(set(subjects)) != 3:
-            raise ValueError("Realm/Circle/sibling subjects must remain distinct")
     except (KeyError, TypeError, ValueError, StopIteration) as exc:
         lint.fail(FIXTURE, str(exc))
