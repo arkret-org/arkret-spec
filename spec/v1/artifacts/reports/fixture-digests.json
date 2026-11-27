@@ -466,7 +466,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json",
-      "sha256": "4c9c3b390376aa8eaa271eed8c4c4b98e8eec48ccbc756e5613549705e81f866"
+      "sha256": "ec18852460acd1c7f8fa4fc7e112ccc87c9dee3cf331586eb9af2e147276194d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",

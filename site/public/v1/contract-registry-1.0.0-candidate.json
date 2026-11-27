@@ -25005,8 +25005,8 @@
     "rules": [
       "Only registered closed typed branches may use atomic admission; no client-supplied Event list, predicate or workflow DSL.",
       "Common execution is exact-byte freeze, authority/scope and producer/approval validation, business-specific staged checks/CAS, atomic Event/Commit/current/outbox/outcome persistence, and original-result replay.",
-      "Authority-forward first admission and source-committed replica materialization are distinct; only audit_paired_event extends forward in this decision. Existing self-only unit restrictions remain.",
-      "One governance Station and one Realm/Circle/Sidecar stream per public Event unit. Cross-stream parent authorization reads do not create cross-stream Event atomicity.",
+      "Only audit_paired_event and sidecar_ensure support typed atomic first admission over authority_forward. Replication concerns previously accepted originals.",
+      "Each unit has one governing Station and one Realm. Only sidecar_ensure spans the parent stream and the derived new Sidecar stream; each other unit has one stream and consecutive Commits.",
       "MLS Commit plus Welcome deliveries is a specialized atomic submission; Recovery/SecurityRotation are durable workflows and do not become public Event units."
     ],
     "units": [
@@ -25063,6 +25063,18 @@
         "replay_fence": "full_canonical_unit_and_single_use_business_event_id_and_audit_event_id",
         "authority_forward_path": "/atomic_submission",
         "replication_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_federation_submission"
+      },
+      {
+        "unit_kind": "sidecar_ensure",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/sidecar_ensure_unit_submission",
+        "self_submit_operation_id": "ak.self.agent.sidecar.command.ensure.v1",
+        "same_governor": true,
+        "same_realm_stream": false,
+        "all_or_nothing": true,
+        "one_commit_per_event": true,
+        "consecutive_commits": false,
+        "replay_fence": "exact_original_create_and_first_context_attach_on_derived_sidecar",
+        "authority_forward_path": "/atomic_submission"
       }
     ],
     "audit_pairs": [

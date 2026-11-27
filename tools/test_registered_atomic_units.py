@@ -14,7 +14,7 @@ class RegisteredAtomicUnitsTest(unittest.TestCase):
     def test_arbitrary_registered_unit_is_rejected(self):
         self.catalog['atomic_unit_registry']['units'].append(copy.deepcopy(self.catalog['atomic_unit_registry']['units'][0]));self.assertTrue(self.errors())
     def test_cross_stream_atomic_claim_is_rejected(self):
-        self.catalog['atomic_unit_registry']['units'][-1]['same_realm_stream']=False;self.assertTrue(self.errors())
+        next(r for r in self.catalog['atomic_unit_registry']['units'] if r['unit_kind']=='audit_paired_event')['same_realm_stream']=False;self.assertTrue(self.errors())
     def test_extra_audit_slot_is_rejected(self):
         self.schema['$defs']['audit_paired_event_unit_submission']['properties']['events']['maxItems']=3;self.assertTrue(self.errors())
     def test_circle_manage_cannot_bypass_audit(self):
@@ -32,7 +32,7 @@ class RegisteredAtomicUnitsTest(unittest.TestCase):
     def test_read_requires_actual_producer_proof(self):
         self.audit['$defs']['peer_watch_audit_read_request_body'].pop('oneOf');self.assertTrue(self.errors())
     def test_audit_pair_requires_per_event_fences(self):
-        self.catalog['atomic_unit_registry']['units'][-1]['replay_fence']='pair_only';self.assertTrue(self.errors())
+        next(r for r in self.catalog['atomic_unit_registry']['units'] if r['unit_kind']=='audit_paired_event')['replay_fence']='pair_only';self.assertTrue(self.errors())
     def test_circle_audit_exception_cannot_expand(self):
         self.catalog['atomic_unit_registry']['audit_read']['circle_authorization']['no_membership_content_history_or_mls_key_grant']=False;self.assertTrue(self.errors())
     def test_response_head_mismatch_cannot_be_blessed(self):

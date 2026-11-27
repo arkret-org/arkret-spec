@@ -107,7 +107,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义已登记的 `expected_commit_id`（具名多目标 guard 按各自名称），只与锁定 exact current row 的 covering Commit ID 相等比较。读侧 revision 仍为 `{commit_id, stream_position}`，Commit ID 的内容地址已唯一绑定 position；写条件不重复该坐标。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
 
-跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
+除 §5 登记的个人 Sidecar 首次创建外，跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
 `exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
 消费 Station 与独立审计 verifier 仍必须验证 Commit 签名与 authority chain；普通客户端按
@@ -138,14 +138,20 @@ transport-only producer evidence 刷新不改变内层 signed unit；peer 外层
 不能把缺记录当成首次写。恢复／handoff 必须保留可验证原件、完整 unit 接纳关系、业务 fence 与适用私密审计；
 尚不能重建原 outcome 时只可失败关闭，MUST NOT 重新执行。
 
-所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm 和同一 Realm／Circle／Sidecar stream；
-读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
+所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm。除下述个人 Sidecar 首次创建外，各成员 MUST 位于同一 Realm／Circle／Sidecar stream；
+读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。其余跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
 Recovery／SecurityRotation 是 durable workflow，不能包装成单笔「全部回滚」的 Event 单元或通用 Saga DSL。
 
-`authority_forward` 是首次接纳：本轮只为 `audit_paired_event` 增加 typed `atomic_submission`，
+`authority_forward` 是首次接纳：`atomic_submission` 登记 `audit_paired_event` 及 `sidecar_ensure` 两类具名单元，
 其它既有 self-only 单元不能因此被转发。`registered_atomic_unit` 是已 source-committed 单元的整体复制：
 接收方验证原 source Commit／proof／signer fact、顺序与本机披露资格，整体保存／物化或零写；不重审首次 approval、
 不重签 Commit、不产生第二轮 fanout。回传 source acceptance outcome 仅描述原治理站事实，不是接收方新增 finality。
+
+**个人 Sidecar 首次创建。** 在已登记的 `authority_forward` 上，`atomic_submission.unit_kind="sidecar_ensure"` 的两个 `events` 固定为主人设备原签的父 Realm `ak.sidecar.create` 和派生 Sidecar 的首个 `ak.sidecar.context.attach`。两者使用同一个普通 Realm、主人 Account 和设备，attach 的 scope 与 payload 引用由 create 原件派生的 Sidecar，其 critical 的 `after` 引用指向该 create Event，版本为 1，无前驱。此分支只接受这两份 EventAdmissionSubmission 及按相同顺序排列的两份设备证据，禁止 approval_signatures、其它生产者及 content_backup_sources。
+
+H 在验证 self 会话、ensure 权限和预留草稿后冻结整份转发。两个设备证明沿既有 `atomic_producer_evidence`，各自绑定准确 Event 和同一个去除证据数组后的整包摘要，同源同一当前设备截点。G 核来源为主人的 H、目的为当前 G、两份设备原签和证明、同一治理任期、父群资格和适用权限、singleton 空位、源 context 存在且可用。G 在同一事务写两份原件、各自的 Commit 和成对的接纳记录，任一失败全部回滚。attach 是新 Sidecar 流的 position 0；create 延续父群流，两条流之间没有 position 或 predecessor 关系。
+
+成功回应沿原 `authority_forward` 回复，`response_body` 携 `unit_kind="sidecar_ensure"`、`status` 和按请求顺序的两个原 Commit。相同两份原签重试须从已接纳单元恢复原 Commit；不同原件争同一 singleton 或复用单个 slot 均拒绝。已发送而结果未知时 H 重试冻结的请求，禁止为旧意图更新设备证明。H 在报告成功前验证两条回执各自覆盖的原件和同一治理链。跨站传输丢失回复不会撤销 G 的事务。既存 Sidecar 的单个位置关联继续使用其原有规则。[个人 Sidecar](../models/sidecar.md)
 
 ### 5.2 业务与审计配对单元（normative）
 

@@ -848,8 +848,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#51-登记式原子单元normative",
-      "section_digest": "sha256:8ea8f81ba8619588180ba5e2ae585e96c109b98659b7c805b632981450683096",
-      "requirement": "Registered closed typed unit execution, durable whole-unit replay, one stream and separate first admission/replication.",
+      "section_digest": "sha256:7bc75e1850e751e78734c0370c0fde85924c462df9d36a52c9ddd36830a232c6",
+      "requirement": "Closed registered units require one governor and durable whole-unit replay. First personal Sidecar creation binds the parent stream and its derived Sidecar stream. The other units retain single-stream ordering. First admission and replication have distinct carriers.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.state.registered_atomic_units.v1"

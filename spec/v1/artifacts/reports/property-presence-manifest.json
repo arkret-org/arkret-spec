@@ -13,19 +13,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11064,
+    "total_properties": 11088,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2549,
+      "optional": 2561,
       "optional_defaulted": 46,
-      "required": 7845,
-      "required_nullable": 377,
-      "tristate": 247
+      "required": 7853,
+      "required_nullable": 378,
+      "tristate": 250
     },
-    "tristate_occurrences": 247,
-    "tristate_audit_targets": 187,
+    "tristate_occurrences": 250,
+    "tristate_audit_targets": 190,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 175,
+      "absent_null_equivalent": 178,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -71,12 +71,15 @@
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence",
     "authority-commit-operations.schema.json/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event/properties/kind",
     "authority-commit-operations.schema.json/$defs/realm_authority_handoff_request_body/allOf/1/then/properties/handoff",
     "authority-commit-operations.schema.json/$defs/realm_authority_handoff_request_body/allOf/2/if/properties/handoff",
     "authority-commit-operations.schema.json/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind",
+    "authority-commit-operations.schema.json/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref",
+    "authority-commit-operations.schema.json/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref",
     "authority-commit-operations.schema.json/$defs/stream_scan_request_body/properties/after_position",
     "authority-commit-operations.schema.json/$defs/stream_scan_request_body/properties/before_position",
     "authority-commit-operations.schema.json/$defs/submit_request_body/oneOf/0/allOf/1/properties/event",
@@ -584,6 +587,16 @@
     {
       "schema_file": "authority-commit-operations.schema.json",
       "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/atomic_producer_evidence",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
       "instance_path": "/event_submission/event",
       "occurrences": [
         "/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event"
@@ -628,6 +641,26 @@
       "instance_path": "/event/kind",
       "occurrences": [
         "/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/sidecar_ensure_context_attach_submission",
+      "instance_path": "/event/scope_ref",
+      "occurrences": [
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/sidecar_ensure_create_submission",
+      "instance_path": "/event/scope_ref",
+      "occurrences": [
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4665,6 +4698,8 @@
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/peer_submit_request_body/oneOf/0/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/1/properties/branch": "required",
+        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/if/properties/atomic_submission": "optional",
+        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence": "tristate",
         "/$defs/peer_submit_request_body/oneOf/2/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/3/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/4/properties/branch": "required",
@@ -4748,6 +4783,28 @@
         "/$defs/service_historical_signer_fact/properties/event_id": "required",
         "/$defs/service_historical_signer_fact/properties/key": "required",
         "/$defs/service_historical_signer_fact/properties/verification_method": "required",
+        "/$defs/sidecar_ensure_acceptance_outcome/properties/commits": "required",
+        "/$defs/sidecar_ensure_acceptance_outcome/properties/status": "required",
+        "/$defs/sidecar_ensure_acceptance_outcome/properties/unit_kind": "required",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/actor_id": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/version": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref": "tristate",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref/properties/kind": "optional",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs": "required_nullable",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/critical": "required",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/id": "required",
+        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/role": "required",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event": "optional",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/actor_id": "optional",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/payload": "optional",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref": "tristate",
+        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref/properties/kind": "optional",
+        "/$defs/sidecar_ensure_unit_submission/properties/events": "required",
+        "/$defs/sidecar_ensure_unit_submission/properties/unit_kind": "required",
         "/$defs/stream_scan_request_body/properties/after_position": "tristate",
         "/$defs/stream_scan_request_body/properties/before_position": "tristate",
         "/$defs/stream_scan_request_body/properties/limit": "required",

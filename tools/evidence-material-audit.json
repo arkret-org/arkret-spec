@@ -252,14 +252,14 @@
     {
       "file": "authority-commit-operations.schema.json",
       "key": "atomic_producer_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation",
         "transcript"
       ],
-      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+      "reason": "Both registered first-admission units carry two ordered proofs, each binding its own Event and the digest of the entire body with the evidence array removed. The audit pair accepts the registered producer classes. First Sidecar creation accepts only two proofs of the same controller Device at one origin cut."
     },
     {
       "file": "authority-commit-operations.schema.json",

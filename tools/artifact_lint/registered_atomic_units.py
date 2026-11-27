@@ -16,7 +16,7 @@ AUDIT_SCHEMA = ARTIFACTS / 'schemas/watch-audit-operations.schema.json'
 FIXTURE = ARTIFACTS / 'fixtures/registered-atomic-unit-and-watch-audit-fixture.json'
 SELF = 'ak.self.strand.watch.command.audit_read.v1'
 PEER = 'ak.peer.strand.watch.command.audit_read.v1'
-UNIT_KINDS = {'ordinary_realm_bootstrap', 'direct_conversation_founding', 'membership_compensation', 'audit_paired_event'}
+UNIT_KINDS = {'ordinary_realm_bootstrap', 'direct_conversation_founding', 'membership_compensation', 'audit_paired_event', 'sidecar_ensure'}
 UNIT_REQUIRED = {'watch_pair_accepted', 'circle_manage_pair_accepted', 'circle_others_pair_accepted', 'missing_audit', 'duplicate_audit', 'reverse_order', 'wrong_writer', 'wrong_target', 'wrong_pair_ref', 'wrong_scope', 'wrong_producer', 'missing_audit_capability', 'cas_conflict', 'muted_by_other', 'public_by_other', 'clear_by_other', 'unregistered_kind', 'raw_atomic_batch', 'exact_unit_replay', 'changed_unit_replay', 'ordinary_replication_pair_fragment', 'committed_pair_replication', 'replica_missing_source_slot', 'cross_stream_unit', 'device_proof_missing', 'agent_controller_revoked'}
 READ_REQUIRED = {'audited_never_written', 'audited_written_null', 'audit_capability_missing', 'read_capability_missing', 'others_is_not_read', 'nonmember_without_circle_audit', 'scoped_circle_auditor', 'wrong_scope_read', 'wrong_auditor_station', 'governor_unverified', 'namespace_incomplete', 'audit_admission_failure', 'replay_returns_frozen_value', 'old_audit_cannot_query_new_value', 'changed_audit_request', 'preaccepted_ticket_rejected', 'replay_material_missing', 'delivery_revoked', 'agent_content_ceiling_denied', 'handoff_requires_new_audit', 'network_loss_keeps_authorized_audit'}
 
@@ -130,10 +130,13 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     errors = []
     registry = catalog.get('atomic_unit_registry', {})
     rows = registry.get('units', [])
-    if len(rows) != 4 or {r.get('unit_kind') for r in rows} != UNIT_KINDS:
+    if len(rows) != len(UNIT_KINDS) or {r.get('unit_kind') for r in rows} != UNIT_KINDS:
         errors.append('Closed registered-unit allowlist is incomplete or contains an arbitrary unit')
     for row in rows:
-        if not all(row.get(k) is True for k in ['same_governor', 'same_realm_stream', 'all_or_nothing', 'one_commit_per_event', 'consecutive_commits']):
+        single_stream = row.get('unit_kind') != 'sidecar_ensure'
+        if (not all(row.get(k) is True for k in ['same_governor', 'all_or_nothing', 'one_commit_per_event'])
+                or row.get('same_realm_stream') is not single_stream
+                or row.get('consecutive_commits') is not single_stream):
             errors.append('Atomic scope/finality invariant removed: ' + str(row.get('unit_kind')))
         if not row.get('request_schema_ref') or not row.get('replay_fence'):
             errors.append('Typed request/replay binding missing')
@@ -170,7 +173,7 @@ def contract_errors(catalog: dict, schema: dict, audit_schema: dict, fixture: di
     circle = audit_contract.get('circle_authorization', {})
     if audit_contract.get('producer_classes') != ['account_device','agent_runtime'] or circle != {'current_parent_realm_membership':True,'effective_circle_member_or_scoped_circle_audit':True,'nonmember_exception':'watch_audit_read_command_audit_event_only','no_membership_content_history_or_mls_key_grant':True}:
         errors.append('Audited-read producer/Circle exception boundary drift')
-    if rows[-1].get('replay_fence') != 'full_canonical_unit_and_single_use_business_event_id_and_audit_event_id':
+    if next((row for row in rows if row.get('unit_kind') == 'audit_paired_event'), {}).get('replay_fence') != 'full_canonical_unit_and_single_use_business_event_id_and_audit_event_id':
         errors.append('Audit pair must fence each Event ID against changed pairing')
     response_cases = fixture.get('response_cases', [])
     if len(response_cases) < 11:

@@ -493,6 +493,8 @@ MUST NOT 被伪装为已验证或当前结果。恢复提示只影响未就绪�
 canonical unsigned bytes 与 digest；new 分支返回 create + context attach drafts，existing 分支只返回 attach。
 commit 只接受在 exact drafts 上追加的 controller proofs，并原子提交。reservation 不分配 Sidecar ID；
 Sidecar ID由已固定 create Event ID确定。
+H 准备草稿时沿现有成员 bootstrap 取得主人自己的、G 原签并验证的完整当前视图，对照已合法保留的创建与位置原件。当前视图及本地已知状态有冲突时返回暂不可用；无现存记录只用于准备新草稿。G 在接纳事务判断 singleton 是否真正可用。
+主人归属站与治理站独立时，首次 commit 由 H 沿[权威提交日志 §5](../sync/authority-commit-log.md)的 `sidecar_ensure` 具名分支把两份原签一并送至 G。G 负责原子接纳，H 验证同一次接纳的两份原回执后回答。
 
 读取只通过 `ak.self.agent.sidecar.resource.get.v1` 与 `ak.self.agent.sidecar.read.list.v1`。返回 Sidecar、
 `desired_agent_ids` 只读派生投影、`effective_agent_ids`、MLS readiness、pending reconciliation 和 source
