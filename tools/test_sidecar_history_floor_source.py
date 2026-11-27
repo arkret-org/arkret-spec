@@ -133,20 +133,37 @@ class SidecarHistoryFloorSourceTest(unittest.TestCase):
             self.assertEqual(agent_session_content.decide(inputs), expected)
 
 
+def content_exchange():
+    request = dict(REQUEST)
+    del request["history_stream_ref"]
+    request["content_intent"] = {
+        "controller_account_id": CONTROLLER,
+        "controller_membership_commit_id": CREATE["commit_id"],
+        "agent_key_authorization_ref": CREATE["event_id"],
+        "action": "ak.object.read_content",
+        "effective_scope": {"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR},
+        "request_digest": "sha256:" + "a" * 64,
+    }
+    response = {
+        "request_id": request["request_id"], "content_intent": request["content_intent"],
+        "membership_commit_id": JOIN["commit_id"],
+        "scope_details": {
+            "controller_principal_id": CONTROLLER["principal_id"],
+            "agent_key_authorization_ref": CREATE["event_id"],
+            "realm_ids": [REALM], "strand_ids": [],
+            "resources": {"realm_ids": [REALM], "strand_ids": []},
+            "constraints": {"allowed_tracks": [], "allowed_data_labels": [], "allowed_endpoints": []},
+            "capability_grant_refs": [], "policy_refs": [],
+        },
+    }
+    return request, response
+
+
 class OwnedAgentWireTest(unittest.TestCase):
     def test_session_source_and_history_are_exclusive(self):
         validator = schema_validator(ARTIFACTS / "schemas/realm-join-intake.schema.json",
                                      "#/$defs/peer_bootstrap_request_body")
-        request = dict(REQUEST)
-        del request["history_stream_ref"]
-        request["content_intent"] = {
-            "controller_account_id": CONTROLLER,
-            "controller_membership_commit_id": CREATE["commit_id"],
-            "agent_key_authorization_ref": CREATE["event_id"],
-            "action": "ak.object.read_content",
-            "effective_scope": {"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR},
-            "request_digest": "sha256:" + "a" * 64,
-        }
+        request, single = content_exchange()
         validator.validate(request)
         self.assertFalse(validator.is_valid({**request, "history_stream_ref": STREAM}))
         for member in request["content_intent"]:
@@ -156,18 +173,6 @@ class OwnedAgentWireTest(unittest.TestCase):
 
         response = schema_validator(ARTIFACTS / "schemas/realm-join-intake.schema.json",
                                     "#/$defs/peer_bootstrap_response_body")
-        single = {
-            "request_id": request["request_id"], "content_intent": request["content_intent"],
-            "membership_commit_id": JOIN["commit_id"],
-            "scope_details": {
-                "controller_principal_id": CONTROLLER["principal_id"],
-                "agent_key_authorization_ref": CREATE["event_id"],
-                "realm_ids": [REALM], "strand_ids": [],
-                "resources": {"realm_ids": [REALM], "strand_ids": []},
-                "constraints": {"allowed_tracks": [], "allowed_data_labels": [], "allowed_endpoints": []},
-                "capability_grant_refs": [], "policy_refs": [],
-            },
-        }
         response.validate(single)
         self.assertFalse(response.is_valid({**single, "visible_stream_heads": []}))
 
@@ -179,6 +184,29 @@ class OwnedAgentWireTest(unittest.TestCase):
         delivery.update(session_grant_id="ak:session_grant:01964137-0000-7000-8000-000000000001", scan=page)
         scan.validate(delivery)
         self.assertFalse(scan.is_valid({**page, "content_intent": request["content_intent"]}))
+
+    def test_backup_root_context_requires_a_sidecar_write_in_request_and_response(self):
+        request, response = content_exchange()
+        fixture = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))
+        root = fixture["root_backup"]["envelope"]["contents"][0]["root_context"]
+        sidecar_root = dict(root, effective_scope=STREAM)
+        schema = ARTIFACTS / "schemas/realm-join-intake.schema.json"
+        for branch, body in (("request", request), ("response", response)):
+            validator = schema_validator(schema, f"#/$defs/peer_bootstrap_{branch}_body")
+            intent = body["content_intent"]
+            for action in ("ak.message.create", "ak.message.redact.own", "ak.message.revise.own",
+                           "ak.reaction.add", "ak.reaction.remove"):
+                with self.subTest(branch=branch, action=action):
+                    writer = dict(intent, action=action, backup_root_context=sidecar_root)
+                    validator.validate(dict(body, content_intent=writer))
+            writer = dict(intent, action="ak.message.create", backup_root_context=sidecar_root)
+            for case, invalid in (
+                ("read with root", dict(intent, backup_root_context=sidecar_root)),
+                ("Realm write with Sidecar root", dict(writer, effective_scope=PARENT)),
+                ("Sidecar write with Realm root", dict(writer, backup_root_context=dict(root, effective_scope=PARENT))),
+            ):
+                with self.subTest(branch=branch, case=case):
+                    self.assertFalse(validator.is_valid(dict(body, content_intent=invalid)))
 
     def test_first_writer_sidecar_packet_is_single_root_and_agent_signed(self):
         packet = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))["root_backup"]["envelope"]

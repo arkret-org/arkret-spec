@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11060,
+    "total_properties": 11064,
     "total_schema_documents": 176,
     "by_presence_class": {
       "optional": 2549,
       "optional_defaulted": 46,
-      "required": 7841,
+      "required": 7845,
       "required_nullable": 377,
       "tristate": 247
     },
@@ -12919,6 +12919,10 @@
         "/$defs/owned_agent_content_intent/properties/effective_scope": "required",
         "/$defs/owned_agent_content_intent/properties/request_digest": "required",
         "/$defs/owned_agent_content_intent/properties/strand_id": "optional",
+        "/$defs/owned_agent_content_intent/then/properties/action": "required",
+        "/$defs/owned_agent_content_intent/then/properties/backup_root_context": "required",
+        "/$defs/owned_agent_content_intent/then/properties/backup_root_context/properties/effective_scope": "required",
+        "/$defs/owned_agent_content_intent/then/properties/effective_scope": "required",
         "/$defs/peer_bootstrap_request_body/properties/content_intent": "optional",
         "/$defs/peer_bootstrap_request_body/properties/history_stream_ref": "optional",
         "/$defs/peer_bootstrap_request_body/properties/member_account_id": "required",
@@ -12962,6 +12966,7 @@
         "/$defs/self_preview_response_body/properties/request_id": "required"
       },
       "conditionally_required": [
+        "/$defs/owned_agent_content_intent/properties/backup_root_context",
         "/$defs/peer_bootstrap_response_body/properties/authority_bundle",
         "/$defs/peer_bootstrap_response_body/properties/content_intent",
         "/$defs/peer_bootstrap_response_body/properties/membership_commit_id",

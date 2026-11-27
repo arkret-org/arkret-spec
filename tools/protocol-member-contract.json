@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:a94137dc5d395363a990965246b674453db1e8cb99a0a42f94cfd3289de3b789",
+  "contract_digest": "sha256:203142ee3ac540ab57d1cf57771489f44a67167f3dc123a48c90b06937aabc4b",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -100745,7 +100745,63 @@
                 "$ref": "./agent-operations.schema.json#/$defs/strand_id"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "if": {
+              "required": [
+                "backup_root_context"
+              ]
+            },
+            "then": {
+              "description": "Root preparation and PUT require a business write. Both closed effective scopes must select the Sidecar branch; the receiver also checks their exact IDs and current MLS context.",
+              "properties": {
+                "action": {
+                  "enum": [
+                    "ak.message.create",
+                    "ak.message.redact.own",
+                    "ak.message.revise.own",
+                    "ak.reaction.add",
+                    "ak.reaction.remove"
+                  ],
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/then/properties/action",
+                    "owner": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/then/properties/action",
+                    "values": [
+                      "ak.message.create",
+                      "ak.message.redact.own",
+                      "ak.message.revise.own",
+                      "ak.reaction.add",
+                      "ak.reaction.remove"
+                    ]
+                  }
+                },
+                "effective_scope": {
+                  "type": "object",
+                  "required": [
+                    "sidecar_id"
+                  ]
+                },
+                "backup_root_context": {
+                  "type": "object",
+                  "required": [
+                    "effective_scope"
+                  ],
+                  "properties": {
+                    "effective_scope": {
+                      "type": "object",
+                      "required": [
+                        "sidecar_id"
+                      ]
+                    }
+                  }
+                }
+              },
+              "required": [
+                "action",
+                "effective_scope",
+                "backup_root_context"
+              ]
+            }
           }
         }
       }

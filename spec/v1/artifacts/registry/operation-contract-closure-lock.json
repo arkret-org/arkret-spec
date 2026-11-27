@@ -232,7 +232,7 @@
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
-      "sha256": "sha256:ca6bb4e78abce696ac2d5b7d94371f475526b22c00eb938ede609e39d18cddf0"
+      "sha256": "sha256:a462a163dc891e7e74c0650f61fa2e86d4667502038838787e6cd759a5e7a52c"
     },
     {
       "operation_id": "ak.peer.consent.command.proxy.v1",
@@ -304,7 +304,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:78a3adc77fd63c5a6e57cfebadd7dff2822b0865565abb2557f7a694e854c28f"
+      "sha256": "sha256:046f36a38c0b940abb6b5850902fc2f14bdc51c7f97fe7cf746aa83c866fc850"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
