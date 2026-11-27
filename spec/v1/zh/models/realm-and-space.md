@@ -592,7 +592,6 @@ Schema id: `ak.schema.space.v1`
 | `id` | yes | `id:space` | 以 `ak:space:` 开头。 | Space ID。 |
 | `schema` | yes | `ak.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `ak:realm:`。 | Space metadata 的 home Realm。 |
-| `child_scope_policy` | no | `boolean` | true 要求目标 Realm 已激活 MLS。 | 约束创建子资源和放入容器的操作。 |
 | `parent_space_id` | no | `id:space` | MUST 指向同一实际 Realm 的 Space；不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`、`topic`；profile 可注册新 kind。 | Space 类型。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
@@ -616,9 +615,9 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 Space 的用户 metadata 明文形状为 `space.schema.json#/$defs/space_metadata`：必填 `title`，可选 `summary`、`labels`、`fields`、`avatar_blob_ref`，字段集封闭，依次沿用上表约束。未激活 scope MLS 时以这些顶层字段表示；一旦该 scope 的 `ak.mls.genesis` accepted，create 与 update MUST 使用唯一完整 `encrypted_metadata: EncryptedEnvelope`，解密 plaintext MUST 符合该形状，purpose 为既有 `metadata`，按冻结外层 Event 的 kind／scope／event identity 构造 AAD，复用同一 Realm 的 RFC 9420 application message。MUST NOT 往 title 塞 ciphertext、加密整条结构 Event、保留旧用户明文镜像或回退 plaintext。
 
-`id/schema/realm_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `max_active_strand_count/active_strand_count_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
+`id/schema/realm_id/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `max_active_strand_count/active_strand_count_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
 
-create 原子写 space／space_parent／space_child_scope_policy；密文作为 space 的唯一用户 metadata 被 current/read/snapshot/replica 原样保留。update 沿用 `ak.space.update.patch`，加密 metadata 只能整体 set `encrypted_metadata`，不得 patch envelope 子路径或产生明密文双份；普通 `rank` 与独立 child policy 合同不变。客户端在获授权且验证 accepted cut 后解密到个人显示缓存；服务 API、搜索索引、通知预览与服务缓存 MUST NOT 生成用户明文副本。非 participant 的查询／枚举裁剪不因结构可见字段放宽。
+create 原子写 space／space_parent；密文作为 space 的唯一用户 metadata 被 current/read/snapshot/replica 原样保留。update 沿用 `ak.space.update.patch`，加密 metadata 只能整体 set `encrypted_metadata`，不得 patch envelope 子路径或产生明密文双份。客户端在获授权且验证 accepted cut 后解密到个人显示缓存；服务 API、搜索索引、通知预览与服务缓存 MUST NOT 生成用户明文副本。非 participant 的查询／枚举裁剪不因结构可见字段放宽。
 
 Topic 使用独立的 `Space.kind=topic`，与 `list`、`board` 并列；不是 List 的显示别名或 Board 列。普通 Realm 的 Chat 可按 [Strand and Message §9.4.6](./strand-and-message.md#946-普通-realm-的-chat-分类与-topic-排序) 加入同 Realm 的 root Topic，归属与排序落在 Chat 的 scope 内。稳定 Direct Conversation 的用途由 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 锁定：同 Realm root Topic 通过唯一 `Strand.topic` 分类 Chat，复用 Space ID、加密 metadata、rank 与 lifecycle。MUST NOT 将 List 或 Board 接纳为 Topic，MUST NOT 对 Topic 执行 Board-scoped Strand placement、List WIP 或 List 专属字段政策。该 subtype 不扩展通用 `ak.strand.move/reorder` 的载体或位置语义。
 
@@ -638,7 +637,6 @@ Topic 使用独立的 `Space.kind=topic`，与 `list`、`board` 并列；不是 
 - **加密**：Space metadata 与结构事实绑定其所属 Realm，由该 Realm 的 MLS 激活状态决定内容保护。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
 - **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` ；新资源 MUST 使用当前 Space 的 `realm_id`；scope MUST 在该 Realm 中独立授权。
-- **加密放置约束**：`child_scope_policy=true` 时，接纳方 MUST 在放置的同一事务中验证目标 Realm 已接受 MLS Genesis。该规则覆盖 Strand 创建、移动、Space 初始 parent 与改挂，以及 structural contains。缺少有效证据时拒绝写入。false 解除约束。创建省略该字段时，独立的 `space_child_scope_policy` current 记录 null；更新省略时保持原值，显式布尔通过 `ak.space.update` 的专用成员写入。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 

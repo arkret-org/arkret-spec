@@ -7236,42 +7236,6 @@
           "notes": "The other half of the genesis write: models/realm-and-space.md section 3.5 requires an explicit null when the signed object omits parent_space_id, so every Space has a space_parent register from its first Event and no later write can mistake an absent register for a root. The Space object spells no parent by absence while this payload spells it by explicit null; the normalization happens exactly here, once. models/realm-and-space.md section 3.5 is authoritative. The subject is the SpaceId alone and the value is the one-member object carrying a nullable parent_space_id, never a bare null: the family's own pre_state requirement is a predicate over a stored FIELD, so a null value would have no field to compare and expected_parent_space_id would be inexpressible. The Space metadata projection excludes parent_space_id, which is why the generic patch path is a reducer-managed forbidden path owned by this family in reducer-managed-path-registry.json. Ordering, cycle detection, same-Realm and readability admission are stated in that section and are not projection grammar."
         },
         {
-          "state_family": "space_child_scope_policy",
-          "state_selector": {
-            "kind": "id:space"
-          },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.object.child_scope_policy"
-          },
-          "state_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.object.child_scope_policy"
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-          "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
-        },
-        {
-          "state_family": "space_child_scope_policy",
-          "state_selector": {
-            "kind": "id:space"
-          },
-          "condition": {
-            "kind": "field_absent",
-            "field": "payload.object.child_scope_policy"
-          },
-          "state_projection": {
-            "kind": "set",
-            "value": {
-              "const": null
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-          "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
-        },
-        {
           "state_family": "space",
           "state_selector": {
             "kind": "id:space"
@@ -7351,7 +7315,7 @@
             }
           ],
           "value_schema_ref": "schemas/space.schema.json",
-          "notes": "zh/models/realm-and-space.md sections 3.2 and 3.5. The Space id is derived from this Event. The main object projection excludes parent_space_id and child_scope_policy because their dedicated typed-result families are written by sibling rows in the same atomic admission. Common identity, initial lifecycle and audit members are reducer-derived."
+          "notes": "zh/models/realm-and-space.md sections 3.2 and 3.5. The Space id is derived from this Event. The main object projection excludes parent_space_id because its dedicated space_parent register is written in the same atomic admission. Common identity, initial lifecycle and audit members are reducer-derived."
         }
       ],
       "id_source": "event_derived",
@@ -7553,10 +7517,6 @@
             "kind": "id:space",
             "field": "payload.space_id"
           },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.patch"
-          },
           "state_projection": {
             "kind": "apply_patch",
             "patch": {
@@ -7593,26 +7553,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/space.schema.json",
-          "notes": "zh/models/realm-and-space.md section 3.2. The metadata branch is conditional on payload.patch and writes the Space object family; the sibling child_scope_policy branch remains a separate typed result. parent_space_id, child_scope_policy, identity and lifecycle fields are not generic patch paths. expected_state_digest and active-state checks run before both branches, and a combined accepted Event updates them atomically."
-        },
-        {
-          "state_family": "space_child_scope_policy",
-          "state_selector": {
-            "kind": "id:space",
-            "field": "payload.space_id"
-          },
-          "condition": {
-            "kind": "field_present",
-            "field": "payload.child_scope_policy"
-          },
-          "state_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.child_scope_policy"
-            }
-          },
-          "value_schema_ref": "schemas/current-state.schema.json#/$defs/space_child_scope_policy_value",
-          "notes": "An explicitly supplied boolean controls encryption requirements for placement. Creation without the field records null. An unrelated update preserves the existing requirement."
+          "notes": "Check active state and expected_state_digest before applying the metadata patch. The space_parent register is written separately by ak.space.parent."
         }
       ],
       "id_source": "not_an_object_id",

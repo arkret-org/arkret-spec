@@ -173,14 +173,13 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   五族的成员来源均按 `value_member_maintenance` 逐项封闭：create 只投影 author business region，
   schema / Realm / creator / create-time / initial state 与 update metadata 由 reducer 派生；普通 update、
   stage/history 专用写者及 lifecycle 写者分别登记允许路径、派生成员与完整 retained members。
-  `space_parent` / `space_child_scope_policy` 仍是 Space 对象之外的独立 family，Realm MLS group 仍由
+  `space_parent` 仍是 Space 对象之外的独立 family，Realm MLS group 仍由
   `mls_group` family 单源维护，不复制为第二个可写对象字段；
 - `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
   Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
   （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；
 - `space_parent`：以 `space_id` 选择一个 Space 的结构父，值为单成员对象 `{parent_space_id}`（成员可空，null 即 root），**值本身不是裸 null**——本 family 的 compare-and-set 是对已存字段的谓词，裸 null 没有字段可比
   （见 [`../models/realm-and-space.md` §3.5](../models/realm-and-space.md)）；
-- `space_child_scope_policy`：每个 Space 有一个可选布尔值，真值要求放置子资源时所属 Realm 已接纳 MLS。创建或更新 Space 时通过顶层 `child_scope_policy` 写入。[Space 模型](../models/realm-and-space.md)
 - `message_reactions`：以被表态对象的 `payload.target_ref` 选择该 target 的 reaction 断言集合（v1 core 的 target MUST 是同一 effective scope 内的 `ak:message:`，见 [`../models/strand-and-message.md` §9.8.2](../models/strand-and-message.md)）；值是 `keyed-set projection` 的 dot 集合，**不是** `(target_ref, key, members[], count)` 默认视图——后者是它之上的读侧折叠（§9.8.3）；
 - `mls_group`：以 Realm `scope_ref` 选择 MLS group；
 - `realm_authority_root`：singleton，值为 `current-state.schema.json` 的封闭 `realm_authority_root_value`（由各写入方的 `value_schema_ref` 以 JSON Pointer 指向；它没有、也 MUST NOT 有自己的 `ak.schema.*` id，见上节末段与 [`realm-and-space.md` §2.5.1](../models/realm-and-space.md)）；

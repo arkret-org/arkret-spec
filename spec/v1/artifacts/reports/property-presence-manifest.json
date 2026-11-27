@@ -13,13 +13,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10889,
+    "total_properties": 10881,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2510,
+      "optional": 2507,
       "optional_defaulted": 46,
-      "required": 7704,
-      "required_nullable": 377,
+      "required": 7700,
+      "required_nullable": 376,
       "tristate": 252
     },
     "tristate_occurrences": 252,
@@ -6799,12 +6799,6 @@
         "/$defs/current_space/properties/selector/properties/space_id": "required",
         "/$defs/current_space/properties/source_stream_ref": "required",
         "/$defs/current_space/properties/value": "required",
-        "/$defs/current_space_child_scope_policy/properties/revision": "required",
-        "/$defs/current_space_child_scope_policy/properties/selector": "required",
-        "/$defs/current_space_child_scope_policy/properties/selector/properties/kind": "required",
-        "/$defs/current_space_child_scope_policy/properties/selector/properties/space_id": "required",
-        "/$defs/current_space_child_scope_policy/properties/source_stream_ref": "required",
-        "/$defs/current_space_child_scope_policy/properties/value": "required_nullable",
         "/$defs/current_space_parent/properties/revision": "required",
         "/$defs/current_space_parent/properties/selector": "required",
         "/$defs/current_space_parent/properties/selector/properties/kind": "required",
@@ -9192,9 +9186,8 @@
         "/$defs/space_parent_payload/properties/expected_parent_space_id": "required_nullable",
         "/$defs/space_parent_payload/properties/parent_space_id": "required_nullable",
         "/$defs/space_parent_payload/properties/space_id": "required",
-        "/$defs/space_patch_payload/properties/child_scope_policy": "optional",
         "/$defs/space_patch_payload/properties/expected_state_digest": "optional",
-        "/$defs/space_patch_payload/properties/patch": "optional",
+        "/$defs/space_patch_payload/properties/patch": "required",
         "/$defs/space_patch_payload/properties/space_id": "required",
         "/$defs/space_state_transition_payload/properties/effective_at": "optional",
         "/$defs/space_state_transition_payload/properties/reason": "optional",
@@ -9316,8 +9309,6 @@
         "/$defs/rsvp_entry/properties/encrypted_response",
         "/$defs/rsvp_entry/properties/response",
         "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",
-        "/$defs/space_patch_payload/properties/child_scope_policy",
-        "/$defs/space_patch_payload/properties/patch",
         "/$defs/strand_patch_payload/properties/expected_state_digest"
       ]
     },
@@ -14618,7 +14609,6 @@
         "/allOf/1/then/properties/fields": "optional",
         "/allOf/2/oneOf/1/properties/fields": "optional",
         "/properties/avatar_blob_ref": "optional",
-        "/properties/child_scope_policy": "optional",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
         "/properties/encrypted_metadata": "optional",

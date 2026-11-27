@@ -493,7 +493,7 @@ function matches(target, selector):
 
 **导航与授权分离（normative）**：Space 的当前 parent、创建时 parent、祖先链与 placement 均不是权限继承路径。授权选择器只按本节登记的显式目标、对象类型与 Realm 范围匹配，不遍历 Space 树。`match_scope=children` 或 `subtree` MUST `schema_violation`，不得静默解释为 `exact`、`realm_wide` 或忽略该条目；包含非法选择器的整个 grant 无效。查询仍可遍历子树，但必须逐对象执行独立的可见性检查，查询结果不能成为授权证明。
 
-操作 Space 自身仍必须具有命中该 Space 的 action、resource selector 与 constraints。该授权不自动扩展到子 Space、Strand、Message 或其它内容。普通 move/reparent 不改变对象的 Realm、capability 或密钥访问资格；`child_scope_policy` 只能允许或拒绝放置，不能为通过检查而改绑子对象 scope。权限变更必须由相应的显式安全操作完成。用户界面可以帮助批量选择对象，但批准时必须冻结确切对象集合并使用各自已登记的授权操作；后续导航变化不扩大该集合。
+操作 Space 自身仍必须具有命中该 Space 的 action、resource selector 与 constraints。该授权不自动扩展到子 Space、Strand、Message 或其它内容。普通 move/reparent 不改变对象的 Realm、capability 或密钥访问资格。权限变更必须由相应的显式安全操作完成。用户界面可以帮助批量选择对象，但批准时必须冻结确切对象集合并使用各自已登记的授权操作；后续导航变化不扩大该集合。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 

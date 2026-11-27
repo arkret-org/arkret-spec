@@ -9697,9 +9697,10 @@
     },
     "space_patch_payload": {
       "type": "object",
-      "description": "Space metadata patch and optional separate child scope policy command. A policy member selects security execution; the patch cannot touch policy, identity, scope or lifecycle, including dotted paths. A combined Event is atomic and requires security finality.",
+      "description": "Space metadata update. The patch names at least one registered metadata path.",
       "required": [
-        "space_id"
+        "space_id",
+        "patch"
       ],
       "properties": {
         "space_id": {
@@ -9709,13 +9710,6 @@
           "allOf": [
             {
               "$ref": "#/$defs/patch"
-            },
-            {
-              "propertyNames": {
-                "not": {
-                  "pattern": "^child_scope_policy(?:\\.|$)"
-                }
-              }
             },
             {
               "propertyNames": {
@@ -9768,24 +9762,9 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
-        },
-        "child_scope_policy": {
-          "$ref": "./space.schema.json#/$defs/child_scope_policy"
         }
       },
-      "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "patch"
-          ]
-        },
-        {
-          "required": [
-            "child_scope_policy"
-          ]
-        }
-      ]
+      "additionalProperties": false
     },
     "space_state_transition_payload": {
       "type": "object",

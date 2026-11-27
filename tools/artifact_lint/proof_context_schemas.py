@@ -2242,7 +2242,7 @@ def _patch_target(lint: Lint, where: str, write: dict) -> dict | None:
     -- came back as a prohibition, and the one write the spec makes normatively
     load-bearing could not be registered at all: registering it turned the gate
     red. The same flattening merged every object's private bans, so
-    `resolution`, `stage`, `morph_kind`, `effective_scope`, `child_scope_policy`,
+    `resolution`, `stage`, `morph_kind`, `effective_scope`,
     `parent_space_id`, `scope_circle_id` and `mls_group_id` were enforced against
     every family that happened to declare a member of the same name. View did not
     collide, which is the only reason exactly one write was blocked rather than

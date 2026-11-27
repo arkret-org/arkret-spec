@@ -16,7 +16,7 @@ Space hierarchy 是 Arkret 的产品结构层：组织、workspace、project、f
 
 Space hierarchy MUST 完整位于同一个 Realm 内。Realm 决定谁能接收事件、读历史、解密内容和参与 federation；Space 决定对象在产品结构中位于哪里。
 
-**权限不随层级继承（normative）**：Space 的当前父子关系与创建时归属均不授予或撤销权限。移动 Space / Strand 只改变导航或 placement；对象所属 Realm 和显式 capability 仍分别验证。操作 Space 本身需要对应授权；目标容器的 `child_scope_policy` 可以拒绝移动，但 MUST NOT 自动改变被移动对象的 scope 或密钥访问资格。授权选择器不支持子树继承，见 [resource-selector-grammar.md §6](../authz/resource-selector-grammar.md#6-匹配算法)。
+**权限不随层级继承（normative）**：Space 的当前父子关系与创建时归属均不授予或撤销权限。移动 Space / Strand 只改变导航或 placement；对象所属 Realm 和显式 capability 仍分别验证。操作 Space 本身需要对应授权。授权选择器不支持子树继承，见 [resource-selector-grammar.md §6](../authz/resource-selector-grammar.md#6-匹配算法)。
 
 完整设置关系及 retention / legal hold / 明文服务边界见
 [`scope-settings.md`](../governance/scope-settings.md)；Space ancestor 不是这些控制事实的自动传播路径。

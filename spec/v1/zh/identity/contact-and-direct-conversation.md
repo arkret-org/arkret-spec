@@ -658,8 +658,8 @@ Direct Conversation 保留 stable pair／唯一 DM Realm／binding。Main Chat �
 | Strand create | active 同 Realm primary discussion；仅单 discussion track，无 description、stage、schema 扩展、Agent ceiling 或初始 topic；标题使用 encrypted_metadata。 |
 | Strand update | 同 Realm active Chat；仅整体 set encrypted_metadata，或 topic 的显式整体 set／unset。不得写 topic 子路径、直接值、null、tracks、content、stage、scope 或 metadata 明文。每次 topic 变更 MUST 带 expected_state_digest，等于完整前像 strand current canonical JSON 的 SHA-256；不匹配按现行 CAS 零写入拒绝。set 的 Topic 必须是同 Realm active root Topic Space。unset 必须已有 topic，可解除归档 Topic 的引用。标题更新不要求分类 CAS；二者同写时仍要求 CAS。 |
 | Strand archive/restore | 仅额外 Chat，沿用 active→archived／archived→active；不得 archive/redact main 或破坏 main 锚点。分类保留，不级联 Topic lifecycle。 |
-| Space create | 仅同 Realm root Topic Space，无父容器、schema 扩展、用户明文 metadata、fields 或 child_scope_policy；metadata 必须加密。 |
-| Space update | 同 Realm root Topic Space；仅整体 set encrypted_metadata 或合法 rank；不得写 kind、scope、schema、WIP、parent 或 child policy。 |
+| Space create | 仅同 Realm root Topic Space，无父容器、schema 扩展、用户明文 metadata、fields；metadata 必须加密。 |
+| Space update | 同 Realm root Topic Space；仅整体 set encrypted_metadata 或合法 rank；不得写 kind、scope、schema、WIP 或 parent。 |
 | Space archive/restore/tombstone | 独立 Space lifecycle，无隐式分类迁移；tombstone 必须无有效 topic 引用，archived Chat 的引用同样属于活依赖，拒绝 reason=space_has_live_dependents，零写入。 |
 
 ak.strand.move/reorder 与 ak.space.parent 不属于此 participant 扩展。分类通过 ak.strand.update；首次分类、换 Topic、Topic 内排序均整体 set topic，取消分类显式 unset。取消后保留 strand current revision 与历史，不删除 Chat／消息或重建 Strand。Topic 内按 rank、相同 rank 时按 Strand ID 稳定排序。Topic 自身按 Space rank、相同 rank 时按 Space ID 排序。客户端基于获授权完整 current 显式生成 CAS，不补隐式前像。

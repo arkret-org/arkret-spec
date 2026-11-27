@@ -15,9 +15,7 @@ cell_families`, which short-circuits on an empty set. Three of the four live
 * `space_metadata` is nowhere in `spec/v1/zh/`; the `scope_circle_id` row it
   owned is `create_locked` and its real owner is `ak.space.create`, matching
   every other `create_locked` row in the file;
-* `space_parent` and `space_child_scope_policy` were real, prose-backed and
-  unregistered, so they sat in a shrinking ledger with their citations until the
-  Space coverage batch registered both families and closed it.
+* `space_parent` was registered by the Space coverage batch, closing the ledger.
 
 The ledger is empty now, so the tests that prove how it behaves build their own
 entry instead of borrowing a live one. Every mutation reads as a delta against

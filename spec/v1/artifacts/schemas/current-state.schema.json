@@ -143,9 +143,6 @@
       "$ref": "#/$defs/current_space_parent"
     },
     {
-      "$ref": "#/$defs/current_space_child_scope_policy"
-    },
-    {
       "$ref": "#/$defs/current_agent_provisioning"
     },
     {
@@ -3608,64 +3605,6 @@
         },
         "value": {
           "$ref": "#/$defs/space_parent_value"
-        }
-      },
-      "additionalProperties": false,
-      "x-arkret-name-role": "current_state"
-    },
-    "space_child_scope_policy_value": {
-      "description": "Declared encryption requirement for placement. Null records an undeclared requirement at creation.",
-      "oneOf": [
-        {
-          "$ref": "./space.schema.json#/$defs/child_scope_policy"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "current_space_child_scope_policy": {
-      "type": "object",
-      "description": "Per-Space encryption placement requirement. A dedicated policy write replaces this value.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "space_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "space_child_scope_policy",
-              "x-arkret-value-ownership": {
-                "class": "owned_symbol",
-                "authority": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
-                "owner": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
-                "values": [
-                  "space_child_scope_policy"
-                ]
-              }
-            },
-            "space_id": {
-              "$ref": "./event-payload.schema.json#/$defs/space_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "#/$defs/space_child_scope_policy_value"
         }
       },
       "additionalProperties": false,

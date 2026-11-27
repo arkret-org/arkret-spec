@@ -474,17 +474,6 @@
       }
     },
     {
-      "state_kind": "space_child_scope_policy",
-      "schema_ref": "schemas/current-state.schema.json#/$defs/current_space_child_scope_policy",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "models/realm-and-space.md §3.3"
-        ],
-        "note": "Placement reads the requirement in the target Space and the accepted Realm MLS activation."
-      }
-    },
-    {
       "state_kind": "agent_provisioning",
       "schema_ref": "schemas/current-state.schema.json#/$defs/current_agent_provisioning",
       "consumption": {

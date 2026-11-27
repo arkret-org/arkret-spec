@@ -35,7 +35,7 @@ updated: 2026-10-19
 
 接受 Realm MLS Genesis 后，应用内容 MUST 按对应 group 与 epoch 发送；禁止撤销激活、替换 group 或回退明文。公开治理材料按 Event 注册类别处理。Sidecar 的私有 group 独立激活和验证。任何一方的密钥均不能代替另一方的密钥。
 
-Space 的可选布尔字段 `child_scope_policy` 为 true 时，接纳方 MUST 在写入放置关系的同一事务内验证目标 Realm 已接受 MLS Genesis。该约束覆盖 Strand 创建及移动、Space 初始放置及改挂、结构性 contains。条件不成立时拒绝该写入；不得自动开启 MLS、改绑对象或复制密钥。字段缺省与显式 false 的更新语义由 [Realm 与 Space](../models/realm-and-space.md) 定义。
+普通 Space 和 Strand 在 Realm 激活 MLS 前后均可放置。接纳方按对象所属 Realm 验证权限、层级与并发条件。
 
 ## 4. Retention 与 legal hold 的跨 scope 适用边界
 

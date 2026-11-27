@@ -50,7 +50,7 @@ Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织�
 | 协作事项、讨论或任务及其 Track | Strand | 各 Track 共用 Strand 所属 Realm 的内容域；动作和字段可进一步限制权限 |
 | 关联多个已有 Realm | Realm link 或客户端 View | 每个目标独立检查读取资格 |
 
-需要独立成员、历史或密钥的普通协作组 MUST 使用独立 Realm。Realm 的 `parent_membership` 准入规则可要求申请人在指定来源 Realm 中具有有效成员资格。个人 Sidecar 由其主人启用，使用专用私有流与 MLS group。Space 的 `child_scope_policy` 只在放置时检查所属 Realm 的加密状态。
+需要独立成员、历史或密钥的普通协作组 MUST 使用独立 Realm。Realm 的 `parent_membership` 准入规则可要求申请人在指定来源 Realm 中具有有效成员资格。个人 Sidecar 由其主人启用，使用专用私有流与 MLS group。
 
 对象与约束定义见 [Realm 与 Space](../models/realm-and-space.md)、[Space 层级](../models/space-hierarchy.md)、[Realm links](../models/realm-links.md)、[Strand 与 Message](../models/strand-and-message.md) 和 [Sidecar](../models/sidecar.md)。
 

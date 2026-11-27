@@ -208,16 +208,6 @@
         }
       ]
     },
-    "child_scope_policy.kind": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "space.schema.json#/$defs/child_scope_policy",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
     "content_block_composite": {
       "selectors": [
         {
@@ -4035,25 +4025,6 @@
         "values": [
           "require_parent_reference"
         ]
-      }
-    },
-    {
-      "id": "require_scope_ref",
-      "context": "child_scope_policy.kind",
-      "since_revision": "2026-05-25",
-      "rejection_level": "hard_reject",
-      "replacement": "child_scope_policy",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Space placement accepts a boolean child_scope_policy.",
-      "match": {
-        "kind": "value",
-        "values": [
-          "require_scope_ref"
-        ],
-        "value_pointer": "/kind"
       }
     },
     {

@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:fba5266f91e7cbf94d137dff5d4c980543143bcaf6b315539f3c5fdd8302bde4",
+  "contract_digest": "sha256:4c93ffc725e5046050ed00ea15d45fd009d3f7b124d6c6c975d965583138ff17",
   "encoding_profile_digest": "sha256:656f3db4925043d0853224486cf5930ef7cbb09ed593e343f37c15f74d285ecd",
   "schemas": [
     {
@@ -35887,9 +35887,6 @@
             "$ref": "#/$defs/current_space_parent"
           },
           {
-            "$ref": "#/$defs/current_space_child_scope_policy"
-          },
-          {
             "$ref": "#/$defs/current_agent_provisioning"
           },
           {
@@ -39352,64 +39349,6 @@
               },
               "value": {
                 "$ref": "#/$defs/space_parent_value"
-              }
-            },
-            "additionalProperties": false,
-            "x-arkret-name-role": "current_state"
-          },
-          "space_child_scope_policy_value": {
-            "description": "Declared encryption requirement for placement. Null records an undeclared requirement at creation.",
-            "oneOf": [
-              {
-                "$ref": "./space.schema.json#/$defs/child_scope_policy"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "current_space_child_scope_policy": {
-            "type": "object",
-            "description": "Per-Space encryption placement requirement. A dedicated policy write replaces this value.",
-            "required": [
-              "selector",
-              "source_stream_ref",
-              "revision",
-              "value"
-            ],
-            "properties": {
-              "selector": {
-                "type": "object",
-                "required": [
-                  "kind",
-                  "space_id"
-                ],
-                "properties": {
-                  "kind": {
-                    "const": "space_child_scope_policy",
-                    "x-arkret-value-ownership": {
-                      "class": "owned_symbol",
-                      "authority": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
-                      "owner": "current-state.schema.json#/$defs/current_space_child_scope_policy/properties/selector/properties/kind",
-                      "values": [
-                        "space_child_scope_policy"
-                      ]
-                    }
-                  },
-                  "space_id": {
-                    "$ref": "./event-payload.schema.json#/$defs/space_id"
-                  }
-                },
-                "additionalProperties": false
-              },
-              "source_stream_ref": {
-                "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-              },
-              "revision": {
-                "$ref": "#/$defs/revision"
-              },
-              "value": {
-                "$ref": "#/$defs/space_child_scope_policy_value"
               }
             },
             "additionalProperties": false,
@@ -67512,9 +67451,10 @@
           },
           "space_patch_payload": {
             "type": "object",
-            "description": "Space metadata patch and optional separate child scope policy command. A policy member selects security execution; the patch cannot touch policy, identity, scope or lifecycle, including dotted paths. A combined Event is atomic and requires security finality.",
+            "description": "Space metadata update. The patch names at least one registered metadata path.",
             "required": [
-              "space_id"
+              "space_id",
+              "patch"
             ],
             "properties": {
               "space_id": {
@@ -67524,13 +67464,6 @@
                 "allOf": [
                   {
                     "$ref": "#/$defs/patch"
-                  },
-                  {
-                    "propertyNames": {
-                      "not": {
-                        "pattern": "^child_scope_policy(?:\\.|$)"
-                      }
-                    }
                   },
                   {
                     "propertyNames": {
@@ -67583,24 +67516,9 @@
               },
               "expected_state_digest": {
                 "$ref": "#/$defs/digest"
-              },
-              "child_scope_policy": {
-                "$ref": "./space.schema.json#/$defs/child_scope_policy"
               }
             },
-            "additionalProperties": false,
-            "anyOf": [
-              {
-                "required": [
-                  "patch"
-                ]
-              },
-              {
-                "required": [
-                  "child_scope_policy"
-                ]
-              }
-            ]
+            "additionalProperties": false
           },
           "space_state_transition_payload": {
             "type": "object",
@@ -113596,7 +113514,7 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/space.schema.json",
-        "description": "A structural grouping inside its Realm. A Space can require that child placement use an accepted ordinary Realm MLS group.",
+        "description": "A structural grouping inside its Realm.",
         "type": "object",
         "required": [
           "schema",
@@ -113625,10 +113543,6 @@
           "realm_id": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id",
             "description": "Immutable Realm of this Space and of resources structurally placed under it. Producers explicitly bind new resources to this Realm; scope and capability checks remain independent."
-          },
-          "child_scope_policy": {
-            "$ref": "#/$defs/child_scope_policy",
-            "description": "Reducer-enforced placement/encryption policy for child resources created in or moved into this Space."
           },
           "parent_space_id": {
             "type": "string",
@@ -113891,10 +113805,6 @@
         "$defs": {
           "timestamp": {
             "$ref": "./time.schema.json#/$defs/timestamp"
-          },
-          "child_scope_policy": {
-            "type": "boolean",
-            "description": "True requires accepted Realm MLS activation for child placement. False clears the requirement."
           },
           "space_metadata": {
             "type": "object",
@@ -117615,7 +117525,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:03ee896f7a0f1f503313c4e45383649475156f2a68151cf9c6f8f72cc0ceefa2"
+      "digest": "sha256:3f8f3e4fe98f8eb1e5b8b4d134c622d9d562420f99b301e3a9934fe3c44f19bc"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -117647,7 +117557,7 @@
     },
     {
       "file": "forbidden-wire-fields.json",
-      "digest": "sha256:4d49d8f6e4a4b6f35946b83ee9bbbe3adc0ee02cef85de085adb6ff0e8d680c4"
+      "digest": "sha256:fe3d1e5510522524b98db4ba7fc64b5e071d0b4aa915ca729d1457d63b676af5"
     },
     {
       "file": "hpke-suite-registry.json",
@@ -117719,7 +117629,7 @@
     },
     {
       "file": "reducer-managed-path-registry.json",
-      "digest": "sha256:944c8873f0e1008e24a3c80e125e0093dd473e1b37e5153f2d9c0a647928e222"
+      "digest": "sha256:f737ca26a03b1aec960d7bd68bd99cf7cc1230a56c89cdbca1243bc7ba97400b"
     },
     {
       "file": "registry-manifest.json",
