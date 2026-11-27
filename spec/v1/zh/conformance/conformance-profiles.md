@@ -743,17 +743,15 @@ controller-owned private AI workspace 行为。它依赖 Agent provisioning、au
 
 MUST 支持：
 
-- `ak.sidecar.create` 唯一创世身份：`sidecar_id=retype(event_id,"sidecar")`；payload 只携
-  不携完整对象或 reducer-derived 字段。
+- `ak.sidecar.create` 唯一创世身份：`sidecar_id=retype(event_id,"sidecar")`；payload 仅携来源项目的 `source_realm_id`。
 - `POST /_arkret/self/agent-sidecars:ensure` 的 closed prepare/commit/attach 三阶段；prepare 固定 exact Event
   drafts，new 分支返回 create + context attach，existing 分支只返回 attach；同 operation/key/exact bytes 幂等。
-- singleton key `(realm_id,controller_account_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
+- singleton key `(controller_account_id,source_realm_id)` 原子保留；不同 genesis Event 争用同一 key 必须 fail closed。
 - native `{kind:"sidecar",realm_id,sidecar_id}` scope 进入 Event digest、AAD、query/delivery 与 RealmCommit 验证。
 - `ak.sidecar.context.attach` 只登记一个已存在的 source Strand/Relation context，不创建 Strand 或 Relation。
 - read surface 返回只读 `desired_agent_ids` 与 `effective_agent_ids`；前者从 ownership、Agent lifecycle/
-  runtime-key authorization 与 exact Realm member_state revisions 派生，不可由 operation 写入；后者是其中已完成当前 Sidecar
-  MLS/KeyPackage reconciliation 的子集。action grant、participation selection 与 policy 独立约束写入、
-  reply、mention、publish 等行为，不形成第二套 MLS roster。
+  runtime-key authorization 与主人在此 Sidecar 签署且由 H 接纳的当前启用记录派生；后者是其中已完成当前 Sidecar
+  MLS/KeyPackage reconciliation 的子集。私聊回复另需该启用记录的回复许可，项目读取和发布由项目治理站独立授权。
 - Sidecar MLS 直接绑定 `sidecar_id` 和 participant authority revisions，不依赖 Circle membership。不同
   `sidecar_id` 的 MLS group 与有效访问独立求值；一个 Realm/Sidecar 的 membership 或 MLS reconciliation
   MUST NOT 改变另一个 Realm/Sidecar 的 desired/effective 集合、投递或 future epoch key。
@@ -763,11 +761,11 @@ MUST 支持：
 
 MUST NOT：
 
-- 接受或实现 `ak.sidecar.access.replace`、Sidecar member/invite/join/role/admin surface；
+- 接受或实现 `ak.sidecar.access.replace`、允许第三方加入的 Sidecar member/invite/join/role/admin surface；
 - 创建 backing Circle、Circle membership、private Strand 或 `agent_sidecar_of` Relation；
-- 允许 caller 提供 participant/member/Agent selection；
+- 接受调用方自报的 roster 取代 H 根据主人签署的启用记录求出的参与资格；
 - 将 source Strand 当作 Sidecar security scope，或向 shared surface泄漏 Sidecar private activity；
-- 为同一 `(realm_id,controller_account_id)` 创建第二个 non-tombstoned Sidecar。
+- 为同一 `(controller_account_id,source_realm_id)` 创建第二个 non-tombstoned Sidecar。
 
 ### 18.5 Agent Participation Policy
 

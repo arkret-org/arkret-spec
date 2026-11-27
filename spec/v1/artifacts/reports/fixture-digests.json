@@ -38,7 +38,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "e9c339550b54a54eedcf8b34bb51b07a0997f9c5a2ca8213d29896ebb09e598a"
+      "sha256": "e3f2a6fe93d4a8971d4aaae1d664cce767926228b9b90ee7c8ed2f7a5737fd8e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
@@ -466,7 +466,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json",
-      "sha256": "ec18852460acd1c7f8fa4fc7e112ccc87c9dee3cf331586eb9af2e147276194d"
+      "sha256": "4c9c3b390376aa8eaa271eed8c4c4b98e8eec48ccbc756e5613549705e81f866"
     },
     {
       "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",

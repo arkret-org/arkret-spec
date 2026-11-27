@@ -9810,9 +9810,16 @@
     },
     "sidecar_create_payload": {
       "type": "object",
-      "description": "Minimal native Sidecar genesis intent. The payload is empty: sidecar_id is derived from the Event id; realm_id, controller_account_id, state and timestamps are reducer-derived from the accepted envelope, and the Sidecar scope activates standard RFC 9420 through its own accepted ak.mls.genesis.",
-      "properties": {},
-      "additionalProperties": false
+      "description": "Controller-signed personal Sidecar creation in the Human PCR at its owning Station. Only the associated source project is carried in the payload.",
+      "properties": {
+        "source_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source_realm_id"
+      ]
     },
     "signature_material": {
       "oneOf": [
@@ -11714,6 +11721,70 @@
     },
     "mls_history_recovery_payload": {
       "$ref": "./content-encryption.schema.json#/$defs/history_recovery"
+    },
+    "sidecar_member_state_payload": {
+      "type": "object",
+      "description": "Opt-in at the owning Account Station. The predecessor is absent on the first join and names the latest accepted change for the same Sidecar and Agent thereafter.",
+      "required": [
+        "agent_account_id",
+        "membership"
+      ],
+      "properties": {
+        "agent_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "membership": {
+          "$ref": "#/$defs/membership_state",
+          "enum": [
+            "join",
+            "leave"
+          ],
+          "x-arkret-value-ownership": {
+            "class": "owned_symbol",
+            "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/membership",
+            "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/membership",
+            "values": [
+              "join",
+              "leave"
+            ]
+          }
+        },
+        "predecessor_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "private_reply_allowed": {
+          "type": "boolean",
+          "const": true,
+          "description": "Controller permission to write encrypted replies on this exact private Sidecar. Absent means read-only.",
+          "x-arkret-value-ownership": {
+            "class": "numeric",
+            "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/private_reply_allowed",
+            "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/private_reply_allowed",
+            "values": [
+              true
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "dependentSchemas": {
+        "private_reply_allowed": {
+          "properties": {
+            "membership": {
+              "const": "join",
+              "x-arkret-value-ownership": {
+                "class": "owned_symbol",
+                "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/dependentSchemas/private_reply_allowed/properties/membership",
+                "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/dependentSchemas/private_reply_allowed/properties/membership",
+                "values": [
+                  "join"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "x-arkret-public-handshake-contract": {

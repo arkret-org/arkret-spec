@@ -1188,8 +1188,8 @@
     },
     {
       "page": "models/sidecar.md",
-      "heading": "6.1 跨站 Agent 历史下界来源（normative）",
-      "fragment": "61-跨站-agent-历史下界来源normative"
+      "heading": "6.1 私有握手、历史与排队投递（normative）",
+      "fragment": "61-私有握手历史与排队投递normative"
     },
     {
       "page": "models/strand-and-message.md",

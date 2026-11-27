@@ -140,6 +140,7 @@
         "ak.self.agent.pause",
         "ak.self.agent.resume",
         "ak.sidecar.context.attach",
+        "ak.sidecar.member.state",
         "ak.sidecar.create",
         "ak.space.archive",
         "ak.space.create",
@@ -285,6 +286,7 @@
           "ak.self.agent.pause",
           "ak.self.agent.resume",
           "ak.sidecar.context.attach",
+          "ak.sidecar.member.state",
           "ak.sidecar.create",
           "ak.space.archive",
           "ak.space.create",
@@ -5481,6 +5483,33 @@
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.sidecar.member.state",
+            "x-arkret-value-ownership": {
+              "class": "namespaced_symbol",
+              "authority": "event-envelope.schema.json#/allOf/158/if/properties/kind",
+              "owner": "event-envelope.schema.json#/allOf/158/if/properties/kind",
+              "values": [
+                "ak.sidecar.member.state"
+              ]
+            }
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/sidecar_member_state_payload"
           }
         }
       }
@@ -10922,6 +10951,7 @@
                 "ak.self.agent.resume",
                 "ak.sidecar.context.attach",
                 "ak.sidecar.create",
+                "ak.sidecar.member.state",
                 "ak.space.archive",
                 "ak.space.create",
                 "ak.space.parent",
@@ -11064,6 +11094,7 @@
                   "ak.self.agent.resume",
                   "ak.sidecar.context.attach",
                   "ak.sidecar.create",
+                  "ak.sidecar.member.state",
                   "ak.space.archive",
                   "ak.space.create",
                   "ak.space.parent",
@@ -11221,6 +11252,7 @@
             "ak.self.agent.resume",
             "ak.sidecar.context.attach",
             "ak.sidecar.create",
+            "ak.sidecar.member.state",
             "ak.space.archive",
             "ak.space.create",
             "ak.space.parent",
@@ -11369,6 +11401,7 @@
               "ak.self.agent.resume",
               "ak.sidecar.context.attach",
               "ak.sidecar.create",
+              "ak.sidecar.member.state",
               "ak.space.archive",
               "ak.space.create",
               "ak.space.parent",

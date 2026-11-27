@@ -584,9 +584,38 @@
         },
         "signature": {
           "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        },
+        "sidecar_backup_strategy": {
+          "$ref": "./content-encryption.schema.json#/$defs/encryption_backup_strategy",
+          "description": "Create-locked strategy from the accepted home Human PCR genesis identified by realm_id, attested only inside its native private Sidecar."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "effective_scope": {
+                "required": [
+                  "sidecar_id"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sidecar_backup_strategy"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "sidecar_backup_strategy"
+              ]
+            }
+          }
+        }
+      ]
     },
     "roster_read_response_body": {
       "type": "object",

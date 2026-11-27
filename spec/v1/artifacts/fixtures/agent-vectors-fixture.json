@@ -812,7 +812,8 @@
       "sidecar_explicit_write_grant",
       "sidecar_write_grant_without_effective",
       "sidecar_write_grant_after_desired_loss",
-      "sidecar_material_not_a_write_grant_operation"
+      "sidecar_material_not_a_write_grant_operation",
+      "project_grant_cannot_authorize_private_reply"
     ],
     "cases": [
       {
@@ -1702,7 +1703,7 @@
           "action": "ak.message.create",
           "paths": [
             {
-              "kind": "capability_grant",
+              "kind": "sidecar_private_reply",
               "actions": [
                 "ak.message.create"
               ],
@@ -1724,7 +1725,7 @@
           "action": "ak.message.create",
           "paths": [
             {
-              "kind": "capability_grant",
+              "kind": "sidecar_private_reply",
               "actions": [
                 "ak.message.create"
               ],
@@ -1747,7 +1748,7 @@
           "action": "ak.message.create",
           "paths": [
             {
-              "kind": "capability_grant",
+              "kind": "sidecar_private_reply",
               "actions": [
                 "ak.message.create"
               ],
@@ -1770,7 +1771,7 @@
           "action": "ak.message.create",
           "paths": [
             {
-              "kind": "capability_grant",
+              "kind": "sidecar_private_reply",
               "actions": [
                 "ak.message.create"
               ],
@@ -1782,6 +1783,28 @@
             }
           ],
           "phase": "bootstrap"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "project_grant_cannot_authorize_private_reply",
+        "input": {
+          "resource_profile": "sidecar",
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "phase": "payload"
         },
         "expected": "deny"
       }

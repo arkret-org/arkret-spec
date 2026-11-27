@@ -1555,7 +1555,7 @@
       "http": "POST /_arkret/peer/streams/scan",
       "grpc": "PeerStreams/Scan",
       "mq": "peer.streams.read.scan",
-      "notes": "Replicate one visibility-authorized stream from its current governor. Full digest-bearing Human Account Device, Realm Device and Service rows retain their original Commit-bound signer facts. Realm control history is not public member replication; no current-key reconstruction. A live owned-Agent content request uses its isolated signed request branch and releases only the current governor-filtered rows for that endpoint.",
+      "notes": "Project replication and project Agent content require the governing Station and the actual current membership. Personal Sidecar scopes are excluded from every peer scan.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_request_body",

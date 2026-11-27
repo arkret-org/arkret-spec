@@ -62,8 +62,7 @@ MUST NOT 伪装成 private，MUST 阻止需模式判定的发送／执行。首�
 ## 2. 成员与披露
 
 模式 MUST NOT 修改 Realm／Circle membership 或 [Sidecar §5](./sidecar.md#5-参与者与有效访问) 的派生集合。
-Sidecar 参与者始终为主人加上该 Realm 内全部 active、ownership／runtime-key authorization 有效的自有
-active member Agents；不得自行邀请、添加、移除或退出。公开 Agent 也参与这个私有 scope。
+Sidecar 的主人可在 H 为本私聊显式启用或撤回自有 Agent。H 将仍具有效所有权、活跃生命周期和运行端授权的已启用 Agent 纳入目标集合。项目公开模式与项目成员资格独立求值。
 desired 不等于 effective，实际访问继续受独立 Sidecar MLS readiness、历史读取权与 key 可达性约束。
 
 普通第三方产品成员列表、profile preview 与 picker MUST NOT 展示私人 Agent 的参与候选；不得从第三方

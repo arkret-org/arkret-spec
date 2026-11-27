@@ -32,7 +32,7 @@ def coordinate(label, position):
 
 JOIN, CREATE = coordinate("current_agent_join", 6), coordinate("sidecar_create", 8)
 REQUEST = {"request_id": "ak:request:01964137-0000-7000-8000-000000000001", "realm_id": REALM,
-           "member_account_id": AGENT, "membership_commit_id": JOIN["commit_id"], "history_stream_ref": STREAM}
+           "member_account_id": AGENT, "membership_commit_id": JOIN["commit_id"], "history_stream_ref": PARENT}
 
 
 def sign_basis(value):
@@ -44,21 +44,16 @@ def sign_basis(value):
 
 def signed_basis():
     """An independently established G cut expressed in existing fields only."""
-    anchor = typed_id("realm_commit", {"fixture": "accepted_sidecar_head"})
-    revision = lambda ref: {key: ref[key] for key in ("commit_id", "stream_position")}
-    rows = [{"selector": {"kind": "member_state", "actor_id": {"kind": "account", "account_id": AGENT}},
-             "source_stream_ref": PARENT, "revision": revision(JOIN), "value": {"membership": "join"}},
-            {"selector": {"kind": "sidecar", "sidecar_id": SIDECAR}, "source_stream_ref": PARENT,
-             "revision": revision(CREATE), "value": {"id": SIDECAR, "schema": "ak.schema.agent_sidecar.v1",
-             "realm_id": REALM, "controller_account_id": CONTROLLER, "state": "active",
-             "created_at": "2026-11-18T00:00:00.000Z"}}]
+    anchor = typed_id("realm_commit", {"fixture": "accepted_project_head"})
+    row = {"selector": {"kind": "member_state", "actor_id": {"kind": "account", "account_id": AGENT}},
+           "source_stream_ref": PARENT, "revision": {key: JOIN[key] for key in ("commit_id","stream_position")},
+           "value": {"membership": "join"}}
     return sign_basis({"realm_id": REALM, "governance_generation": "0", "purpose": "stream_history",
-        "history_basis": {"account_id": AGENT, "stream_ref": STREAM, "anchor_position": 4,
-                          "anchor_commit_ref": anchor, "accepted_dependency_refs": sorted([JOIN, CREATE], key=lambda ref: ref["event_id"].encode())},
-        "visible_stream_heads": [{"stream_ref": STREAM, "stream_position": 4, "commit_id": anchor},
-                                 {"stream_ref": PARENT, **revision(CREATE)}], "current_state_entries": rows,
-        "retention_and_history_floor": {"history_access": "since_join", "stream_floors": [
-            {"stream_ref": STREAM, "oldest_position": 3}, {"stream_ref": PARENT, "oldest_position": 6}]},
+        "history_basis": {"account_id": AGENT, "stream_ref": PARENT, "anchor_position": 8,
+                          "anchor_commit_ref": anchor, "accepted_dependency_refs": [JOIN]},
+        "visible_stream_heads": [{"stream_ref": PARENT, "stream_position": 8, "commit_id": anchor}],
+        "current_state_entries": [row], "retention_and_history_floor": {"history_access": "since_join",
+            "stream_floors": [{"stream_ref": PARENT, "oldest_position": 6}]},
         "created_at": "2026-11-18T00:00:00.000Z"})
 
 
@@ -94,10 +89,10 @@ def bound_floor(snapshot, request, current_join):
     return floors[0]["oldest_position"]
 
 
-class SidecarHistoryFloorSourceTest(unittest.TestCase):
+class ProjectHistoryFloorSourceTest(unittest.TestCase):
     def test_distinct_stations_use_existing_signed_account_join_stream_and_floor(self):
         self.assertNotEqual(H, G)
-        self.assertEqual(bound_floor(signed_basis(), REQUEST, JOIN), 3)
+        self.assertEqual(bound_floor(signed_basis(), REQUEST, JOIN), 6)
 
     def test_same_agent_rejoin_rejects_old_signed_basis(self):
         joined = coordinate("new_agent_join", 9)
@@ -106,11 +101,11 @@ class SidecarHistoryFloorSourceTest(unittest.TestCase):
 
     def test_resigned_wrong_agent_stream_tenure_or_incomplete_membership_rejected(self):
         for change in (lambda q: q["history_basis"].update(account_id=CONTROLLER),
-                       lambda q: q["history_basis"].update(stream_ref=PARENT),
+                       lambda q: q["history_basis"].update(stream_ref=STREAM),
                        lambda q: q.update(governance_generation="1"),
                        lambda q: q["history_basis"].update(accepted_dependency_refs=[CREATE]),
                        lambda q: q["current_state_entries"].pop(0),
-                       lambda q: q["retention_and_history_floor"]["stream_floors"][0].update(oldest_position=5)):
+                       lambda q: q["retention_and_history_floor"]["stream_floors"][0].update(oldest_position=9)):
             q = signed_basis()
             change(q)
             with self.assertRaises(ValueError):
@@ -141,7 +136,7 @@ def content_exchange():
         "controller_membership_commit_id": CREATE["commit_id"],
         "agent_key_authorization_ref": CREATE["event_id"],
         "action": "ak.object.read_content",
-        "effective_scope": {"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR},
+        "effective_scope": PARENT,
         "request_digest": "sha256:" + "a" * 64,
     }
     response = {
@@ -160,6 +155,38 @@ def content_exchange():
 
 
 class OwnedAgentWireTest(unittest.TestCase):
+    def test_only_home_sidecar_rosters_carry_the_backup_strategy(self):
+        validator = schema_validator(ARTIFACTS / "schemas/mls-roster-authority.schema.json", "#/$defs/roster_manifest")
+        fixture = json.loads((ARTIFACTS / "fixtures/mls-roster-client-roles-fixture.json").read_text(encoding="utf-8"))
+        def manifest(tree):
+            if isinstance(tree, dict):
+                if "manifest" in tree:
+                    yield tree["manifest"]
+                for value in tree.values():
+                    yield from manifest(value)
+            elif isinstance(tree, list):
+                for value in tree:
+                    yield from manifest(value)
+        example = next(manifest(fixture["schema_validation_cases"]))
+        normal = dict(example, effective_scope=PARENT)
+        private = dict(example, effective_scope=STREAM)
+        strategy = {"sidecar_backup_strategy": "ak.encryption_backup.epoch_content_roots.v1"}
+        validator.validate(normal)
+        validator.validate({**private, **strategy})
+        self.assertFalse(validator.is_valid({**normal, **strategy}))
+        self.assertFalse(validator.is_valid(private))
+        self.assertFalse(validator.is_valid({**private, "sidecar_backup_strategy": "unknown"}))
+
+    def test_private_reply_requires_explicit_permission_on_a_join(self):
+        check = schema_validator(ARTIFACTS / "schemas/event-payload.schema.json", "#/$defs/sidecar_member_state_payload")
+        join = {"agent_account_id": AGENT, "membership": "join"}
+        check.validate(join)
+        check.validate({**join, "private_reply_allowed": True})
+        check.validate({**join, "membership": "leave"})
+        for value in (False, None, "true"):
+            self.assertFalse(check.is_valid({**join, "private_reply_allowed": value}))
+        self.assertFalse(check.is_valid({**join, "membership": "leave", "private_reply_allowed": True}))
+
     def test_session_source_and_history_are_exclusive(self):
         validator = schema_validator(ARTIFACTS / "schemas/realm-join-intake.schema.json",
                                      "#/$defs/peer_bootstrap_request_body")
@@ -178,35 +205,25 @@ class OwnedAgentWireTest(unittest.TestCase):
 
         scan = schema_validator(ARTIFACTS / "schemas/authority-commit-operations.schema.json",
                                 "#/$defs/peer_stream_scan_request_body")
-        page = {"realm_id": REALM, "stream_ref": STREAM, "after_position": None, "limit": 1}
+        page = {"realm_id": REALM, "stream_ref": PARENT, "after_position": None, "limit": 1}
         scan.validate(page)
         delivery = {k: v for k, v in request.items() if k != "realm_id"}
         delivery.update(session_grant_id="ak:session_grant:01964137-0000-7000-8000-000000000001", scan=page)
         scan.validate(delivery)
         self.assertFalse(scan.is_valid({**page, "content_intent": request["content_intent"]}))
 
-    def test_backup_root_context_requires_a_sidecar_write_in_request_and_response(self):
+    def test_project_authorities_cannot_request_personal_material(self):
         request, response = content_exchange()
-        fixture = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))
-        root = fixture["root_backup"]["envelope"]["contents"][0]["root_context"]
-        sidecar_root = dict(root, effective_scope=STREAM)
         schema = ARTIFACTS / "schemas/realm-join-intake.schema.json"
         for branch, body in (("request", request), ("response", response)):
             validator = schema_validator(schema, f"#/$defs/peer_bootstrap_{branch}_body")
-            intent = body["content_intent"]
-            for action in ("ak.message.create", "ak.message.redact.own", "ak.message.revise.own",
-                           "ak.reaction.add", "ak.reaction.remove"):
-                with self.subTest(branch=branch, action=action):
-                    writer = dict(intent, action=action, backup_root_context=sidecar_root)
-                    validator.validate(dict(body, content_intent=writer))
-            writer = dict(intent, action="ak.message.create", backup_root_context=sidecar_root)
-            for case, invalid in (
-                ("read with root", dict(intent, backup_root_context=sidecar_root)),
-                ("Realm write with Sidecar root", dict(writer, effective_scope=PARENT)),
-                ("Sidecar write with Realm root", dict(writer, backup_root_context=dict(root, effective_scope=PARENT))),
-            ):
-                with self.subTest(branch=branch, case=case):
-                    self.assertFalse(validator.is_valid(dict(body, content_intent=invalid)))
+            validator.validate(body)
+            for overrides in ({"effective_scope": STREAM}, {"backup_root_context": {}}):
+                self.assertFalse(validator.is_valid(dict(body, content_intent=dict(body["content_intent"], **overrides))))
+        selector = dict(REQUEST, history_stream_ref=PARENT)
+        validator = schema_validator(schema, "#/$defs/peer_bootstrap_request_body")
+        validator.validate(selector)
+        self.assertFalse(validator.is_valid(dict(selector, history_stream_ref=STREAM)))
 
     def test_first_writer_sidecar_packet_is_single_root_and_agent_signed(self):
         packet = json.loads((ARTIFACTS / "fixtures/content-history-fixture.json").read_text("utf-8"))["root_backup"]["envelope"]

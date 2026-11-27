@@ -50,7 +50,7 @@ quota_exhausted approval_missing mls_not_ready_for_payload
 direct_authority_cannot_read_ordinary_realm realm_grant_cannot_replace_sidecar_authority
 realm_membership_cannot_replace_direct_participant
 direct_verified_interval_without_origin_poll
-sidecar_explicit_write_grant sidecar_write_grant_without_effective
+project_grant_cannot_authorize_private_reply sidecar_explicit_write_grant sidecar_write_grant_without_effective
 sidecar_write_grant_after_desired_loss sidecar_material_not_a_write_grant_operation
 '''.split())
 
@@ -69,7 +69,7 @@ def path_allows(path, case):
             return False
         if case['action'] in READ_ACTIONS:
             return kind == 'sidecar_read'
-        return kind == 'capability_grant'
+        return kind == 'sidecar_private_reply' and case['action'] == 'ak.message.create'
     if profile not in ('realm', 'circle'):
         return False
     return kind == 'capability_grant' or (kind == 'membership_read' and case['action'] in READ_ACTIONS)
@@ -135,7 +135,7 @@ def check_agent_session_content(lint: Lint) -> None:
     exact_fields = {
         'vector_id': VECTOR,
         'fixture_ref': 'fixtures/agent-vectors-fixture.json#/session_content_authority_contract',
-        'authority_paths': ['capability_grant', 'membership_read', 'direct_participant', 'sidecar_read'],
+        'authority_paths': ['capability_grant', 'membership_read', 'direct_participant', 'sidecar_read', 'sidecar_private_reply'],
         'read_actions': READ_ACTIONS,
         'issuance_operation': 'ak.gate.account.command.issue_session_grant.v1',
         'refresh_operation': 'ak.gate.account.command.refresh_session_grant.v1',

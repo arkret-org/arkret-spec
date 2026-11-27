@@ -1797,6 +1797,35 @@
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
+    },
+    {
+      "event_kind": "ak.sidecar.create",
+      "exposures": [
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
+          "direction": "response",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_response_body",
+          "json_pointers": [
+            "/$defs/stream_scan_response_body/properties/committed_events"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
+          "direction": "response",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "json_pointers": [
+            "/$defs/CommittedEventView"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        }
+      ]
     }
   ]
 }

@@ -27,7 +27,7 @@ see_also:
 
 - 一条 Realm stream；
 - 每个 Circle 各一条 Circle stream；
-- 每个 Sidecar 各一条 Sidecar stream。
+- 仅主人的 Human PCR 治理坐标还可覆盖本人私有的 Sidecar stream。该流由 H 签收；来源项目没有此流或其 head。
 
 三类 stream 彼此没有全局 position，也没有跨 stream 总序。实现可在内部使用同一数据库 WAL，但不得把内部序号暴露为协议顺序。这样，无权读取某个 Circle 或 Sidecar 的主体不会从 Realm-wide position 缺口推断隐藏活动。
 
@@ -107,7 +107,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 默认后提交的合法 typed Event 覆盖同一 target 的旧 current。确需避免覆盖的 kind 必须在自己的 payload 中定义已登记的 `expected_commit_id`（具名多目标 guard 按各自名称），只与锁定 exact current row 的 covering Commit ID 相等比较。读侧 revision 仍为 `{commit_id, stream_position}`，Commit ID 的内容地址已唯一绑定 position；写条件不重复该坐标。比较失败时整个请求 rejected，不产生 Commit。account-private 面按 key 计数的 `expected_server_revision` 是另一个东西，不要与它混用。
 
-除 §5 登记的个人 Sidecar 首次创建外，跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
+跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
 `exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
 消费 Station 与独立审计 verifier 仍必须验证 Commit 签名与 authority chain；普通客户端按
@@ -138,20 +138,14 @@ transport-only producer evidence 刷新不改变内层 signed unit；peer 外层
 不能把缺记录当成首次写。恢复／handoff 必须保留可验证原件、完整 unit 接纳关系、业务 fence 与适用私密审计；
 尚不能重建原 outcome 时只可失败关闭，MUST NOT 重新执行。
 
-所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm。除下述个人 Sidecar 首次创建外，各成员 MUST 位于同一 Realm／Circle／Sidecar stream；
-读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。其余跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
+所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm 和同一 Realm／Circle／Sidecar stream；
+读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
 Recovery／SecurityRotation 是 durable workflow，不能包装成单笔「全部回滚」的 Event 单元或通用 Saga DSL。
 
-`authority_forward` 是首次接纳：`atomic_submission` 登记 `audit_paired_event` 及 `sidecar_ensure` 两类具名单元，
+`authority_forward` 是首次接纳：本轮只为 `audit_paired_event` 增加 typed `atomic_submission`，
 其它既有 self-only 单元不能因此被转发。`registered_atomic_unit` 是已 source-committed 单元的整体复制：
 接收方验证原 source Commit／proof／signer fact、顺序与本机披露资格，整体保存／物化或零写；不重审首次 approval、
 不重签 Commit、不产生第二轮 fanout。回传 source acceptance outcome 仅描述原治理站事实，不是接收方新增 finality。
-
-**个人 Sidecar 首次创建。** 在已登记的 `authority_forward` 上，`atomic_submission.unit_kind="sidecar_ensure"` 的两个 `events` 固定为主人设备原签的父 Realm `ak.sidecar.create` 和派生 Sidecar 的首个 `ak.sidecar.context.attach`。两者使用同一个普通 Realm、主人 Account 和设备，attach 的 scope 与 payload 引用由 create 原件派生的 Sidecar，其 critical 的 `after` 引用指向该 create Event，版本为 1，无前驱。此分支只接受这两份 EventAdmissionSubmission 及按相同顺序排列的两份设备证据，禁止 approval_signatures、其它生产者及 content_backup_sources。
-
-H 在验证 self 会话、ensure 权限和预留草稿后冻结整份转发。两个设备证明沿既有 `atomic_producer_evidence`，各自绑定准确 Event 和同一个去除证据数组后的整包摘要，同源同一当前设备截点。G 核来源为主人的 H、目的为当前 G、两份设备原签和证明、同一治理任期、父群资格和适用权限、singleton 空位、源 context 存在且可用。G 在同一事务写两份原件、各自的 Commit 和成对的接纳记录，任一失败全部回滚。attach 是新 Sidecar 流的 position 0；create 延续父群流，两条流之间没有 position 或 predecessor 关系。
-
-成功回应沿原 `authority_forward` 回复，`response_body` 携 `unit_kind="sidecar_ensure"`、`status` 和按请求顺序的两个原 Commit。相同两份原签重试须从已接纳单元恢复原 Commit；不同原件争同一 singleton 或复用单个 slot 均拒绝。已发送而结果未知时 H 重试冻结的请求，禁止为旧意图更新设备证明。H 在报告成功前验证两条回执各自覆盖的原件和同一治理链。跨站传输丢失回复不会撤销 G 的事务。既存 Sidecar 的单个位置关联继续使用其原有规则。[个人 Sidecar](../models/sidecar.md)
 
 ### 5.2 业务与审计配对单元（normative）
 
@@ -349,7 +343,8 @@ Consent current、撤销导致的 holder-private quarantine 更新，以及依�
 | 独立组织权威创建的 Organization PCR | 仅在 §8.1 验证独立 accepted 组织来源后可计划交接 | PCR governor 可改变，hosting AccountId 不变；组织管理登录／普通 SSO／用户 Agent 不产生资格；全部 native 私态与原件必须完整导入 |
 | 普通 Collaboration Realm | 可按 §8 计划交接 | 旧方在线、current controller、generation／head CAS、全状态冻结导入、双签；原 Realm ID、stream、成员授权和 MLS group 不变 |
 | Direct Conversation Realm（全部创建／materialization／bound 阶段） | 不可交接 | accepted genesis governor 固定、generation0；participant／root／双站签名不能解锁 |
-| Circle／Sidecar 与其中的 Space／Strand 内容 | 不可独立更换治理站；随所属 Realm 的合法交接迁入 | 保留各自 stream、final head、访问 floor、current、历史原件、public MLS／claim／Welcome及原MLS接纳的最小成员来源关联；不从别的 Realm 或父级授权扩大可见性 |
+| Circle 及项目 Space／Strand 内容 | 随所属项目合法交接 | 携带项目原件、head、floor 和必要公开 MLS 来源。 |
+| 个人 Sidecar | 固定在主人的账号 Station H | 项目交接清单及接受回执不得包含其标识、私聊、MLS、备份或关联。 |
 | Realm Bot／Ghost 及 realm_control | 无独立 Account／PCR 可迁；随所属 Realm 的合法交接延续治理 | 完整 Realm ActorId、原 Applet／DID／Device 归属不变；控制流、原签事实、current、审批／恢复 ledger 完整迁入；Applet 私钥与成员 MLS 私态不随治理交接搬运 |
 | Agent runtime 换进程／设备／主机及重新配对 | 可按 current controller 与 key／pairing 合同重新接入；不迁 Agent PCR | 不改变 Agent Account、controller Station 或 PCR governor；旧授权不能复活；新端仍需当前授权及原能力边界 |
 | 客户端本地密钥／MLS 状态备份与恢复 | 仅按对应密钥／备份合同转移本端已合法持有的状态 | 不转移服务端写权；仅按content-history.md恢复获权专用内容根，不克隆原始MLS私态，不授予membership／Device／Agent权限；Realm handoff 永不携成员 private MLS state |

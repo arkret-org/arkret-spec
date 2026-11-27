@@ -34,7 +34,7 @@ required authority unknown / stale / fork / 不完整时 MUST 按对应合同失
 | --- | --- | --- |
 | Realm | Realm-default scope 有自己的 stream、history policy 与可选 MLS group；Realm 治理域另承担 authority / federation / capability 上下文 | Realm link 不是包含树，不传播成员、policy、retention 或密钥；见 [realm-links §6](../models/realm-links.md#6-link-不传播状态normative) |
 | Circle | 自己的 stream、显式成员子集、history policy、投递裁剪与可选独立 MLS group | 不嵌套 Circle；受父 Realm current membership 与 lifecycle 约束；见 [Circle](../models/circle.md) |
-| Sidecar | 自己的 stream 与固定独立 MLS 保护；参与者由 exact Realm / controller / Agent 权威事实派生 | 没有可编辑成员列表、join rule、directory visibility 或 history visibility 字段；不是 Circle；见 [Sidecar §2 / §5 / §6](../models/sidecar.md) |
+| Sidecar | 自己的 stream 与固定独立 MLS 保护；参与者由 H 的原签启用、所有权及端点事实派生 | 没有可编辑成员列表、join rule、directory visibility 或 history visibility 字段；不是 Circle；见 [Sidecar §2 / §5 / §6](../models/sidecar.md) |
 | Space | 没有自己的 membership、MLS group 或历史策略；自身 metadata 与结构事实落在明确 Realm-default / Circle scope | parent/child 只表达导航；`child_scope_policy` 只控制放置；见 [space-hierarchy §2](../models/space-hierarchy.md) 与 [Circle §7.1](../models/circle.md#71-space-child-scope-policy) |
 | Strand | 整个 Strand 绑定一个 Realm-default / Circle scope；所有 Track 共用其成员、history 与 MLS 边界 | 动作、字段与 Track 授权可收窄；Track 不产生独立安全边界；见 [Strand §4 / §5](../models/strand-and-message.md) |
 
@@ -46,19 +46,19 @@ Sidecar 内容访问权，也不把 source 的 policy、MLS 或 history 复制�
 
 表中“同 scope”只指对象使用自己的实际 scope，不表达沿 Space 树或跨 Realm 传播。
 
-| 设置 | Realm-default → Circle | Realm 治理域 → Sidecar | Space / Strand | 权威依据 |
+| 设置 | Realm-default → Circle | 来源项目与个人 Sidecar | Space / Strand | 权威依据 |
 | --- | --- | --- | --- | --- |
 | MLS 激活、group、epoch、secret | 独立激活；无继承、派生或 fallback | 固定独立 MLS；未 ready 不提供明文业务降级 | 同 scope；Space 可通过放置约束要求目标已 MLS-backed | [加密 §2.3](../crypto-media/encryption-and-audit.md#23-应用载荷加密)、[Sidecar §6](../models/sidecar.md#6-原生-mls-绑定) |
 | `history_access` | 独立配置及单向收紧；父 Realm history 不参与 cap | 无可配置的同名 history visibility；遵守 Sidecar 当前读取资格及 MLS 历史规则，不能套父 Realm 值 | 同 scope；没有 Space / Track 独立 history policy | [Circle §6.1 / §10](../models/circle.md)、[历史 §4](./history-visibility.md#4-mls-历史) |
 | 已读披露策略 | 独立配置；禁止继承或取更严 | 不在现行已读策略合同内 | Strand 按消息 exact scope；Track 不单设策略 | [已读 §2.5](../discovery/read-receipts.md#25-scope-披露策略-disclosure-policy) |
-| 成员／参与者 | 父 Realm current join 实例是 Circle 有效成员资格的必要条件；仍需显式 Circle join | controller 为该 Realm active member；Agent roster 从 ownership / lifecycle / runtime-key 与 exact Realm membership 派生 | 容器层级不授予成员资格；对象按 scope 验证 | [Circle §9.1](../models/circle.md)、[Sidecar §5](../models/sidecar.md#5-参与者与有效访问) |
+| 成员／参与者 | 父 Realm current join 实例是 Circle 有效成员资格的必要条件；仍需显式 Circle join | H 按主人对该 Sidecar 的启用、所有权、生命周期及有效运行端派生 roster | 容器层级不授予成员资格；对象按 scope 验证 | [Circle §9.1](../models/circle.md)、[Sidecar §5](../models/sidecar.md#5-参与者与有效访问) |
 | join rule、目录可见性 | Circle 自己配置；public Circle 只允许父 Realm 成员自助加入 | 没有这两个设置；第三方不得通过普通列表枚举 Sidecar | 不因 parent、contains 或可见容器扩大对象可见性 | [Circle §9.1 / §9.3](../models/circle.md)、[Sidecar §9](../models/sidecar.md#9-ensure-与读取) |
 | Agent `interaction_mode` | 继承同一 Agent 在 Realm 的模式，Circle 不可覆盖 | 不改变 Sidecar 私有边界或派生 roster；public Agent 仍可参与其主人的私有 Sidecar | Strand 继承 Realm 模式，不能局部覆盖 | [Agent 交互 §1 / §2](../models/agent-interaction.md) |
 | `agent_participation` | 上限求交；省略本层 component 时继承已验证父 ceiling，显式值只能逐位收紧 | 不形成 Sidecar 第二套成员或 MLS roster；动作仍验证其适用 action / policy | Strand 可继续收紧；Space 不构成 participation 继承层 | [公共字段 §4.4](../models/common-fields.md#44-agent_participation-wire-形态normative)、[Sidecar §5](../models/sidecar.md#5-参与者与有效访问) |
 | Agent / Applet 管理 Policy | 多个适用 Policy 与实际 Realm / Circle / Strand 层按规定求交，下层 allow 不覆盖上层 deny | 验证该操作适用的 read / deliver / execute 等管理门；不因此授予 Sidecar 读取 | 只按已登记实际目标匹配，不沿 Space 树自动传播 | [管理治理 §1 / §2](../authz/managed-governance.md)、[自有 Agent 来源](../authz/owned-agent-authority.md) |
 | capability、管理员／审核权 | 使用同 Realm 授权体系，但 grant 必须覆盖目标 Circle；Realm 管理身份不附赠私有读取或历史密钥 | Circle capability / proof 不能授权 Sidecar；实际操作使用专用权限与有效参与者门 | selector 不遍历 Space 子树；Track / 字段限制仍单独检查 | [selector §6](../authz/resource-selector-grammar.md#6-匹配算法)、[审核 §2.1](./content-moderation.md#21-审核权由-realm--circle-管理员行使)、[Sidecar §3.2](../models/sidecar.md#32-后续-event-scope) |
-| archive / freeze / terminal | 父 Realm gate 约束 Circle；不合成 Circle lifecycle 写入；Circle 关闭不反向关闭 Realm | controller / Realm / policy / key readiness 派生 suspended 或 terminal；无自著 archive / restore / member Event | Realm gate 仍生效；Space 导航关系不等于子对象 lifecycle 级联 | [Circle §9.2](../models/circle.md#92-lifecycle-cascade)、[Sidecar §7](../models/sidecar.md#7-生命周期)、[Space](../models/space-hierarchy.md) |
-| governance Station / federation | 由所属 Realm 治理域统一承担；Circle 无独立 federation identity，stream 仍独立 | 同一 current governor，独立 stream 与披露资格 | 无独立 federation；跨 Realm View / link 逐目标授权 | [Realm 字段](../models/realm-and-space.md#23-schema-id-与字段)、[federation](../sync/federation.md) |
+| archive / freeze / terminal | 父 Realm gate 约束 Circle；不合成 Circle lifecycle 写入；Circle 关闭不反向关闭 Realm | H 根据主人账户及私有资格派生状态，来源项目归档和退群仅约束项目动作 | Realm gate 仍生效；Space 导航关系不等于子对象 lifecycle 级联 | [Circle §9.2](../models/circle.md#92-lifecycle-cascade)、[Sidecar §7](../models/sidecar.md#7-生命周期)、[Space](../models/space-hierarchy.md) |
+| governance Station / federation | 由所属 Realm 治理域统一承担；Circle 无独立 federation identity，stream 仍独立 | 唯一治理站是用户归属站 H；私有流不随项目交接，也不进入站际转发 | 无独立 federation；跨 Realm View / link 逐目标授权 | [Realm 字段](../models/realm-and-space.md#23-schema-id-与字段)、[federation](../sync/federation.md) |
 | retention / legal hold | 复用已登记对象／副本合同；不从 Realm-default history / MLS 推导，不增加通用 scope TTL 或期限继承 | 保留不扩大私有读取、参与者或密钥范围；不增加通用 hold 控制或自动向所有 Sidecar 扩散 | 不沿 Space 导航树推导；Strand 与派生内容按实际来源关联判定 | 本文 §4 |
 | 明文可见服务 | Realm 名单是必要治理声明，不能代替目标 Circle 授权或解密材料取得合同 | 名单不能把 Sidecar 开放给 Realm 管理员／共享服务；只走已有获授权私有路径 | 按实际内容 scope 及具体服务合同检查；parent 不授权 | 本文 §5 |
 

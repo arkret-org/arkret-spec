@@ -147,6 +147,7 @@
       "ak.self.agent.resume",
       "ak.sidecar.context.attach",
       "ak.sidecar.create",
+      "ak.sidecar.member.state",
       "ak.space.archive",
       "ak.space.create",
       "ak.space.parent",

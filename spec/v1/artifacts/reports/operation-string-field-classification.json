@@ -6,10 +6,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 76,
+    "total_fields": 75,
     "by_classification": {
       "bounded_free_text": 6,
-      "closed_enum": 33,
+      "closed_enum": 32,
       "closed_literal": 19,
       "validated_open_reason_code": 18
     },
@@ -320,14 +320,6 @@
       "pointer": "#/$defs/registered_atomic_unit_rejection/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
-    },
-    {
-      "schema_file": "authority-commit-operations.schema.json",
-      "shape": "sidecar_ensure_acceptance_outcome",
-      "field": "status",
-      "pointer": "#/$defs/sidecar_ensure_acceptance_outcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "call-invitation-operations.schema.json",

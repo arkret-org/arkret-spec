@@ -604,27 +604,27 @@ SFU service DID 不在 `plaintext_visible_services`、以及未显示必需的�
 
 ### 3.16 Agent Sidecar
 
-`ak.vector.sidecar.ensure_idempotent.v1` MUST 证明：同一 `(realm_id, controller_account_id)` 的并发 prepare 与
+`ak.vector.sidecar.ensure_idempotent.v1` MUST 证明：同一 `(controller_account_id, source_realm_id)` 的并发 prepare 与
 create 收敛到唯一 Sidecar；`sidecar_id` 等于胜出 create Event 的 `event_id` 按 sidecar id kind 重类型得到的
 同一 token，调用方不得提交或覆盖它；exact draft 可接受，任一被变异的 draft MUST 冲突且零写入，
 重放已接纳 draft 幂等返回同一 Sidecar；context attach 只投影 `(sidecar_id, source_context_ref)` 映射，
 不创建 Circle、membership、Strand 或 Relation，同映射重放幂等，另一来源上下文产生另一映射但仍复用同一 Sidecar。
 
-`ak.vector.sidecar.eligibility_states.v1` MUST 证明：owned Agent 中尚未发布 KeyPackage 的成员属于
+`ak.vector.sidecar.eligibility_states.v1` MUST 证明：已被主人在该 Sidecar 启用、其余资格有效、尚未发布 KeyPackage 的自有 Agent属于
 `desired_agent_ids` 但不属于 effective access，ensure 返回 `access_readiness=key_material_pending`，
 Sidecar 不存在明文分支；该 Agent 经 Sidecar MLS Welcome 加入后只获得加入后的未来 epoch 密钥，
-完整 readiness 证据成立才进入 effective access；Agent 被停用或离开当前 Realm 后派生的 desired 集合自动移除它，
+完整 readiness 证据成立才进入 effective access；Agent 被停用或主人撤回此 Sidecar 的启用后派生的 desired 集合自动移除它，
 服务端立即停止寻址与投递并产生 durable MLS removal obligation，随后由合格 committer 提交真实 remove；
 此后该 Agent 的 proof、写入与查询 MUST fail closed。
 
-`ak.vector.sidecar.mls_bootstrap_binding.v1` MUST 证明：participant 集合精确等于 controller 加当前 Realm 作用域的
+`ak.vector.sidecar.mls_bootstrap_binding.v1` MUST 证明：participant 集合精确等于 controller 加 H 从本 Sidecar 私有启用记录派生的
 `desired_agent_ids`，同 own H 的用户及自有 Agent 按 sidecar §6 唯一原像得到 `participant_authority_digest`；
 Sidecar Genesis 提案、签名 Event 与 MLS GroupContext extension 的唯一 governance binding 都带相同
-`participant_authority_digest`；后续 Add／Remove／Update 沿 H 供材/新forward 的 native gate 和 G 的实际接纳职责分别验证。
-五成员原像通过 desired-Agent join EventId 绑定其成员世代及原 controller-generation binding，不重复镜像 controller join；同 Agent ID rejoin 必须改变 expected digest，无关 key/provision 版本不改变。空 desired 不因本人 rejoin 单独要求新 epoch，也不跳过实际残留叶及 Remove/rotate/fence 门。
+`participant_authority_digest`；后续 Add／Remove／Update 沿 H 的原生握手接纳和材料披露规则验证。
+五成员原像通过主人为该 Agent 签署的 Sidecar join EventId 绑定其启用世代；同 Agent ID rejoin 必须改变 expected digest，无关 key/provision 版本不改变。项目成员资格变化不改变私聊 epoch，也不跳过实际残留叶及 Remove/rotate/fence 门。
 缺少摘要、携带已删除 head、原像世代变异、非 Sidecar binding 私带摘要均拒绝，读取投影不能替代签名 binding；
 H expected 与旧组不匹配只使当前 reconciliation pending，不追改历史；正常 Update 可确认新世代，不强制 fresh Add。
-G 原接纳最小成员来源必须能支持 floor、冷启动和合法 handoff，不能从 digest 反解或用今日 join 贴旧 Commit；
+H 保留原接纳成员来源以支持 floor 及冷启动，不能用当前启用记录替换历史 Commit 的原绑定；
 只有一个 genesis 通过标准 Event 准入与 CAS 成为 canonical 胜者，服务端不得生成 MLS 私有状态、伪造
 GroupInfo 或 ratchet-tree 摘要、也不得提供绕过 Event proof 的 bootstrap 端点；全部 binding 变异 MUST fail closed，
 native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 或 Circle 携带该字段，都必须拒绝；
@@ -637,7 +637,7 @@ creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_me
 `ak.vector.sidecar.mls_effective_access.v1` MUST 证明：desired 成员资格、已投递 Welcome 或已认领 KeyPackage
 单独都不是 effective 证据，任何不完整组合保持 pending；已接纳的 Add Commit、引用该 Commit 且绑定匹配的
 已接纳 Welcome，与该设备已认证会话对同一 claim 的消费三者齐备后，该设备才生效，同 principal 的其它设备
-不会自动获得密钥；Agent 被停用或离开当前 Realm 后服务端立即停止寻址与投递并移除 effective access，
+不会自动获得密钥；Agent 被停用或主人撤回此 Sidecar 的启用后服务端立即停止寻址与投递并移除 effective access，
 只产生 durable removal obligation，不持有 MLS 私有状态的 Station 不得伪造 Commit，新发送保持 fail closed；
 真实 Remove Commit 推进 epoch 后，旧 Welcome 与消费记录不能使已移除设备复活。
 
@@ -666,8 +666,7 @@ creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_me
 `ak.vector.sidecar.existence_privacy.v1` MUST 证明：以既非 controller、也不属于其 owned Agent 的调用方视角——
 账号 Event 流与扫描对目标 Realm 返回零条引用 Sidecar native scope 的 Event；不存在可用于枚举 Sidecar 或
 来源上下文映射的协议 Relation；Realm directory 对 `sidecar_id` 与 controller 映射零命中；
-Sidecar 内 Event 不触发来源 Strand 参与者的通知；Sidecar 作用域的 Event 不出现在 Realm `RealmCommit`
-的明文安全 metadata 中，只能作为不透明承诺。
+Sidecar 内 Event 不触发来源 Strand 参与者的通知；来源项目的提交记录中不得出现 Sidecar 原件、其引用或可关联的占位承诺。
 
 `ak.vector.sidecar.explicit_publish.v1` MUST 证明：只有显式的 controller 确认才创建一条被 allowlist 允许的
 普通共享 Event，且其中零私有标识符、零历史、零定位符。

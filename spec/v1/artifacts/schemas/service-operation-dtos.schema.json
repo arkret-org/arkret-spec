@@ -4719,7 +4719,8 @@
         "ak.realm.governance_station.change",
         "ak.self.agent.deactivate",
         "ak.self.agent.pause",
-        "ak.self.agent.resume"
+        "ak.self.agent.resume",
+        "ak.sidecar.create"
       ]
     },
     "PublicRealmMetadata": {

@@ -118,12 +118,11 @@ v1 在窗口引用发布前签发独立 `purpose="stream_history"` 原件；签�
 认证账号、Realm 与 snapshot_ref 路由，不新增操作；结果的 signed coverage 必须匹配该窗口，`/head` 仅提供完整恢复。
 跨站 Account Station 可经既有 `ak.peer.realm_join.read.bootstrap.v1` 的可选 `history_stream_ref` 请求源站当前 cut 的窄原件；省略时仍为完整恢复。请求必须绑定真实当前 membership Commit 与 member Account，响应的 signed Account／目标／任期须逐字匹配。接收站只归档原件及所需已接受依赖，不将此结果送入完整 bootstrap 安装；旧 cut 使用已保留原件，不能用此 fresh 请求替换已发窗口。
 
-个人 Sidecar 中 H≠G 的 effective Agent 历史下界窄用途及 pending 分阶段边界，按
-[Sidecar §6.1](../models/sidecar.md#61-跨站-agent-历史下界来源normative) 执行。
+个人 Sidecar 的握手、历史与备份仅由主人归属站 H 验证。项目历史由实际治理站 G 按当前入群世代签发。两种依据的适用范围按
+[Sidecar §6.1](../models/sidecar.md#61-私有握手历史与排队投递normative) 执行。
 
 **selector 完备性（normative）**：取该已接受 cut 下所有 `source_stream_ref` 等于目标流的可披露 typed rows，但排除 `circle`／`sidecar` 定义 selector：这些定义虽来自父 Realm stream，实际属于各自 scope，不得让 Realm 历史顺带依赖它们；
-Circle／Sidecar 目标还取该 cut 的父 Realm `member_state`（该 Account Actor）以及 exact `circle`／`sidecar`
-定义 selector。这些是唯一额外 selector，source 必须是父 Realm；同一 selector 不得重复。跨流来源必须逐条解析为
+Circle 目标还取该 cut 的项目成员状态与精确 Circle 定义。个人 Sidecar 目标只在 H 取得对应的 Sidecar 定义，并核验该主体的私有访问依据；Agent 的启用世代取自原签私有流。项目成员状态不能成为个人快照的依赖。同一 selector 不得重复。跨流来源必须逐条解析为
 原 accepted Event／Commit 四坐标，排序去重后逐字等于 `history_basis.accepted_dependency_refs` 与窗口的依赖引用。
 heads／floors 恰覆盖目标与这些必要 selector 的 source streams，不得顺带包含其他 scope。target head 必须等于
 anchor；所有 rows、heads、floors 来自原同一 cut，依赖不得跨 cut 更新替换。source 明确承担该 selector 集在该 cut

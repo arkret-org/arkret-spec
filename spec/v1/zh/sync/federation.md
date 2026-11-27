@@ -35,7 +35,7 @@ handoff proof 必须分别验证。
 
 ## 3. 复制
 
-复制单元是一条具体 Realm、Circle 或 Sidecar stream 中连续的 `(RealmCommit, Event)` 序列。调用方对
+项目复制单元是一条具体 Realm 或 Circle stream 中连续的 `(RealmCommit, Event)` 序列。调用方对
 每条 stream 单独授权和分页，必须验证：
 
 1. authority generation 与已验证的 genesis/handoff chain 一致；
@@ -278,8 +278,7 @@ Invite 和 Directory 只携带 locator candidate；客户端必须自行请求�
 
 ## 6. 隐私
 
-Circle 和 Sidecar 使用独立 stream，Realm 成员身份不自动授权这些 stream。复制 API 不返回隐藏
-stream 的存在、head、position 或 timing 差异。治理 Station 仍可见全部 scope metadata；这是单 authority 模型的明确信任代价。
+Circle 使用独立授权的 stream。个人 Sidecar 的唯一治理站是用户归属站 H；站际链不得传递其创建记录、握手、密文、历史、队列或恢复材料。来源项目的治理站 G 只取得项目实际访问或发布所需事实。复制 API 对隐藏 stream 的存在、head、position 与 timing 均保持相同的拒绝行为。
 
 ### 6.3 DID route privacy
 

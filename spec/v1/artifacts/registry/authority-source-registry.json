@@ -218,23 +218,23 @@
       "failure_mode": "fail_closed_no_write"
     },
     {
-      "authority_source_id": "ak.authority.sidecar_parent_bootstrap.v1",
+      "authority_source_id": "ak.authority.sidecar_home_bootstrap.v1",
       "status": "active",
       "profile": "ak.profile.agent_sidecar.v1",
-      "wire_ref": "ak.authority.sidecar_parent_bootstrap.v1",
+      "wire_ref": "ak.authority.sidecar_home_bootstrap.v1",
       "binding_event_kind": "ak.sidecar.create",
-      "binding_ref_role": "sidecar_parent_realm",
+      "binding_ref_role": "controller_human_pcr",
       "action_allowlist": [
         "ak.self.agent.sidecar.command.ensure.v1"
       ],
       "activation_checks": [
         "controller_current_and_exact",
-        "parent_realm_current",
-        "sidecar_create_minimal",
+        "controller_human_pcr_current",
+        "signed_source_project_locator",
         "first_ensure_exact_create_then_context_attach",
         "native_sidecar_scope_reserved"
       ],
-      "revocation_model": "one_shot_parent_realm_scoped_bootstrap",
+      "revocation_model": "one_shot_controller_home_bootstrap",
       "authority_generation_independent": false,
       "grantable": false,
       "delegated_event_rule": "none",

@@ -150,7 +150,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `rsvp`：以 `(event_ref, canonical occurrence, responder_actor_id)` 选择一个响应，值为完整 `rsvp_entry`；
 - `schema_definition`：以稳定 JSON Schema `$id` 选择 create-once 定义；exact replay 幂等，异字节复用同 id 拒绝；
 - `sidecar`：以 Event-derived `sidecar_id` 选择 native Sidecar 物化值；create 同时占用
-  `(realm_id, controller_account_id)` singleton，禁止第二个 live Sidecar；
+  `(controller_account_id, source_realm_id)` singleton，禁止第二个 live Sidecar；
 - `sidecar_context`：以 `(sidecar_id, canonical source_context_ref)` 选择版本化 UI context attach；
 - `strand_watch`：以 `(strand_id, watcher_actor_id)` 选择 watch current value；值是
   `null` 或 `{level, level_public?}`，`expected_value` 只作 whole-value CAS，不进入结果；

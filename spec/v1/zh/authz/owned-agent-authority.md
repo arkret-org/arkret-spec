@@ -42,7 +42,7 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 上界 **MUST** 覆盖 history/query/scan、Blob/附件、订阅每次后续交付、notification/定向投递及未来 epoch 访问材料，不能只在 session、订阅建立或 Event authoring 时检查。常规成员读取仍按 membership/history visibility，**MUST NOT** 强加显式 `ak.event.read` grant。Strand 所有 track 共用一个 Realm/Circle effective scope；track/字段 constraint 只收窄行为，不产生独立 membership、读取边界或 MLS group。
 
-**Agent 内容会话交集（normative）**：机器合同为 registry 的 `session_content_authority_contract`，具名裁决见 `ak.vector.agent.session_content_authority.v1`。Agent Auth 的 capability-grant 交集 **MUST** 解释为目标 action/resource 上已经成立的完整合法授权路径，不限于 literal `ak.capability.grant`。来源按实际资源 profile 求值：普通 Realm/Circle 的读取使用 exact active membership 与 history visibility；独立 Direct 使用其 accepted participant authority；Sidecar 使用 exact `(realm_id, controller_account_id, sidecar_id)` 的专用 desired/effective authority；其它动作仅能使用该动作已登记的 grant 或 profile authority。读取来源 **MUST NOT** 派生 write/reply/publish 权限，也不得由 provisioning、accountability、私有 requested scope 或 participation selection 单独制造任何内容权限。
+**Agent 内容会话交集（normative）**：机器合同为 registry 的 `session_content_authority_contract`，具名裁决见 `ak.vector.agent.session_content_authority.v1`。Agent Auth 的 capability-grant 交集 **MUST** 解释为目标 action/resource 上已经成立的完整合法授权路径，不限于 literal `ak.capability.grant`。来源按实际资源 profile 求值：普通 Realm/Circle 的读取使用 exact active membership 与 history visibility；独立 Direct 使用其 accepted participant authority；Sidecar 使用 exact `(realm_id, controller_account_id, sidecar_id)` 的专用 desired/effective authority；H 对私聊回复单独验证主人在该 Sidecar 当前签署的 `private_reply_allowed: true`、执行端的有效 MLS 资格和实际会话动作。来源项目的 grant 只适用于获准的项目资源。其它动作按已登记的 grant 或 profile authority 求值。读取来源 **MUST NOT** 派生 write/reply/publish 权限，也不得由 provisioning、accountability、私有 requested scope 或 participation selection 单独制造任何内容权限。
 
 机器向量中的 verified gate predicate **MUST** 对应实际 action/resource 的适用门，不能由默认 action 推出未登记的读取选择位。`participation_current_denied` 显式使用已有完整 capability grant 的 `ak.message.create`，在执行时撤回 `message_creation_allowed` selection；原合法会话和 grant 不替代当前 selection。membership/profile 的独立读取仍按其原合同求值，selection 本身不授予或撤回读取资格。
 
@@ -50,7 +50,7 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 `condition_not_satisfied` 与 `quota_exhausted` 的 payload 实例显式使用完整 capability grant 的 `ak.message.create`，分别检查该路径实际欠的执行条件与 hard quota；不能把另一条 allow grant 的未满足条件或额度耗尽升级为独立 membership 读取的撤权。条件实例使用已登记 temporal 执行窗口，保留 active grant row 与有效 session，窗口关闭后新操作失败关闭；quota 实例在签发时不扣额度，正常接纳原操作只计一次，exact retry 不重复扣减，额度耗尽后的新操作与 reservation 残留均零效果拒绝。全部父来源与 Agent 更严 quota 仍按本节原有共享／原子合同求交，本实例不裁剪该义务。
 
-签发时 **MUST** 先按每个 action/resource 验证 durable 来源资格，再与 immutable provision ceiling、current accepted key ceiling、本次 session request、资源 policy／管理限制及适用的主人 current 上界求交。该步骤不代替执行时的 history、participation、MLS、quota、approval 等独立门；MLS 尚未完成可保留合法的读取 ceiling，但 **MUST NOT** 因会话已签发就交付业务 payload。普通群与 Sidecar 使用本节主人动态内容上界；独立 Direct 继续使用其 participant 合同，**MUST NOT** 强加其它群的 membership、grant 或管理限制。
+签发时 **MUST** 先按每个 action/resource 验证 durable 来源资格，再与 immutable provision ceiling、current accepted key ceiling、本次 session request、资源 policy／管理限制及适用的主人 current 上界求交。该步骤不代替执行时的 history、participation、MLS、quota、approval 等独立门；MLS 尚未完成可保留合法的读取 ceiling，但 **MUST NOT** 因会话已签发就交付业务 payload。普通群使用本节的项目动态内容上界；个人 Sidecar 使用 H 上主人当前的私有启用原件、账户资格与该 Sidecar 的实际端点；独立 Direct 继续使用其 participant 合同，**MUST NOT** 强加其它群的 membership、grant 或管理限制。
 
 本次请求的 `requested_scope` 是会话 action/operation 请求，**不是** provision 的 immutable `requested_scope`；`agent_scope_request` 仅收窄目标。内容会话 **MUST** 有非空、已验证的 Realm 或 Strand selector；省略／空 selector **MUST NOT** 表示所有内容资源。Realm selector 不授予该 Realm 内所有 Circle、Direct 或 Sidecar 的读取资格；每次仍按 actual scope 的 profile 检查 exact binding，Sidecar 身份从 accepted Sidecar binding 派生，不新增 request-side participant 或 sidecar selector。`scope_details` 沿既有 closed 结构物化资源和 typed constraints；`capability_grant_refs` 仅列实际使用的 literal grant，没有 literal grant 的合法读取允许该数组为空，**MUST NOT** 伪造 grant ref。`policy_refs` 也不要求合成默认 allow Policy：只有完整 current 治理证据证明没有适用限制时才使用既有默认值，unknown／缺行仍拒绝。
 
@@ -98,10 +98,9 @@ exact signed Event 重试先确认已有 durable admission outcome：已 accepte
 
 治理 Station **MUST** 在原子 admission transaction 锁定／校验 controller 与 Agent membership、ownership/lifecycle、grant/root/policy/claim、target revision 及父权限来源；依赖按 canonical key 排序，变更竞争整条候选零效果失败或保留 dependency pending。owner transfer 不改写旧普通 root grant，但 Agent 新操作重查原 controller 当前上界，新 Realm owner 不成为 Agent controller。授权失效不等待逐 Agent revoke、leave 或 cleanup，服务不能合成签名 Event。
 
-各实际 scope 的治理 Station 是 Event 接纳权威；Circle/Sidecar 与父 Realm 的可撤销依赖在同治理 Station 事务内重读，不制造跨 stream 总序。远端读取／delivery enforcing service 只有在其实际交付点取得治理 Station 的经认证 current 判定并把 exact request/内容动作/resource/接收者绑定于同一串行交付屏障时才能放行；缺少已登记 current 取材／交付屏障则 fail closed，可路由回治理服务，不允许有限 TTL 的旧 allow 冒充撤权即时生效。客户端消费已 accepted 历史 Commit 不要求在线证明全球最新，也不重算历史接纳。
+各实际 scope 的治理 Station 在交付点重核撤权。项目 G 对普通 Realm／Circle 的读取、工具和发布核两份成员世代、群规、动作及资源。个人 Sidecar 由 H 在本地核主人、精确启用世代和端点。排队不保留一次性 allow，拒绝时不交付业务字节。
 
-H≠G 的个人 Sidecar Agent 历史下界来源按 [Sidecar §6.1](../models/sidecar.md#61-跨站-agent-历史下界来源normative)
-执行；其窄历史原件不替代上段实际新交付屏障。
+个人 Sidecar 的历史、Welcome 和根备份均从主人归属站取得。见[私有握手与历史](../models/sidecar.md#61-私有握手历史与排队投递normative)。
 
 每次权限收缩阻止未来服务读取/交付与未来材料领取；MLS roster/epoch 移除仍须合法 author、Commit、客户端 rotate/remove，不能宣称撤权擦除了已有 epoch secrets 或已交付密文/明文。cache 的 digest/revision 依赖必须包含 controller 权限与管理 Policy，并在未知、冷启动、重启时重建，不复用旧 allow。同站原子准入、远端新交付屏障和密码学排除是分别验收的终点。
 
@@ -109,13 +108,13 @@ H≠G 的个人 Sidecar Agent 历史下界来源按 [Sidecar §6.1](../models/si
 
 ### 5.1 独立治理站的自有 Agent（normative）
 
-普通父 Realm 及其个人 Sidecar MUST 支持以下 H（主人和 Agent 的归属站）与 G（群治理站）分工。H=G 时在本地按相同职责检查。H 只用正式来源核自己的事实，G 保持原治理任期与群接纳权。两站的独立观察不构成全球同时刻。任何身份、来源或绑定无法核实均关闭。
+本节只适用于外站项目的内容与项目动作。H 负责本人的身份、controller 与 Agent 的原生会话和端点；G 负责实际目标项目、成员世代、资源权限和项目原件。
 
 1. 首次入群沿原 `ak.peer.events.command.submit.v1` 的 `authority_forward`。H 在首次转发之前核本人原签、本人和目标完整 AccountId 同属 H、原 accepted provision/accountability、当前 ownership 与 active lifecycle，并绑定原 join Event、Realm 和 controller 当前 join 引用。仅在该签名请求中，认证的 Source-Service-ID 等于实际 H 且目的为当前 G 时，G MUST 将该特定转发解释为 H 对目标上述本地事实的断言。G 独立核本人原签及其 producer evidence、本人当前成员世代、精确 binding、join 管理规则与已知 fence，在同一接纳事务作决定。不能要求 G 本地存在目标私有 PCR，或给 Human 原件附 Agent producer evidence。相同已决请求沿原幂等结果；新意图重核。
    主人原签 `ak.agent.interaction.set` 将该群内 Agent 设为 `public` 时，同样沿上述 `authority_forward`。H MUST 在本次首次转发前，针对原 Event、Realm、主人和目标 Agent 的完整 AccountId 重新核验原生 provision、当前 ownership、有效 accountability 与 active lifecycle。G 只在原件、实际 Human producer、认证来源 H 及目标 G 全部匹配时采信本次转发对这些本地事实的确认。G 在同一接纳事务核主人和 Agent 当前有效成员世代及其绑定、当前群管理规则与审批、已知 fence 和模式 CAS，决定是否接受。入群时的确认不能复用；公开模式本身不授发言权。相同已决请求沿原幂等结果，新设置意图重核。
 2. Agent 发消息先到 H。H 在首次转发时核会话、持钥、有效期、撤权、主人和 Agent 的本地上界、实际 endpoint 与本次动作。按原合同带实际 Agent 的 producer evidence 和原签 Event；G 验签、证据的适用范围和有效窗口，以及本群同一接纳事务的当前成员、policy、写权、MLS 与 fence。G 不用 H 的 Session 自行续权；H 也不能覆盖 G 的拒绝。已经确定的历史接纳和新供给分别处理。
-3. 内容会话签发或续接时，H 先核本地 issuer、端点和本次签名意图，再以 `ak.peer.realm_join.read.bootstrap.v1` 的 `content_intent` 窄分支逐个询问 G。外层成员是 Agent 完整账号及当前父 Realm join Commit；意图绑定主人及其当前 join Commit、accepted Agent key 引用、单一已登记的内容 action、精确 scope、适用的 strand_id 和本次签名请求的 JCS SHA-256。每次使用 fresh request_id，H 经原服务认证链访问 G，两侧核服务方向、任期和父群匹配。按 Strand 授权时 MUST 指明原请求中的该 Strand，G 核其与 scope 的正式关联；缺少足以证明该范围的授权不得签发。G 只在当前两份成员原件及 binding、管理规则、动作授权和资源条件成立时返回同 request_id、原意图、同成员 Commit 和可表达的最窄 scope_details。响应与原请求通过同一经认证的实时交换关联；失败走既有 Problem。禁止同请求带 history_stream_ref；此分支不返回 Snapshot 或业务记录。H 核对原绑定、key 和主人身份，将 G 的结果与本地合法上界逐项求交，无法无损表达则收窄或拒绝。携带 backup_root_context 的请求仅用于 content-history §3.3 的该次根准备或 PUT，必须精确绑定同一个 Sidecar 和当前 MLS context；业务读取请求禁止携带该字段。普通签发回复只能用于本次签发；不得缓存作交付许可。Sidecar 本地 desired/effective 仍由 H 按所请求动作独立检查。
-4. 对应业务原件的实际读取沿 `ak.peer.committed_event.read.scan.v1` 的 owned Agent 请求分支。H 核本次已认证 endpoint、session、action、资源与 Sidecar effective，将实际会话 ID、Agent 当前 join、同一 key、双方成员绑定和实际分页参数放入同一 S2S 签名；request_digest 绑定本次客户端读取意图，禁止携带 bearer。G 在同一交付屏障重读本群成员世代、策略、已知 fence、此动作及接收者的可读范围，并按该世代自己的历史 floor 裁剪，在该屏障输出实际原件。H 仅为此次仍活跃并通过自身当前门的接收端实时转送；错 scope、错流、断连、排队后重新供给或翻页 MUST 重新核验。普通站际复制 scan、先前的签发同意及历史 Snapshot 均不授予 H 本地缓存交付权。缺少适用屏障的其它读取入口继续关闭。Sidecar §6.1 的窄 Snapshot 仅在其原前置满足后证明历史下界。
+3. 对项目内容签发或续接会话，H 先核实际端点，再用现有站际 bootstrap 的 content_intent 向 G 请求该动作和资源的最窄范围。请求绑定主人和 Agent 的当前项目成员 Commit、实际会话密钥及本次签名请求摘要；G 验证认证方向、治理任期、两份成员绑定及适用策略。回复仅供此次签发。个人 Sidecar 或其备份上下文不得用于站际请求。
+4. 项目历史经现有 owned Agent scan 和成员 bootstrap。history_stream_ref 选择实际获准的项目 Realm／Circle stream。G 在发出业务字节前重新判定目前成员世代、读取下界、可交付资源和策略。H 在实际运输轮询重新核会话并取得 G 的实时判定。重新入群使用新成员 Commit，旧快照、游标或排队请求不得推进历史。
 
 **跨站主人给自有 Agent 授权。** 普通协作 Realm 中，主人以本人设备原签独立的 `ak.capability.grant`，以唯一 `owned_agent` ref 向同 H 的本人 Agent 授权时，H MUST 在转发本次原件前使用自己的合格私密出示，重新核验已接纳的 provision、当前归属、accountability、启用状态以及本 grant 的动作、资源和约束均在创建上限内。沿用上述 authority_forward 的原件绑定设备证明。G MUST 核实确切来源站、主人原签、唯一 terminal ref 与本群两份当前 join 原件，在接纳事务验证主人当前权限上界、管理规则、约束及适用的 fence。G 执行群内撤权。私密出示只留在 H。这项确认仅适用于该主人本次原签的 grant；不得复用于其它签发人、对象或群，也不得从设为公开或入群派生授权。
 

@@ -733,7 +733,7 @@
       "category": "core_object",
       "status": "active",
       "wire_form": "ak:sidecar:<44-char-event-token>",
-      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_account_id), with derived eligible-Agent access. See zh/models/sidecar.md.",
+      "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (controller_account_id, source_realm_id), with controller-authorized owned-Agent access at the controller Account Station. See zh/models/sidecar.md.",
       "id_form": "event_derived",
       "identity_authority": "event",
       "genesis_event_kinds": [

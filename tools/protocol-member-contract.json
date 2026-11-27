@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:b50f6aa1238fed111023e2a8259aa01965936448acc2925ffabeed18c90fd40f",
+  "contract_digest": "sha256:05875cc5b8cf82881ae9476a01a702b455f5a0ada0e1e3439759644f5db27a90",
   "encoding_profile_digest": "sha256:d82872297a6f8a6508694142b8d463ce7bfc77ede11c573c15beab1db4ad266e",
   "schemas": [
     {
@@ -9735,7 +9735,7 @@
                     ]
                   }
                 ],
-                "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Sidecar desired membership is re-derived from accepted lifecycle and exact Realm membership after admission; the request carries no writable Sidecar roster or acknowledgement."
+                "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Sidecar desired membership is re-derived from the private enrollment accepted at H and current ownership, lifecycle and runtime-key authorization; the request carries no writable Sidecar roster or acknowledgement."
               }
             },
             "additionalProperties": false
@@ -9898,7 +9898,7 @@
               },
               "desired_agent_ids": {
                 "type": "array",
-                "description": "Read-only projection derived for the exact Sidecar and controller from the owning Station native current and lawful governing Station membership sources: active, runtime-key-authorized Agent principals owned by the Sidecar controller and also active members of sidecar.realm_id. It is not determined by the Sidecar stream head alone, is not caller-authored or reducer-stored, and cannot be edited through Sidecar operations.",
+                "description": "Read-only projection at the controller Account Station of the owned Agent principals enrolled by the controller on this Sidecar whose lifecycle and runtime-key authorization are current. The enrollment generation is the latest accepted private join Event for the full Agent AccountId.",
                 "items": {
                   "$ref": "#/$defs/did_core_id"
                 },
@@ -11334,12 +11334,13 @@
       "contract": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://arkret.org/v1/schemas/agent-sidecar.schema.json",
-        "description": "Controller-account-owned private AI workspace bound one-to-one to (realm_id, controller_account_id). Agent Sidecar is a first-class native protocol scope, not a Circle profile, backing Circle, or editable membership container. See spec/v1/zh/models/sidecar.md.",
+        "description": "Personal encrypted workspace governed exclusively by the controller Account Station. realm_id identifies the controller Human PCR. source_realm_id identifies only the associated project.",
         "type": "object",
         "required": [
           "id",
           "schema",
           "realm_id",
+          "source_realm_id",
           "controller_account_id",
           "state",
           "created_at"
@@ -11360,6 +11361,9 @@
             }
           },
           "realm_id": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          },
+          "source_realm_id": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "controller_account_id": {
@@ -14732,6 +14736,7 @@
                   "ak.self.agent.resume",
                   "ak.sidecar.context.attach",
                   "ak.sidecar.create",
+                  "ak.sidecar.member.state",
                   "ak.space.archive",
                   "ak.space.create",
                   "ak.space.parent",
@@ -14874,6 +14879,7 @@
                     "ak.self.agent.resume",
                     "ak.sidecar.context.attach",
                     "ak.sidecar.create",
+                    "ak.sidecar.member.state",
                     "ak.space.archive",
                     "ak.space.create",
                     "ak.space.parent",
@@ -18046,11 +18052,38 @@
                 "if": {
                   "properties": {
                     "event_kind": {
-                      "const": "ak.space.archive",
+                      "const": "ak.sidecar.member.state",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
                         "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
                         "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/116/if/properties/event_kind",
+                        "values": [
+                          "ak.sidecar.member.state"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "event_kind"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "payload": {
+                      "$ref": "./event-payload.schema.json#/$defs/sidecar_member_state_payload"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "event_kind": {
+                      "const": "ak.space.archive",
+                      "x-arkret-value-ownership": {
+                        "class": "namespaced_symbol",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
                         "values": [
                           "ak.space.archive"
                         ]
@@ -18076,8 +18109,8 @@
                       "const": "ak.space.create",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/117/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
                         "values": [
                           "ak.space.create"
                         ]
@@ -18103,8 +18136,8 @@
                       "const": "ak.space.parent",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/118/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
                         "values": [
                           "ak.space.parent"
                         ]
@@ -18130,8 +18163,8 @@
                       "const": "ak.space.restore",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/119/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
                         "values": [
                           "ak.space.restore"
                         ]
@@ -18157,8 +18190,8 @@
                       "const": "ak.space.tombstone",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/120/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
                         "values": [
                           "ak.space.tombstone"
                         ]
@@ -18184,8 +18217,8 @@
                       "const": "ak.space.update",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/121/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
                         "values": [
                           "ak.space.update"
                         ]
@@ -18211,8 +18244,8 @@
                       "const": "ak.strand.archive",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/122/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
                         "values": [
                           "ak.strand.archive"
                         ]
@@ -18238,8 +18271,8 @@
                       "const": "ak.strand.create",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/123/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
                         "values": [
                           "ak.strand.create"
                         ]
@@ -18265,8 +18298,8 @@
                       "const": "ak.strand.move",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/124/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
                         "values": [
                           "ak.strand.move"
                         ]
@@ -18292,8 +18325,8 @@
                       "const": "ak.strand.reorder",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/125/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
                         "values": [
                           "ak.strand.reorder"
                         ]
@@ -18319,8 +18352,8 @@
                       "const": "ak.strand.restore",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/126/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
                         "values": [
                           "ak.strand.restore"
                         ]
@@ -18346,8 +18379,8 @@
                       "const": "ak.strand.stage.set",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/127/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
                         "values": [
                           "ak.strand.stage.set"
                         ]
@@ -18373,8 +18406,8 @@
                       "const": "ak.strand.tracks.update",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/128/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
                         "values": [
                           "ak.strand.tracks.update"
                         ]
@@ -18400,8 +18433,8 @@
                       "const": "ak.strand.update",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/129/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
                         "values": [
                           "ak.strand.update"
                         ]
@@ -18427,8 +18460,8 @@
                       "const": "ak.strand.watch.set",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/130/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
                         "values": [
                           "ak.strand.watch.set"
                         ]
@@ -18454,8 +18487,8 @@
                       "const": "ak.view.create",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/131/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
                         "values": [
                           "ak.view.create"
                         ]
@@ -18481,8 +18514,8 @@
                       "const": "ak.view.reconcile",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/132/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
                         "values": [
                           "ak.view.reconcile"
                         ]
@@ -18508,8 +18541,8 @@
                       "const": "ak.view.update",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/133/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
                         "values": [
                           "ak.view.update"
                         ]
@@ -18535,8 +18568,8 @@
                       "const": "ak.mls.history_request",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/134/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
                         "values": [
                           "ak.mls.history_request"
                         ]
@@ -18562,8 +18595,8 @@
                       "const": "ak.mls.history_recovery",
                       "x-arkret-value-ownership": {
                         "class": "namespaced_symbol",
-                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
-                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/135/if/properties/event_kind",
+                        "authority": "applet-install-plan.schema.json#/$defs/planned_event/allOf/136/if/properties/event_kind",
+                        "owner": "applet-install-plan.schema.json#/$defs/planned_event/allOf/136/if/properties/event_kind",
                         "values": [
                           "ak.mls.history_recovery"
                         ]
@@ -20387,7 +20420,7 @@
           },
           "peer_submit_request_body": {
             "type": "object",
-            "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier. An ordinary complete MLS submission with an actual Account producer, no recovery_source and neither dynamic producer evidence object is an original-result-only probe: exact source identity and complete unit binding are mandatory; a missing terminal result returns not_found without admission or writes. Producer evidence remains mandatory for first admission.",
+            "description": "Closed authority-forward, committed-replication and registered-atomic-unit ingress. Ordinary Account and Agent evidence rules remain. Realm actor first admission routes directly to its owning Realm governor, whose original control/Device facts are local; committed replication uses original minimal realm_device signer facts. No foreign Applet Account/PCR provenance or scope-confirmation carrier. An ordinary complete MLS submission with an actual Account producer, no recovery_source and neither dynamic producer evidence object is an original-result-only probe: exact source identity and complete unit binding are mandatory; a missing terminal result returns not_found without admission or writes. Producer evidence remains mandatory for first admission. Personal Sidecar events, MLS and private replicas are confined to the owning Account Station.",
             "required": [
               "branch"
             ],
@@ -20475,14 +20508,7 @@
                 "$ref": "#/$defs/peer_registered_atomic_unit"
               },
               "atomic_submission": {
-                "oneOf": [
-                  {
-                    "$ref": "#/$defs/audit_paired_event_unit_submission"
-                  },
-                  {
-                    "$ref": "#/$defs/sidecar_ensure_unit_submission"
-                  }
-                ]
+                "$ref": "#/$defs/audit_paired_event_unit_submission"
               },
               "atomic_producer_evidence": {
                 "$ref": "#/$defs/audit_pair_producer_evidence"
@@ -20701,34 +20727,7 @@
                       ]
                     }
                   ]
-                },
-                "allOf": [
-                  {
-                    "if": {
-                      "properties": {
-                        "atomic_submission": {
-                          "$ref": "#/$defs/sidecar_ensure_unit_submission"
-                        }
-                      }
-                    },
-                    "then": {
-                      "properties": {
-                        "atomic_producer_evidence": {
-                          "items": {
-                            "required": [
-                              "producer_device_evidence"
-                            ]
-                          }
-                        }
-                      },
-                      "not": {
-                        "required": [
-                          "content_backup_sources"
-                        ]
-                      }
-                    }
-                  }
-                ]
+                }
               },
               {
                 "required": [
@@ -20944,6 +20943,140 @@
                     ]
                   }
                 }
+              },
+              {
+                "properties": {
+                  "event_submission": {
+                    "properties": {
+                      "event": {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "kind"
+                              ],
+                              "properties": {
+                                "kind": {
+                                  "pattern": "^ak[.]sidecar[.]"
+                                }
+                              }
+                            },
+                            {
+                              "required": [
+                                "scope_ref"
+                              ],
+                              "properties": {
+                                "scope_ref": {
+                                  "required": [
+                                    "kind"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "pattern": "^sidecar$"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "mls_submission": {
+                    "properties": {
+                      "commit_event": {
+                        "not": {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "kind"
+                              ],
+                              "properties": {
+                                "kind": {
+                                  "pattern": "^ak[.]sidecar[.]"
+                                }
+                              }
+                            },
+                            {
+                              "required": [
+                                "scope_ref"
+                              ],
+                              "properties": {
+                                "scope_ref": {
+                                  "required": [
+                                    "kind"
+                                  ],
+                                  "properties": {
+                                    "kind": {
+                                      "pattern": "^sidecar$"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "replications": {
+                    "items": {
+                      "properties": {
+                        "event_submission": {
+                          "properties": {
+                            "event": {
+                              "not": {
+                                "anyOf": [
+                                  {
+                                    "required": [
+                                      "kind"
+                                    ],
+                                    "properties": {
+                                      "kind": {
+                                        "pattern": "^ak[.]sidecar[.]"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "required": [
+                                      "scope_ref"
+                                    ],
+                                    "properties": {
+                                      "scope_ref": {
+                                        "required": [
+                                          "kind"
+                                        ],
+                                        "properties": {
+                                          "kind": {
+                                            "pattern": "^sidecar$"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "source_commit": {
+                          "properties": {
+                            "stream_ref": {
+                              "properties": {
+                                "kind": {
+                                  "not": {
+                                    "pattern": "^sidecar$"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             ],
             "x-arkret-pcr-outward-event-kinds": [
@@ -21015,9 +21148,6 @@
                   },
                   {
                     "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
-                  },
-                  {
-                    "$ref": "#/$defs/sidecar_ensure_acceptance_outcome"
                   }
                 ]
               }
@@ -22766,7 +22896,8 @@
               "ak.realm.governance_station.change",
               "ak.self.agent.deactivate",
               "ak.self.agent.pause",
-              "ak.self.agent.resume"
+              "ak.self.agent.resume",
+              "ak.sidecar.create"
             ]
           },
           "committed_event_ref": {
@@ -23949,296 +24080,31 @@
                 "$ref": "#/$defs/owned_agent_stream_scan_request_body"
               }
             ],
-            "x-arkret-name-role": "request_body"
-          },
-          "sidecar_ensure_create_submission": {
+            "x-arkret-name-role": "request_body",
             "allOf": [
               {
-                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
-              },
-              {
                 "properties": {
-                  "event": {
-                    "properties": {
-                      "kind": {
-                        "const": "ak.sidecar.create",
-                        "x-arkret-value-ownership": {
-                          "class": "namespaced_symbol",
-                          "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/kind",
-                          "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/kind",
-                          "values": [
-                            "ak.sidecar.create"
-                          ]
-                        }
-                      },
-                      "scope_ref": {
-                        "properties": {
-                          "kind": {
-                            "const": "realm",
-                            "x-arkret-value-ownership": {
-                              "class": "owned_symbol",
-                              "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref/properties/kind",
-                              "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref/properties/kind",
-                              "values": [
-                                "realm"
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      "payload": {
-                        "type": "object",
-                        "maxProperties": 0
-                      },
-                      "actor_id": {
-                        "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                        "required": [
-                          "account_id"
-                        ]
-                      }
-                    },
+                  "stream_ref": {
                     "not": {
-                      "anyOf": [
-                        {
-                          "required": [
-                            "executed_by"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "applet_id"
-                          ]
-                        }
+                      "required": [
+                        "sidecar_id"
                       ]
                     }
-                  }
-                },
-                "not": {
-                  "required": [
-                    "approval_signatures"
-                  ]
-                }
-              }
-            ]
-          },
-          "sidecar_ensure_context_attach_submission": {
-            "allOf": [
-              {
-                "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
-              },
-              {
-                "properties": {
-                  "event": {
-                    "properties": {
-                      "kind": {
-                        "const": "ak.sidecar.context.attach",
-                        "x-arkret-value-ownership": {
-                          "class": "namespaced_symbol",
-                          "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/kind",
-                          "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/kind",
-                          "values": [
-                            "ak.sidecar.context.attach"
-                          ]
-                        }
-                      },
-                      "scope_ref": {
-                        "properties": {
-                          "kind": {
-                            "const": "sidecar",
-                            "x-arkret-value-ownership": {
-                              "class": "owned_symbol",
-                              "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref/properties/kind",
-                              "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref/properties/kind",
-                              "values": [
-                                "sidecar"
-                              ]
-                            }
-                          }
-                        }
-                      },
-                      "payload": {
-                        "allOf": [
-                          {
-                            "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload"
-                          },
-                          {
-                            "properties": {
-                              "version": {
-                                "const": 1,
-                                "x-arkret-value-ownership": {
-                                  "class": "numeric",
-                                  "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/version",
-                                  "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/version",
-                                  "values": [
-                                    1
-                                  ]
-                                }
-                              }
-                            },
-                            "not": {
-                              "required": [
-                                "predecessor_event_ref"
-                              ]
-                            }
-                          }
-                        ]
-                      },
-                      "actor_id": {
-                        "$ref": "./common-ids.schema.json#/$defs/actor_id",
-                        "required": [
-                          "account_id"
-                        ]
-                      },
-                      "semantic_refs": {
-                        "contains": {
-                          "type": "object",
-                          "required": [
-                            "id",
-                            "role",
-                            "critical"
-                          ],
-                          "properties": {
-                            "id": {
-                              "$ref": "./common-ids.schema.json#/$defs/event_id"
-                            },
-                            "role": {
-                              "const": "after",
-                              "x-arkret-value-ownership": {
-                                "class": "owned_symbol",
-                                "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/role",
-                                "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/role",
-                                "values": [
-                                  "after"
-                                ]
-                              }
-                            },
-                            "critical": {
-                              "const": true,
-                              "x-arkret-value-ownership": {
-                                "class": "numeric",
-                                "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/critical",
-                                "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/critical",
-                                "values": [
-                                  true
-                                ]
-                              }
-                            }
-                          }
-                        },
-                        "minContains": 1,
-                        "maxContains": 1
-                      }
-                    },
-                    "not": {
-                      "anyOf": [
-                        {
-                          "required": [
-                            "executed_by"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "applet_id"
-                          ]
-                        }
-                      ]
-                    },
-                    "required": [
-                      "semantic_refs"
-                    ]
-                  }
-                },
-                "not": {
-                  "required": [
-                    "approval_signatures"
-                  ]
-                }
-              }
-            ]
-          },
-          "sidecar_ensure_unit_submission": {
-            "type": "object",
-            "required": [
-              "unit_kind",
-              "events"
-            ],
-            "properties": {
-              "unit_kind": {
-                "const": "sidecar_ensure",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_unit_submission/properties/unit_kind",
-                  "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_unit_submission/properties/unit_kind",
-                  "values": [
-                    "sidecar_ensure"
-                  ]
-                }
-              },
-              "events": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "prefixItems": [
-                  {
-                    "$ref": "#/$defs/sidecar_ensure_create_submission"
                   },
-                  {
-                    "$ref": "#/$defs/sidecar_ensure_context_attach_submission"
+                  "scan": {
+                    "properties": {
+                      "stream_ref": {
+                        "not": {
+                          "required": [
+                            "sidecar_id"
+                          ]
+                        }
+                      }
+                    }
                   }
-                ],
-                "items": false
-              }
-            },
-            "additionalProperties": false,
-            "description": "First personal Sidecar creation only. Ordered original controller Device submissions for Realm creation and the first context on its derived Sidecar. Both original Commits or neither at the same governing Station."
-          },
-          "sidecar_ensure_acceptance_outcome": {
-            "type": "object",
-            "required": [
-              "unit_kind",
-              "status",
-              "commits"
-            ],
-            "properties": {
-              "unit_kind": {
-                "const": "sidecar_ensure",
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_acceptance_outcome/properties/unit_kind",
-                  "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_acceptance_outcome/properties/unit_kind",
-                  "values": [
-                    "sidecar_ensure"
-                  ]
-                }
-              },
-              "status": {
-                "enum": [
-                  "committed",
-                  "duplicate"
-                ],
-                "x-arkret-value-ownership": {
-                  "class": "owned_symbol",
-                  "authority": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_acceptance_outcome/properties/status",
-                  "owner": "authority-commit-operations.schema.json#/$defs/sidecar_ensure_acceptance_outcome/properties/status",
-                  "values": [
-                    "committed",
-                    "duplicate"
-                  ]
-                }
-              },
-              "commits": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": {
-                  "$ref": "./realm-commit.schema.json"
                 }
               }
-            },
-            "additionalProperties": false,
-            "description": "Both governing Commits in create/attach order, covering their own streams in the same Realm and tenure. The Sidecar is derived from the first Event; its first context has stream position zero. Exact retries recover the original commits.",
-            "x-arkret-name-role": "terminal_outcome",
-            "x-arkret-outcome-scope": "sidecar_ensure_acceptance"
+            ]
           }
         }
       }
@@ -48227,6 +48093,7 @@
               "ak.self.agent.pause",
               "ak.self.agent.resume",
               "ak.sidecar.context.attach",
+              "ak.sidecar.member.state",
               "ak.sidecar.create",
               "ak.space.archive",
               "ak.space.create",
@@ -48372,6 +48239,7 @@
                 "ak.self.agent.pause",
                 "ak.self.agent.resume",
                 "ak.sidecar.context.attach",
+                "ak.sidecar.member.state",
                 "ak.sidecar.create",
                 "ak.space.archive",
                 "ak.space.create",
@@ -53562,6 +53430,33 @@
                       ]
                     }
                   }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "ak.sidecar.member.state",
+                  "x-arkret-value-ownership": {
+                    "class": "namespaced_symbol",
+                    "authority": "event-envelope.schema.json#/allOf/158/if/properties/kind",
+                    "owner": "event-envelope.schema.json#/allOf/158/if/properties/kind",
+                    "values": [
+                      "ak.sidecar.member.state"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "payload": {
+                  "$ref": "./event-payload.schema.json#/$defs/sidecar_member_state_payload"
                 }
               }
             }
@@ -59001,6 +58896,7 @@
                       "ak.self.agent.resume",
                       "ak.sidecar.context.attach",
                       "ak.sidecar.create",
+                      "ak.sidecar.member.state",
                       "ak.space.archive",
                       "ak.space.create",
                       "ak.space.parent",
@@ -59143,6 +59039,7 @@
                         "ak.self.agent.resume",
                         "ak.sidecar.context.attach",
                         "ak.sidecar.create",
+                        "ak.sidecar.member.state",
                         "ak.space.archive",
                         "ak.space.create",
                         "ak.space.parent",
@@ -59299,6 +59196,7 @@
                   "ak.self.agent.resume",
                   "ak.sidecar.context.attach",
                   "ak.sidecar.create",
+                  "ak.sidecar.member.state",
                   "ak.space.archive",
                   "ak.space.create",
                   "ak.space.parent",
@@ -59447,6 +59345,7 @@
                     "ak.self.agent.resume",
                     "ak.sidecar.context.attach",
                     "ak.sidecar.create",
+                    "ak.sidecar.member.state",
                     "ak.space.archive",
                     "ak.space.create",
                     "ak.space.parent",
@@ -69290,9 +69189,16 @@
           },
           "sidecar_create_payload": {
             "type": "object",
-            "description": "Minimal native Sidecar genesis intent. The payload is empty: sidecar_id is derived from the Event id; realm_id, controller_account_id, state and timestamps are reducer-derived from the accepted envelope, and the Sidecar scope activates standard RFC 9420 through its own accepted ak.mls.genesis.",
-            "properties": {},
-            "additionalProperties": false
+            "description": "Controller-signed personal Sidecar creation in the Human PCR at its owning Station. Only the associated source project is carried in the payload.",
+            "properties": {
+              "source_realm_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "source_realm_id"
+            ]
           },
           "signature_material": {
             "oneOf": [
@@ -71189,6 +71095,70 @@
           },
           "mls_history_recovery_payload": {
             "$ref": "./content-encryption.schema.json#/$defs/history_recovery"
+          },
+          "sidecar_member_state_payload": {
+            "type": "object",
+            "description": "Opt-in at the owning Account Station. The predecessor is absent on the first join and names the latest accepted change for the same Sidecar and Agent thereafter.",
+            "required": [
+              "agent_account_id",
+              "membership"
+            ],
+            "properties": {
+              "agent_account_id": {
+                "$ref": "./common-ids.schema.json#/$defs/account_id"
+              },
+              "membership": {
+                "$ref": "#/$defs/membership_state",
+                "enum": [
+                  "join",
+                  "leave"
+                ],
+                "x-arkret-value-ownership": {
+                  "class": "owned_symbol",
+                  "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/membership",
+                  "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/membership",
+                  "values": [
+                    "join",
+                    "leave"
+                  ]
+                }
+              },
+              "predecessor_event_ref": {
+                "$ref": "#/$defs/event_ref",
+                "x-arkret-preimage-commitment": "fixed_event"
+              },
+              "private_reply_allowed": {
+                "type": "boolean",
+                "const": true,
+                "description": "Controller permission to write encrypted replies on this exact private Sidecar. Absent means read-only.",
+                "x-arkret-value-ownership": {
+                  "class": "numeric",
+                  "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/private_reply_allowed",
+                  "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/properties/private_reply_allowed",
+                  "values": [
+                    true
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "dependentSchemas": {
+              "private_reply_allowed": {
+                "properties": {
+                  "membership": {
+                    "const": "join",
+                    "x-arkret-value-ownership": {
+                      "class": "owned_symbol",
+                      "authority": "event-payload.schema.json#/$defs/sidecar_member_state_payload/dependentSchemas/private_reply_allowed/properties/membership",
+                      "owner": "event-payload.schema.json#/$defs/sidecar_member_state_payload/dependentSchemas/private_reply_allowed/properties/membership",
+                      "values": [
+                        "join"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-arkret-public-handshake-contract": {
@@ -90110,9 +90080,38 @@
               },
               "signature": {
                 "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+              },
+              "sidecar_backup_strategy": {
+                "$ref": "./content-encryption.schema.json#/$defs/encryption_backup_strategy",
+                "description": "Create-locked strategy from the accepted home Human PCR genesis identified by realm_id, attested only inside its native private Sidecar."
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "effective_scope": {
+                      "required": [
+                        "sidecar_id"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "sidecar_backup_strategy"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "sidecar_backup_strategy"
+                    ]
+                  }
+                }
+              }
+            ]
           },
           "roster_read_response_body": {
             "type": "object",
@@ -100854,7 +100853,12 @@
               },
               "history_stream_ref": {
                 "$ref": "./realm-commit.schema.json#/$defs/stream_ref",
-                "description": "Optional exact target stream for a stream_history original instead of a full recovery baseline. The same accepted current membership and authenticated member Station checks apply. The response signed Account/stream coverage must match this request, and cannot bootstrap or overwrite current state. For an effective personally controlled Sidecar Agent with distinct H and G, this same request is the narrow history-floor source under zh/models/sidecar.md section 6.1. The authenticated owning H asserts its actual native, endpoint, effective and read-ceiling checks at this request cut; G independently verifies its current controller/Agent membership generations, binding, management policy, fence and original accepted MLS membership basis. G directly signs the complete stream_history original without a successful full_recovery or an H-computed floor. Pending recipients use only their exact Add/Welcome/claim handshake path and cannot request business rows through this use. No native PCR disclosure, generic Agent bootstrap authority or current-delivery lease follows."
+                "description": "One project stream covered by the actual current membership. Sidecar history remains private to the owning Station.",
+                "not": {
+                  "required": [
+                    "sidecar_id"
+                  ]
+                }
               },
               "content_intent": {
                 "$ref": "#/$defs/owned_agent_content_intent"
@@ -101059,75 +101063,21 @@
                 }
               },
               "effective_scope": {
-                "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+                "$ref": "./event-payload.schema.json#/$defs/effective_scope",
+                "not": {
+                  "required": [
+                    "sidecar_id"
+                  ]
+                }
               },
               "request_digest": {
                 "$ref": "./agent-operations.schema.json#/$defs/digest"
-              },
-              "backup_root_context": {
-                "$ref": "./content-encryption.schema.json#/$defs/root_context"
               },
               "strand_id": {
                 "$ref": "./agent-operations.schema.json#/$defs/strand_id"
               }
             },
-            "additionalProperties": false,
-            "if": {
-              "required": [
-                "backup_root_context"
-              ]
-            },
-            "then": {
-              "description": "Root preparation and PUT require a business write. Both closed effective scopes must select the Sidecar branch; the receiver also checks their exact IDs and current MLS context.",
-              "properties": {
-                "action": {
-                  "enum": [
-                    "ak.message.create",
-                    "ak.message.redact.own",
-                    "ak.message.revise.own",
-                    "ak.reaction.add",
-                    "ak.reaction.remove"
-                  ],
-                  "x-arkret-value-ownership": {
-                    "class": "namespaced_symbol",
-                    "authority": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/then/properties/action",
-                    "owner": "realm-join-intake.schema.json#/$defs/owned_agent_content_intent/then/properties/action",
-                    "values": [
-                      "ak.message.create",
-                      "ak.message.redact.own",
-                      "ak.message.revise.own",
-                      "ak.reaction.add",
-                      "ak.reaction.remove"
-                    ]
-                  }
-                },
-                "effective_scope": {
-                  "type": "object",
-                  "required": [
-                    "sidecar_id"
-                  ]
-                },
-                "backup_root_context": {
-                  "type": "object",
-                  "required": [
-                    "effective_scope"
-                  ],
-                  "properties": {
-                    "effective_scope": {
-                      "type": "object",
-                      "required": [
-                        "sidecar_id"
-                      ]
-                    }
-                  }
-                }
-              },
-              "required": [
-                "action",
-                "effective_scope",
-                "backup_root_context"
-              ]
-            }
+            "additionalProperties": false
           }
         }
       }
@@ -113436,7 +113386,8 @@
               "ak.realm.governance_station.change",
               "ak.self.agent.deactivate",
               "ak.self.agent.pause",
-              "ak.self.agent.resume"
+              "ak.self.agent.resume",
+              "ak.sidecar.create"
             ]
           },
           "PublicRealmMetadata": {
@@ -119998,7 +119949,7 @@
     },
     {
       "file": "contract-registry.json",
-      "digest": "sha256:a696d62e52fde47f1dc8387f5eb9e1b99d15021d68eaa337df89a9b3048c94f9"
+      "digest": "sha256:5a538647d60daad6c63a646d10d6deac610497d674b48a4720a1452af84b0bbd"
     },
     {
       "file": "derived-wire-field-removal-lock.json",
@@ -120058,7 +120009,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:cac949122bb54353478ec86fac9ffdd792b4eb5f099e0bc4c92547ae8a514a81"
+      "digest": "sha256:174a5f7a981fe1233185715d2630caf76f0b35d9a3015d6fcfd9dee9c1ea835f"
     },
     {
       "file": "operation-clause-registry.json",
@@ -120074,7 +120025,7 @@
     },
     {
       "file": "owned-agent-authority-registry.json",
-      "digest": "sha256:0298ab343e18eb5d8c2ae446541b6e901202ce4f8a55a2f54f1f955ab14bfab6"
+      "digest": "sha256:ef3eb7adc23de713af1fca5467526638435f4c8fe503d287b70826e6513e1001"
     },
     {
       "file": "payload-validator-profile-registry.json",
@@ -120082,7 +120033,7 @@
     },
     {
       "file": "pcr-exposure-registry.json",
-      "digest": "sha256:58664edb5b22265a388c7fd3249e49f93fb76e3317a3a2ba309a8ea85b6bcf70"
+      "digest": "sha256:d8e31ee267fc957aa900c29f69af579aeb380dc313064d2270385603485f177e"
     },
     {
       "file": "preimage-identity-exemption-registry.json",
@@ -120094,7 +120045,7 @@
     },
     {
       "file": "protocol-layer-registry.json",
-      "digest": "sha256:3f5a21c57ec3be46b2e861b276c1efe38d3193a70cdecad790897c0db5346561"
+      "digest": "sha256:50dce9019fb0d0331ba077bccf9cfc679797b3cd24cd4eff34be81c829a10ac5"
     },
     {
       "file": "redactable-field-registry.json",
@@ -120142,7 +120093,7 @@
     },
     {
       "file": "vector-registry.json",
-      "digest": "sha256:331294f0938c8bf133b9b1ff52f2e25b6f28110323a0cfaf6ea5c3bb92595a10"
+      "digest": "sha256:e22f55acdeeb7eb9edb9761ca5d7bd928090ee031ea02a4425c3224e228dba3e"
     }
   ],
   "openapi": {

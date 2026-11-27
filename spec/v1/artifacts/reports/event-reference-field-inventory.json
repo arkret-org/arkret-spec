@@ -931,6 +931,12 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/sidecar_member_state_payload/properties/predecessor_event_ref",
+      "field": "predecessor_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/space_object_tombstone_payload/properties/replacement_event_id",
       "field": "replacement_event_id",
       "classification": "complete_event_id"

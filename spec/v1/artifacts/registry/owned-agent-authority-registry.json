@@ -67,7 +67,8 @@
       "capability_grant",
       "membership_read",
       "direct_participant",
-      "sidecar_read"
+      "sidecar_read",
+      "sidecar_private_reply"
     ],
     "read_actions": [
       "ak.event.read",

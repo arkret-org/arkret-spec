@@ -2344,7 +2344,8 @@
           "ak.realm.governance_station.change",
           "ak.self.agent.deactivate",
           "ak.self.agent.pause",
-          "ak.self.agent.resume"
+          "ak.self.agent.resume",
+          "ak.sidecar.create"
         ],
         "reject_categories": [
           "strand",
@@ -2356,7 +2357,8 @@
           "call",
           "media"
         ],
-        "reject_reason": "principal_control_event_kind_forbidden"
+        "reject_reason": "principal_control_event_kind_forbidden",
+        "description": "The allowlist applies to the PCR control history in Realm scope. Only a registered Human PCR accepts its controller-signed personal Sidecar creation. Subsequent privately enrolled Agent and chat events use their own Sidecar scope, with no access to this control history."
       },
       "agent_control_event_placement": {
         "agent_pcr_event_kinds": [

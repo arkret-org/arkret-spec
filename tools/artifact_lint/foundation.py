@@ -5078,7 +5078,15 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
             continue
         custody_carriers = [x for x in exposures if isinstance(x, dict) and x.get("authorization_policy_id") == custody_id]
         custody_ops = {"ak.self.committed_event.read.scan.v1", "ak.self.committed_event.resource.get.v1"}
-        if len(custody_carriers) != 2 or {x.get("operation_id") for x in custody_carriers} != custody_ops or any(
+        if event_kind == "ak.sidecar.create":
+            if len(exposures) != 2 or {x.get("operation_id") for x in exposures} != custody_ops or any(
+                x.get("authorization_policy_id") != "ak.pcr_exposure_policy.current_holder_authorized.v1"
+                or x.get("carrier") != "exact_event" or x.get("surface") != "operation" or x.get("direction") != "response"
+                or x.get("anti_enumeration_policy_id") != "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+                for x in exposures
+            ):
+                lint.fail(path, f"{where} must expose personal Sidecar creation only to the native Human PCR holder")
+        elif len(custody_carriers) != 2 or {x.get("operation_id") for x in custody_carriers} != custody_ops or any(
             x.get("carrier") != "exact_event" or x.get("surface") != "operation" or x.get("direction") != "response"
             or x.get("anti_enumeration_policy_id") != "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
             for x in custody_carriers

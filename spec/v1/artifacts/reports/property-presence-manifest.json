@@ -13,19 +13,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 11088,
+    "total_properties": 11093,
     "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2561,
+      "optional": 2559,
       "optional_defaulted": 46,
-      "required": 7853,
-      "required_nullable": 378,
-      "tristate": 250
+      "required": 7847,
+      "required_nullable": 386,
+      "tristate": 255
     },
-    "tristate_occurrences": 250,
-    "tristate_audit_targets": 190,
+    "tristate_occurrences": 255,
+    "tristate_audit_targets": 195,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 178,
+      "absent_null_equivalent": 183,
       "condition_guarded": 11,
       "distinct": 1
     }
@@ -71,15 +71,19 @@
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event",
-    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence",
+    "authority-commit-operations.schema.json/$defs/peer_stream_scan_request_body/allOf/0/properties/scan",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/event_submission",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/mls_submission",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/replications",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit/properties/stream_ref",
     "authority-commit-operations.schema.json/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event/properties/kind",
     "authority-commit-operations.schema.json/$defs/realm_authority_handoff_request_body/allOf/1/then/properties/handoff",
     "authority-commit-operations.schema.json/$defs/realm_authority_handoff_request_body/allOf/2/if/properties/handoff",
     "authority-commit-operations.schema.json/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind",
-    "authority-commit-operations.schema.json/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref",
-    "authority-commit-operations.schema.json/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref",
     "authority-commit-operations.schema.json/$defs/stream_scan_request_body/properties/after_position",
     "authority-commit-operations.schema.json/$defs/stream_scan_request_body/properties/before_position",
     "authority-commit-operations.schema.json/$defs/submit_request_body/oneOf/0/allOf/1/properties/event",
@@ -201,6 +205,7 @@
     "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt",
     "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/claim_receipt/properties/request",
     "mls-roster-authority.schema.json/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint",
+    "mls-roster-authority.schema.json/$defs/roster_manifest/allOf/0/if/properties/effective_scope",
     "mls-roster-authority.schema.json/$defs/roster_recovery_record/properties/commit_event/allOf/1/properties/payload",
     "mls-roster-authority.schema.json/$defs/self_roster_read_response_body/allOf/0/if/properties/roster",
     "mls-roster-authority.schema.json/$defs/self_roster_read_response_body/allOf/0/if/properties/roster/properties/records",
@@ -586,10 +591,20 @@
     },
     {
       "schema_file": "authority-commit-operations.schema.json",
-      "shape": "/$defs/peer_submit_request_body",
-      "instance_path": "/atomic_producer_evidence",
+      "shape": "/$defs/peer_stream_scan_request_body",
+      "instance_path": "/scan",
       "occurrences": [
-        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence"
+        "/$defs/peer_stream_scan_request_body/allOf/0/properties/scan"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/event_submission",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -610,6 +625,56 @@
       "instance_path": "/event_submission/event/kind",
       "occurrences": [
         "/$defs/peer_submit_request_body/properties/event_submission/allOf/1/properties/event/properties/kind"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/mls_submission",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/replications",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/replications/*/event_submission",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/replications/*/source_commit",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request_body",
+      "instance_path": "/replications/*/source_commit/stream_ref",
+      "occurrences": [
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit/properties/stream_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -641,26 +706,6 @@
       "instance_path": "/event/kind",
       "occurrences": [
         "/$defs/self_submit_request_body/oneOf/0/allOf/1/properties/event/properties/kind"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "authority-commit-operations.schema.json",
-      "shape": "/$defs/sidecar_ensure_context_attach_submission",
-      "instance_path": "/event/scope_ref",
-      "occurrences": [
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "authority-commit-operations.schema.json",
-      "shape": "/$defs/sidecar_ensure_create_submission",
-      "instance_path": "/event/scope_ref",
-      "occurrences": [
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1511,6 +1556,16 @@
       "instance_path": "/endpoint",
       "occurrences": [
         "/$defs/mls_add_authority_attestation/allOf/0/then/properties/endpoint"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "mls-roster-authority.schema.json",
+      "shape": "/$defs/roster_manifest",
+      "instance_path": "/effective_scope",
+      "occurrences": [
+        "/$defs/roster_manifest/allOf/0/if/properties/effective_scope"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3617,6 +3672,7 @@
         "/properties/id": "required",
         "/properties/realm_id": "required",
         "/properties/schema": "required",
+        "/properties/source_realm_id": "required",
         "/properties/state": "required",
         "/properties/state_changed_at": "optional",
         "/properties/updated_at": "optional"
@@ -4088,6 +4144,8 @@
         "/$defs/planned_event/allOf/134/then/properties/payload": "optional",
         "/$defs/planned_event/allOf/135/if/properties/event_kind": "required",
         "/$defs/planned_event/allOf/135/then/properties/payload": "optional",
+        "/$defs/planned_event/allOf/136/if/properties/event_kind": "required",
+        "/$defs/planned_event/allOf/136/then/properties/payload": "optional",
         "/$defs/planned_event/allOf/14/if/properties/event_kind": "required",
         "/$defs/planned_event/allOf/14/then/properties/payload": "optional",
         "/$defs/planned_event/allOf/15/if/properties/event_kind": "required",
@@ -4685,6 +4743,9 @@
         "/$defs/peer_committed_replication_response_body/properties/replication_outcomes": "required",
         "/$defs/peer_registered_atomic_unit_response_body/properties/branch": "required",
         "/$defs/peer_registered_atomic_unit_response_body/properties/outcome": "required",
+        "/$defs/peer_stream_scan_request_body/allOf/0/properties/scan": "tristate",
+        "/$defs/peer_stream_scan_request_body/allOf/0/properties/scan/properties/stream_ref": "optional",
+        "/$defs/peer_stream_scan_request_body/allOf/0/properties/stream_ref": "optional",
         "/$defs/peer_stream_scan_response_body/properties/committed_events": "required",
         "/$defs/peer_stream_scan_response_body/properties/producer_signer_facts": "required",
         "/$defs/peer_stream_scan_response_body/properties/readable_floor": "optional",
@@ -4693,13 +4754,30 @@
         "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission": "required_nullable",
         "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event": "required_nullable",
         "/$defs/peer_submit_request_body/allOf/1/if/properties/event_submission/properties/event/properties/kind": "required",
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission/properties/event": "optional",
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission/properties/event/not/anyOf/0/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission/properties/event/not/anyOf/1/properties/scope_ref": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/event_submission/properties/event/not/anyOf/1/properties/scope_ref/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission/properties/commit_event": "optional",
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission/properties/commit_event/not/anyOf/0/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission/properties/commit_event/not/anyOf/1/properties/scope_ref": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/mls_submission/properties/commit_event/not/anyOf/1/properties/scope_ref/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission/properties/event": "optional",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission/properties/event/not/anyOf/0/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission/properties/event/not/anyOf/1/properties/scope_ref": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/event_submission/properties/event/not/anyOf/1/properties/scope_ref/properties/kind": "required_nullable",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit/properties/stream_ref": "tristate",
+        "/$defs/peer_submit_request_body/allOf/2/properties/replications/items/properties/source_commit/properties/stream_ref/properties/kind": "optional",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission": "required_nullable",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event": "required_nullable",
         "/$defs/peer_submit_request_body/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/peer_submit_request_body/oneOf/0/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/1/properties/branch": "required",
-        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/if/properties/atomic_submission": "optional",
-        "/$defs/peer_submit_request_body/oneOf/2/allOf/0/then/properties/atomic_producer_evidence": "tristate",
         "/$defs/peer_submit_request_body/oneOf/2/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/3/properties/branch": "required",
         "/$defs/peer_submit_request_body/oneOf/4/properties/branch": "required",
@@ -4783,28 +4861,6 @@
         "/$defs/service_historical_signer_fact/properties/event_id": "required",
         "/$defs/service_historical_signer_fact/properties/key": "required",
         "/$defs/service_historical_signer_fact/properties/verification_method": "required",
-        "/$defs/sidecar_ensure_acceptance_outcome/properties/commits": "required",
-        "/$defs/sidecar_ensure_acceptance_outcome/properties/status": "required",
-        "/$defs/sidecar_ensure_acceptance_outcome/properties/unit_kind": "required",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/actor_id": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/kind": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/version": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref": "tristate",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/scope_ref/properties/kind": "optional",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs": "required_nullable",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/critical": "required",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/id": "required",
-        "/$defs/sidecar_ensure_context_attach_submission/allOf/1/properties/event/properties/semantic_refs/contains/properties/role": "required",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event": "optional",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/actor_id": "optional",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/kind": "optional",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/payload": "optional",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref": "tristate",
-        "/$defs/sidecar_ensure_create_submission/allOf/1/properties/event/properties/scope_ref/properties/kind": "optional",
-        "/$defs/sidecar_ensure_unit_submission/properties/events": "required",
-        "/$defs/sidecar_ensure_unit_submission/properties/unit_kind": "required",
         "/$defs/stream_scan_request_body/properties/after_position": "tristate",
         "/$defs/stream_scan_request_body/properties/before_position": "tristate",
         "/$defs/stream_scan_request_body/properties/limit": "required",
@@ -8074,6 +8130,8 @@
         "/allOf/157/if/properties/kind": "required",
         "/allOf/157/then/else/properties/payload": "optional",
         "/allOf/157/then/then/properties/payload": "tristate",
+        "/allOf/158/if/properties/kind": "required",
+        "/allOf/158/then/properties/payload": "optional",
         "/allOf/16/if/properties/kind": "required",
         "/allOf/16/then/properties/payload": "optional",
         "/allOf/17/if/properties/kind": "required",
@@ -9314,6 +9372,11 @@
         "/$defs/sidecar_context_attach_payload/properties/source_context_ref/oneOf/1/properties/kind": "required",
         "/$defs/sidecar_context_attach_payload/properties/source_context_ref/oneOf/1/properties/relation_id": "required",
         "/$defs/sidecar_context_attach_payload/properties/version": "required",
+        "/$defs/sidecar_create_payload/properties/source_realm_id": "required",
+        "/$defs/sidecar_member_state_payload/properties/agent_account_id": "required",
+        "/$defs/sidecar_member_state_payload/properties/membership": "required",
+        "/$defs/sidecar_member_state_payload/properties/predecessor_event_ref": "optional",
+        "/$defs/sidecar_member_state_payload/properties/private_reply_allowed": "optional",
         "/$defs/space_create_payload/properties/object": "required",
         "/$defs/space_object_tombstone_payload/properties/effective_at": "optional",
         "/$defs/space_object_tombstone_payload/properties/reason": "optional",
@@ -11691,6 +11754,7 @@
         "/$defs/roster_genesis_record/properties/genesis_event_ref": "required",
         "/$defs/roster_genesis_record/properties/kind": "required",
         "/$defs/roster_genesis_record/properties/leaf_signature_key_base64url": "required",
+        "/$defs/roster_manifest/allOf/0/if/properties/effective_scope": "tristate",
         "/$defs/roster_manifest/properties/authority_head_commit_event_ref": "required",
         "/$defs/roster_manifest/properties/caller_actor_id": "required",
         "/$defs/roster_manifest/properties/effective_scope": "required",
@@ -11703,6 +11767,7 @@
         "/$defs/roster_manifest/properties/ratchet_tree_ref": "required",
         "/$defs/roster_manifest/properties/realm_id": "required",
         "/$defs/roster_manifest/properties/records_digest": "required",
+        "/$defs/roster_manifest/properties/sidecar_backup_strategy": "optional",
         "/$defs/roster_manifest/properties/signature": "required",
         "/$defs/roster_manifest/properties/target_commit_event_ref": "required",
         "/$defs/roster_manifest/properties/target_epoch": "required",
@@ -11735,6 +11800,7 @@
       "conditionally_required": [
         "/$defs/mls_add_authority_attestation/properties/claim_authority_ref",
         "/$defs/roster_add_record/properties/claim_issuer_resolution",
+        "/$defs/roster_manifest/properties/sidecar_backup_strategy",
         "/$defs/self_roster_read_response_body/properties/recovery_signing_keys"
       ]
     },
@@ -12970,16 +13036,11 @@
         "/$defs/join_target/properties/realm_invite_link_id": "optional",
         "/$defs/owned_agent_content_intent/properties/action": "required",
         "/$defs/owned_agent_content_intent/properties/agent_key_authorization_ref": "required",
-        "/$defs/owned_agent_content_intent/properties/backup_root_context": "optional",
         "/$defs/owned_agent_content_intent/properties/controller_account_id": "required",
         "/$defs/owned_agent_content_intent/properties/controller_membership_commit_id": "required",
         "/$defs/owned_agent_content_intent/properties/effective_scope": "required",
         "/$defs/owned_agent_content_intent/properties/request_digest": "required",
         "/$defs/owned_agent_content_intent/properties/strand_id": "optional",
-        "/$defs/owned_agent_content_intent/then/properties/action": "required",
-        "/$defs/owned_agent_content_intent/then/properties/backup_root_context": "required",
-        "/$defs/owned_agent_content_intent/then/properties/backup_root_context/properties/effective_scope": "required",
-        "/$defs/owned_agent_content_intent/then/properties/effective_scope": "required",
         "/$defs/peer_bootstrap_request_body/properties/content_intent": "optional",
         "/$defs/peer_bootstrap_request_body/properties/history_stream_ref": "optional",
         "/$defs/peer_bootstrap_request_body/properties/member_account_id": "required",
@@ -13023,7 +13084,6 @@
         "/$defs/self_preview_response_body/properties/request_id": "required"
       },
       "conditionally_required": [
-        "/$defs/owned_agent_content_intent/properties/backup_root_context",
         "/$defs/peer_bootstrap_response_body/properties/authority_bundle",
         "/$defs/peer_bootstrap_response_body/properties/content_intent",
         "/$defs/peer_bootstrap_response_body/properties/membership_commit_id",

@@ -722,7 +722,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#2-动作与持续上界",
-      "section_digest": "sha256:b2e5ae3fe6b40bf1316ce53783ca6e04d94208658c6eb508553d6a96a4286ad5",
+      "section_digest": "sha256:e3a698a14767b2854a6a8a9ea216b447391c49cf4497055d9dc61c4943b59c8c",
       "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing. Agent session issuance includes complete registered profile read sources without mandatory literal grants, preserves resource/action correlation, and uses fresh issue for scope changes; refresh is non-expanding and Sidecar bootstrap eligibility is distinct from effective payload access. A sole remediable missing owned-Agent grant returns a non-authorizing opaque approval correlation; a fresh signed issue intent pins current accepted controller grant Events, while all nonremediable gates fail closed and normal refresh and completed replay preserve their existing ceilings. Participation predicates apply only to registered gates for the actual action; the current reply-selection refusal uses a complete capability grant for message.create and does not invent a reading selection bit. The payload approval example binds a granted message.create to the existing exact-target act-on-behalf confirmation; session-scope approval does not replace that independent action confirmation. The payload condition and quota examples bind actual constrained message.create grant paths: a temporal window closes while the row and session remain active; issuance does not debit quota, accepted effects count once, exact retry does not count twice, and an exhausted fresh operation leaves no business or reservation effect. Independent membership reading is not charged to an unrelated allow path. An explicitly authorized Agent may recover its own current joined-Realm locators using account sync before requesting content access; each disclosure and later content action retains its independent current gate.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -762,8 +762,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#5-current-依赖远端与审计",
-      "section_digest": "sha256:84aea372ac7664634be295f5885d09475952c02e0d240972720e440b81fcb869",
-      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery. The owning Station checks the native Agent session and expiration on first forward; the governing Station enforces its own current membership and action at acceptance and actual delivery. For each new controller-signed public-mode setting the owning Station rechecks current Agent ownership and active status before forwarding, and the governing Station admits the exact setting under current membership and group policy. For an exclusive owned_agent grant originally signed by the controller for their own Agent, the home verifies the exact grant against private provision scope and current native ownership before forwarding; the governor verifies the two current joins, controller coverage and policy.",
+      "section_digest": "sha256:5832300f659956fdf5b59767900cdd2c72ba524c384fd81ad6816e25596de9d2",
+      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery. The owning Station checks the native Agent session and expiration on first forward; the governing Station enforces its own current membership and action at acceptance and actual delivery. For each new controller-signed public-mode setting the owning Station rechecks current Agent ownership and active status before forwarding, and the governing Station admits the exact setting under current membership and group policy. For an exclusive owned_agent grant originally signed by the controller for their own Agent, the home verifies the exact grant against private provision scope and current native ownership before forwarding; the governor verifies the two current joins, controller coverage and policy. Private Sidecar enrollment, history, queue handoff and recovery use only the controller Account Station. Project authority remains independent.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"
@@ -848,8 +848,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#51-登记式原子单元normative",
-      "section_digest": "sha256:7bc75e1850e751e78734c0370c0fde85924c462df9d36a52c9ddd36830a232c6",
-      "requirement": "Closed registered units require one governor and durable whole-unit replay. First personal Sidecar creation binds the parent stream and its derived Sidecar stream. The other units retain single-stream ordering. First admission and replication have distinct carriers.",
+      "section_digest": "sha256:8ea8f81ba8619588180ba5e2ae585e96c109b98659b7c805b632981450683096",
+      "requirement": "Registered closed typed unit execution, durable whole-unit replay, one stream and separate first admission/replication.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.state.registered_atomic_units.v1"
@@ -905,11 +905,11 @@
       "clause_id": "AK-NC-133",
       "status": "active",
       "category": "authorization",
-      "source_anchor": "spec/v1/zh/models/sidecar.md#61-跨站-agent-历史下界来源normative",
-      "section_digest": "sha256:6d09d5ffd114de0f80d15196f915f9d4365616352a7821fed3d7db5ec5ecb091",
-      "requirement": "A distinct owning H obtains an effective personally controlled Sidecar Agent history floor through the existing exact stream_history bootstrap request. H asserts only its finite native checks; G directly signs from its own current membership generations and accepted MLS originals. Whole signed coverage and floor-to-head continuity are mandatory. Pending endpoints stay on exact handshake material; historical floors never authorize current delivery or reset controller history.",
+      "source_anchor": "spec/v1/zh/models/sidecar.md#61-私有握手历史与排队投递normative",
+      "section_digest": "sha256:9d6c7241fdf7a4f6c45f8ad3a4e409ee99ba9f12a5ed8c3745a30a2a2ed98449",
+      "requirement": "The controller Account Station alone accepts private Sidecar handshakes, delivers ciphertext and issues private history and backup evidence. Pending, effective and revoked endpoints have distinct access. A project governor separately authorizes project reads and publication at delivery under current membership. A rejoined Agent cannot reuse a prior project history snapshot.",
       "testability_grade": "audit",
-      "test_plan": "Run tools.test_sidecar_history_floor_source: existing closed bootstrap/Snapshot schemas and detached Ed25519 helpers verify that the existing narrow carrier binds distinct H/G Account identity, current join dependency, exact Sidecar, signed tenure, target head and history floor. Mutations cover a new join, validly re-signed wrong Agent/stream/tenure, missing membership dependency, inconsistent floor and unsigned floor tampering. The existing agent.session_content_authority cases are executed directly to show pending exact handshake needs no history floor and a floor cannot authorize pending payload. These are carrier/reference checks only. Native H/G authority, current disclosure, complete materialization, original accepted MLS provenance and actual G floor computation are preconditions, not proved by fixture keys. Real method history, Add/Welcome/claim/consume, independent Station databases, direct issuance without full_recovery, durable retention and current final-delivery barriers remain product double-Station acceptance under the existing implementation owner; no runtime conformance is claimed."
+      "test_plan": "Check the private and project branches in tools.test_sidecar_history_floor_source. On independent Stations start with the project governor offline, create and attach the private Sidecar, deliver the first Welcome and private message, then recover on an authorized new device. Separately queue project history, withdraw before transport handoff, and replay the signed old snapshot after rejoin. Verify the absence of payload and checkpoint advance on refusal."
     }
   ]
 }
