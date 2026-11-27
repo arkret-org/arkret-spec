@@ -102,8 +102,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,
-summarized_from, promoted_from_discussion, watches,
-confidential_discussion_of
+summarized_from, promoted_from_discussion, watches
 ```
 
 其中 `summarized_from` 与 `promoted_from_discussion` 是弱语义引用边：registry 将二者标记为 `weak_semantic=true`，端点遵循通用 RelationEndpoint 约束；不提供开箱即用的摘要或讨论升级强语义。

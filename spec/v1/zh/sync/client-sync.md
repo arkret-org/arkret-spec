@@ -367,7 +367,17 @@ v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。每个 
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_response_body.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，它把允许区间的下端绑定到已接受的链上，且不要求 caller 持有 position 0；Snapshot `retention_and_history_floor` 携带同一数值。该 floor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
+客户端逐流核对已保存的 Commit、收到的连续区间与目标 snapshot head。成员资格和历史可见性策略决定可读下界。扫描响应的 `readable_floor.oldest_position` 与同一 cut 的 Snapshot 中该流的 floor 一致，`readable_floor.floor_commit_id` 将下界绑定到已接纳的 Commit。下界可以大于 0，调用方无需取得更早的 Commit。Event 正文保留期届满时，该位置仍返回原 Commit 和 `event_disclosure.status="withheld"`，可读下界保持不变。可读区间内出现无法解释的跳号或前驱不符时，客户端必须停止该流的安装，按既有恢复流程重新取得可信锚点。见[历史可见性 §3.1–3.2](../governance/history-visibility.md)。
+
+**普通 Realm 的续页示例。** 客户端已验证位置 100，同一可读区间的目标快照给出位置 103 和对应 Commit ID。101 和 103 是 Chat A 的消息，102 是 Chat B 的消息。即使界面只打开 Chat A，扫描仍覆盖这三个 Realm 提交位置。以下各次扫描均按位置向前：
+
+| 扫描结果 | 客户端判断 |
+| --- | --- |
+| 第一页返回 101、102，其中 102 只披露原 Commit（`withheld`），`truncated=true`。以 `after_position=102` 续页得到 103。 | 从 100 起逐笔核对位置和 `previous_commit_ref`，再核对 103 的 Commit ID 与目标 head 相同。该区间的提交链已补齐，102 的正文仍不可用。 |
+| 101 后直接返回 103，缺少位置 102 的 Commit。 | 区间有缺口，即使 103 的 ID 命中目标 head，也必须拒绝这段不连续的结果。 |
+| 第一页止于 102，前驱均吻合，但响应声称 `truncated=false`。 | 在本例固定的可读区间内，该终页声明与已知的 103 矛盾。保留此前已验证的进度，重新核对该流的快照与扫描结果，不能把历史标为已追到 103。 |
+
+连续性只覆盖已经核对的起点与链头之间。治理站接纳前扣留的投稿没有 Commit；仅凭一段连续历史，也无法证明所见链头是最新的。见[权威提交日志 §6](./authority-commit-log.md)。
 
 ## 13. Initial Sync
 
