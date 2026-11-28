@@ -46,16 +46,16 @@ class RealmActorContractTests(unittest.TestCase):
         self.assertTrue(all(current[k][1:] == v[1:] for k, v in saved.items()))
         self.assertFalse(accept(dict(old, expected_commit_id=token("realm_commit", 1))))
 
-    def test_registration_current_has_one_realm_stream_across_circle_installs(self):
+    def test_registration_current_uses_the_realm_stream(self):
         from jsonschema import Draft202012Validator
         envelope = json.loads((ART / "schemas/event-envelope.schema.json").read_text(encoding="utf-8"))
         guard = next(r for r in envelope["allOf"] if r.get("if", {}).get("properties", {}).get("kind", {}).get("const") == "ak.applet.registration" and "scope_ref" in r.get("then", {}).get("properties", {}))
         validator = Draft202012Validator(guard)
         validator.validate({"kind": "ak.applet.registration", "scope_ref": {"kind": "realm", "realm_id": token("realm")}})
-        self.assertFalse(validator.is_valid({"kind": "ak.applet.registration", "scope_ref": {"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}}))
+        self.assertFalse(validator.is_valid({"kind": "ak.applet.registration", "scope_ref": {"kind": "sidecar", "realm_id": token("realm"), "sidecar_id": token("sidecar")}}))
         stream = self.validator("current-state", "#/$defs/current_applet_registration/properties/source_stream_ref")
         stream.validate({"kind": "realm", "realm_id": token("realm")})
-        self.assertFalse(stream.is_valid({"kind": "circle", "realm_id": token("realm"), "circle_id": token("circle")}))
+        self.assertFalse(stream.is_valid({"kind": "sidecar", "realm_id": token("realm"), "sidecar_id": token("sidecar")}))
 
     def test_service_selectors_are_required_and_cannot_widen_revoke(self):
         applet = "ak:applet:0195be74-0000-7000-8000-000000000001"

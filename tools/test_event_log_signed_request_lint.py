@@ -71,8 +71,8 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
                     "operation_id": SYNTHETIC_OPERATION_ID,
                     "http": "POST /_arkret/self/examples",
                     "idempotency_mechanism": "none",
-                    "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-                    "durable_effect": {"kind": "event_log", "event_kinds": ["ak.circle.create"]},
+                    "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list",
+                    "durable_effect": {"kind": "event_log", "event_kinds": ["ak.realm.link"]},
                 }
             )
 
@@ -95,7 +95,7 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
                     "request_schema_ref": (
                         "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
                     ),
-                    "durable_effect": {"kind": "event_log", "event_kinds": ["ak.circle.create"]},
+                    "durable_effect": {"kind": "event_log", "event_kinds": ["ak.realm.link"]},
                 }
             )
 
@@ -106,16 +106,6 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
                 for error in errors
             ),
             errors,
-        )
-
-    def test_the_closed_circle_create_shape_is_what_closing_looks_like(self) -> None:
-        # `ak.self.circle.command.create.v1` was the first entry closed: its request body
-        # is now nothing but the caller-signed `ak.circle.create` submission.
-        self.assertTrue(
-            lint_artifacts._request_schema_reaches_signed_event(
-                lint_artifacts.Lint(),
-                "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
-            )
         )
 
     def test_the_envelope_shape_counts_too(self) -> None:

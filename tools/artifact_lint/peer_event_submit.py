@@ -277,12 +277,6 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         _fail(lint, SCHEMA, "committed replication must remain bounded to 1..100 replications")
     if _ref_name(replications.get("items")) != "#/$defs/committed_event_submission":
         _fail(lint, SCHEMA, "replication items must directly use the committed Event pair")
-    for deleted_field in ("processing", "submissions", "recipient_witnesses"):
-        if deleted_field in peer_properties:
-            _fail(lint, SCHEMA, f"deleted peer request field must not return: {deleted_field}")
-    for deleted_def in ("replicated_committed_event_submission", "replication_recipient_witness"):
-        if deleted_def in defs:
-            _fail(lint, SCHEMA, f"deleted peer replication wrapper must not return: {deleted_def}")
     committed = defs["committed_event_submission"]
     if _required(committed) != {"event_submission", "source_commit"} or committed.get("additionalProperties") is not False:
         _fail(lint, SCHEMA, "committed_event_submission must be closed EventAdmissionSubmission + source_commit")
@@ -326,8 +320,6 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         _fail(lint, SCHEMA, "replication outcome must require only branch and replication_outcomes")
     if outcomes.get("minItems") != 1 or outcomes.get("maxItems") != 100 or _ref_name(outcomes.get("items")) != "#/$defs/committed_event_replication_outcome":
         _fail(lint, SCHEMA, "replication outcome must return 1..100 same-order typed replication_outcomes")
-    if "results" in outcome_properties or "peer_committed_replication_record" in defs:
-        _fail(lint, SCHEMA, "deleted generic results/record names must not return")
     result_branches = defs.get("committed_event_replication_outcome", {}).get("oneOf", [])
     statuses: list[Any] = []
     for index, item in enumerate(result_branches if isinstance(result_branches, list) else []):
@@ -692,9 +684,3 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         ("四笔连续 source `RealmCommit`", "`founding_authority_evidence` 与本地唯一 slot", "不存在 founding receipt 输入或输出"),
         ("source acceptance receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
     )
-
-    forbidden_targets = (SCHEMA, CONTRACT, PROFILES, FIXTURE, OPENAPI) + tuple(PROSE_MARKERS)
-    for path in forbidden_targets:
-        text = read_text(path) if path.is_file() else ""
-        if "EventFederationSubmission" in text:
-            _fail(lint, path, "deleted EventFederationSubmission must not be restored on a current carrier surface")

@@ -422,20 +422,8 @@
               "expected_valid": false
             },
             {
-              "case_id": "circle_without_parent",
-              "scope": "circle",
-              "parent": "absent",
-              "expected_valid": false
-            },
-            {
-              "case_id": "circle_with_parent",
-              "scope": "circle",
-              "parent": "present",
-              "expected_valid": false
-            },
-            {
-              "case_id": "circle_null_parent",
-              "scope": "circle",
+              "case_id": "realm_null_parent",
+              "scope": "realm",
               "parent": "null",
               "expected_valid": false
             }

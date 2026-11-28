@@ -133,9 +133,6 @@ class SharedResultClosure0650Test(unittest.TestCase):
         gate = base.evolve(schema=schema_definitions(registry)["registered_admission_shape"])
         fixture = json.loads((artifacts / "fixtures/managed-governance-fixture.json").read_text(encoding="utf-8"))
         identities = fixture["identities"]
-        scopes = json.loads((artifacts / "fixtures/applet-device-scope-fixture.json").read_text(encoding="utf-8"))
-        circle = next(case["scope"] for case in scopes["cases"]
-                      if case.get("valid") and case.get("scope", {}).get("kind") == "circle")
         actors = schema_validator(artifacts / "schemas/common-ids.schema.json", "#/$defs/actor_id")
         for role in ("service", "bot", "alice"):
             self.assertTrue(actors.is_valid(identities[role]), role)
@@ -146,7 +143,7 @@ class SharedResultClosure0650Test(unittest.TestCase):
         self.assertTrue(gate.is_valid(candidate))
         for field, value in (("actor_id", identities["alice"]), ("actor_id", identities["bot"]),
                              ("scope_ref", {"kind": "realm", "realm_id": identities["realm_id"]}),
-                             ("scope_ref", circle), ("authorization_ref", fixture["lineage"]["parent_id"]),
+                             ("authorization_ref", fixture["lineage"]["parent_id"]),
                              ("executed_by", identities["service"])):
             with self.subTest(field=field, value=value):
                 changed = copy.deepcopy(candidate)

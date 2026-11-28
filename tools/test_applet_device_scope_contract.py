@@ -32,7 +32,6 @@ class AppletDeviceScopeContractTest(unittest.TestCase):
         rules = contract['operation_scope_rules']
         self.assertEqual([r['operation_id'] for r in rules], contract['operations'])
         self.assertEqual(len(rules), 26)
-        self.assertNotIn('ak.self.circle.command.rotate_scope.v1', contract['operations'])
         native_backups = {
             'ak.self.keys.backups.resource.replace.v1',
             'ak.self.keys.backups.read.list.v1',

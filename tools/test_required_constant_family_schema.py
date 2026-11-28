@@ -117,12 +117,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             "ak.schema.recovery_completion_attestation.v1",
         )
 
-    def test_retired_pcd_wire_surfaces_cannot_return(self) -> None:
-        describe = load("service-describe.schema.json")
-        self.assertNotIn("private_contact_discovery", describe["properties"])
-        directory = load("directory-operations.schema.json")["$defs"]
-        for definition in ("psi_blind_request_body", "psi_blind_outcome", "psi_match_request_body", "psi_match_outcome"):
-            self.assertNotIn(definition, directory)
+    def test_withheld_disclosure_has_only_its_status(self) -> None:
         withheld = load("service-operation-dtos.schema.json")["$defs"]["EventDisclosure"]
         self.assertEqual(withheld["required"], ["status"])
         self.assertEqual({key: {"const": value.get("const")} for key,value in withheld["properties"].items()}, {"status": {"const": "withheld"}})

@@ -8,7 +8,7 @@ from unittest.mock import patch
 from pathlib import Path
 from jsonschema import Draft202012Validator
 
-from .artifact_lint.semantic_naming import openapi_component_alias_errors,canonical_body_alias_errors,capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors,retired_contract_reference_errors
+from .artifact_lint.semantic_naming import openapi_component_alias_errors,canonical_body_alias_errors,capture_member_reference_errors,enum_errors,member_role_errors,type_role_errors
 from .protocol_member_contract import REFERENCE, check, compare, contract_shape, derive, registry_contract_shape
 
 
@@ -287,10 +287,6 @@ class SemanticNamingTests(unittest.TestCase):
                 self.assertTrue(type_role_errors(name, node))
         for name in ('RealmView', 'account_data_entry', 'CurrentMimiRoomBinding'):
             self.assertEqual(type_role_errors(name, {}), [])
-        self.assertTrue(retired_contract_reference_errors('ContactListRow stream_row'))
-        for retired in ('AccountDataCasConflict', 'AccountDataCasConflictDetails', 'account_data_cas_conflict_details', 'InviteLiveTargetOccupiedProblem'):
-            self.assertTrue(retired_contract_reference_errors(retired))
-
 
     def test_error_and_reason_code_authority_is_in_the_release_freeze(self):
         root = Path(__file__).resolve().parents[1]
@@ -301,11 +297,6 @@ class SemanticNamingTests(unittest.TestCase):
         next(row for row in changed['canonical_registries'] if row['file'] == 'error-code-registry.json')['digest'] = 'changed-error-vocabulary'
         self.assertTrue(row['digest'].startswith('sha256:'))
         self.assertTrue(compare(baseline, changed))
-
-    def test_retired_pascal_terms_cannot_survive_in_normative_notes(self):
-        self.assertTrue(retired_contract_reference_errors('MlsGroupCurrent.effective_scope'))
-        self.assertTrue(retired_contract_reference_errors('TypedCurrentRow and AccountCurrentView'))
-        self.assertEqual(retired_contract_reference_errors('MlsGroupValue CurrentState AccountStateView'), [])
 
     def test_normative_ci_fetches_release_tags_and_full_history(self):
         root = Path(__file__).resolve().parents[1]

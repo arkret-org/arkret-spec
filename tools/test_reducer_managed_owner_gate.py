@@ -5,18 +5,6 @@ authority owns the write. `_check_owner` validates that authority: an
 `event_kind` owner must be an active Event kind, and a `state_family` owner must
 be a family `current-state-registry.json` registers.
 
-The second half had never run. `_declared_cell_families` walked
-`event_kinds[].cell_writes[].cell_family`, a pair the authority-commit clean
-break renamed to `state_writes[].state_family`, so it returned the empty set on
-every run -- and the guard read `and cell_families and owner not in
-cell_families`, which short-circuits on an empty set. Three of the four live
-`state_family` owners turned out not to exist:
-
-* `space_metadata` is nowhere in `spec/v1/zh/`; the `scope_circle_id` row it
-  owned is `create_locked` and its real owner is `ak.space.create`, matching
-  every other `create_locked` row in the file;
-* `space_parent` was registered by the Space coverage batch, closing the ledger.
-
 The ledger is empty now, so the tests that prove how it behaves build their own
 entry instead of borrowing a live one. Every mutation reads as a delta against
 the live baseline, so each test keeps testing its own proposition as the
@@ -99,16 +87,6 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         whether the next edit broke something."""
         self.assertEqual(self._run(), [])
 
-    def test_the_scope_circle_id_row_is_owned_by_its_create(self) -> None:
-        """The defect the repair caught. `space_metadata` appears in no spec
-        file; `realm-and-space.md` section 3.2 carries `scope_circle_id` in the
-        signed create object and no later Event kind writes it."""
-        registry = gate.load_json(gate.Lint(), REGISTRY)
-        row = path_row(registry, "space", "scope_circle_id")
-        self.assertEqual(row["basis"], "create_locked")
-        self.assertEqual(row["owner_kind"], "event_kind")
-        self.assertEqual(row["owner"], "ak.space.create")
-
     def test_the_ledger_is_closed_and_any_entry_would_be_consistent(self) -> None:
         """The ledger only shrinks, and the Space coverage batch emptied it by
         registering both families. The loop stays because it is what checks a
@@ -137,19 +115,6 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         self.assertTrue(
             any("its silence would mean nothing" in error for error in reported),
             reported,
-        )
-
-    def test_the_historical_defect_is_reported_if_it_returns(self) -> None:
-        def mutate(registry: dict) -> None:
-            row = path_row(registry, "space", "scope_circle_id")
-            row["owner_kind"] = "state_family"
-            row["owner"] = "space_metadata"
-
-        reported = self._newly_reported({REGISTRY: mutate})
-        self.assertEqual(len(reported), 1, reported)
-        self.assertIn(
-            "current-state-registry.json does not register: 'space_metadata'",
-            reported[0],
         )
 
     # ---- the ledger is an exemption, and it only shrinks ------------------
@@ -198,7 +163,9 @@ class ReducerManagedOwnerGateTest(unittest.TestCase):
         repair to its neighbour cannot quietly take it along."""
 
         def mutate(registry: dict) -> None:
-            path_row(registry, "space", "scope_circle_id")["owner"] = "ak.space.invent"
+            row = path_row(registry, "space", "parent_space_id")
+            row["owner_kind"] = "event_kind"
+            row["owner"] = "ak.space.invent"
 
         reported = self._newly_reported({REGISTRY: mutate})
         self.assertEqual(len(reported), 1, reported)

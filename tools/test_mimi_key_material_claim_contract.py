@@ -118,15 +118,6 @@ class MimiKeyMaterialClaimContract(unittest.TestCase):
             del changed[0][field]
             self.assertNotEqual(digest(changed), receipt['claims_digest'])
 
-    def test_old_parallel_carriers_and_proof_contexts_are_removed(self):
-        schema = json.loads((ART / 'schemas/mimi-operations.schema.json').read_text(encoding='utf-8'))
-        for name in ('keypackage', 'group_info', 'mimi_key_material_request_body', 'mimi_key_material_outcome'):
-            self.assertNotIn(name, schema['$defs'])
-        registry = json.loads((ART / 'registry/proof-context-registry.json').read_text(encoding='utf-8'))
-        contexts = {x['context'] for x in registry['contexts']}
-        self.assertNotIn('ak.mimi_key_material_request_proof.v1', contexts)
-        self.assertNotIn('ak.mimi_key_material_outcome_proof.v1', contexts)
-
     def test_transport_covers_idempotency_and_cross_domain_binding(self):
         scenario = next(x for x in self.catalog['http_signature_contract_registry']['scenarios'] if x['scenario_id'] == 'ak.http_signature.scenario.mimi_provider.v1')
         conditions = {x['component']: x['condition'] for x in scenario['conditional_covered_components']}

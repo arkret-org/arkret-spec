@@ -71,7 +71,7 @@ class ObjectTargetNamingTest(unittest.TestCase):
             valid = self.payload(definition, name, patch)
             validator.validate({**valid, 'expected_state_digest': 'sha256:' + 'a' * 64})
             self.assertFalse(validator.is_valid({**valid, 'expected_state_digest': 'not-a-digest'}))
-            self.assertFalse(validator.is_valid({**valid, 'scope_circle_id': token('circle')}))
+            self.assertFalse(validator.is_valid({**valid, 'scope_ref': {'kind': 'realm', 'realm_id': token('realm')}}))
         value = self.payload('profile_realm_override_payload', 'actor_profile_id', {'display_name': 'Name'})
         self.assertFalse(self.validator('profile_realm_override_payload').is_valid({**value, 'target_realm_id': token('strand')}))
         value.pop('target_realm_id')

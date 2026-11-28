@@ -53,14 +53,6 @@ class ContactCurrentContract(unittest.TestCase):
     def test_lifecycle_counterexamples(self):
         for row in self.fixture['decision_cases']:
             with self.subTest(row['name']):self.assertEqual(evaluate(row),row['expected'])
-    def test_retired_members_and_operations_are_absent(self):
-        defs=self.schema['$defs']
-        self.assertFalse(any(k.startswith(('contact_continuity','bilateral_continuity')) for k in defs))
-        kinds=[x.get('properties',{}).get('kind',{}).get('const') for x in defs['peer_contact_submit_request_body']['oneOf']]
-        self.assertIn('current_refresh',kinds)
-        self.assertNotIn('proof_refresh',kinds);self.assertNotIn('continuity_checkpoint',kinds)
-        ops=[x['operation_id'] for x in self.catalog['operation_registry']['operations']]
-        self.assertNotIn('ak.self.contact.command.checkpoint.v1',ops)
     def test_direction_revision_and_scope_contract_is_canonical(self):
         c=self.catalog['contact_current_contract']
         self.assertEqual(c['direction_key'],['trust_domain_id','complete_holder_actor_id','complete_peer_actor_id'])

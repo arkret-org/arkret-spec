@@ -156,14 +156,14 @@ class ReducerManagedPathSolveTest(_Harness):
         """
 
         def ban_title_elsewhere(document: dict) -> None:
-            row = _object_row(document, "circle")
+            row = _object_row(document, "space")
             row["forbidden_patch_paths"].append(
                 {
                     "path": "title",
                     "basis": "probe",
                     "reason_code": "patch_path_reducer_managed",
                     "owner_kind": "event_kind",
-                    "owner": "ak.circle.update",
+                    "owner": "ak.space.update",
                     "schema_enforced": False,
                     "description": "probe: a private ban of one object kind",
                 }
@@ -171,7 +171,7 @@ class ReducerManagedPathSolveTest(_Harness):
 
         errors = self._newly_reported({REDUCER_PATHS: ban_title_elsewhere})
         self.assertEqual(len(errors), 1)
-        self.assertIn("ak.circle.update", errors[0])
+        self.assertIn("ak.space.update", errors[0])
         self.assertNotIn("ak.view.update", errors[0])
 
     def test_reaching_under_a_banned_path_is_refused(self) -> None:
@@ -350,14 +350,14 @@ class ValueMemberFrontierTest(unittest.TestCase):
 
     def test_measured_family_cannot_keep_a_gap_owner(self) -> None:
         def reopen(document: dict) -> None:
-            _object_row(document, "circle")["value_schema_open_gap_owner"] = "probe"
+            _object_row(document, "space")["value_schema_open_gap_owner"] = "probe"
 
         errors = self._new_errors(reopen)
         self.assertTrue(any("MUST NOT also name a gap owner" in item for item in errors), errors)
 
     def test_unmeasured_family_must_name_its_gap_owner(self) -> None:
         def silence(document: dict) -> None:
-            row = _object_row(document, "circle")
+            row = _object_row(document, "space")
             row.pop("value_member_maintenance")
 
         errors = self._new_errors(silence)

@@ -32,16 +32,16 @@ LOCK = json.loads(
 ROW = {
     "lock_id": "ak.lock.derived_wire_field_removal.example_count.v1",
     "ruling": "2026-09-02-1951 A1",
-    "schema": "schemas/circle-operations.schema.json",
+    "schema": "schemas/realm-link-operations.schema.json",
     "path": "/$defs/example_view",
     "removed": "member_count",
     "source": {"field": "member_ids"},
     "derivation": "member_count := len(member_ids)",
-    "spec_anchor": "spec/v1/zh/models/circle.md",
+    "spec_anchor": "spec/v1/zh/models/realm-and-space.md",
 }
 
 DOCS = {
-    "circle-operations.schema.json": {
+    "realm-link-operations.schema.json": {
         "$defs": {
             "example_view": {
                 "type": "object",
@@ -83,7 +83,7 @@ class DerivedWireFieldRemovalLockLintTest(unittest.TestCase):
 
     def test_restored_member_in_properties_fails(self) -> None:
         docs = copy.deepcopy(DOCS)
-        docs["circle-operations.schema.json"]["$defs"]["example_view"]["properties"][
+        docs["realm-link-operations.schema.json"]["$defs"]["example_view"]["properties"][
             "member_count"
         ] = {"type": "integer"}
         errors = run(lock_with(ROW), docs)
@@ -92,7 +92,7 @@ class DerivedWireFieldRemovalLockLintTest(unittest.TestCase):
 
     def test_restored_member_only_in_required_fails(self) -> None:
         docs = copy.deepcopy(DOCS)
-        docs["circle-operations.schema.json"]["$defs"]["example_view"]["required"].append(
+        docs["realm-link-operations.schema.json"]["$defs"]["example_view"]["required"].append(
             "member_count"
         )
         errors = run(lock_with(ROW), docs)
@@ -101,7 +101,7 @@ class DerivedWireFieldRemovalLockLintTest(unittest.TestCase):
 
     def test_dropped_source_member_fails(self) -> None:
         docs = copy.deepcopy(DOCS)
-        view = docs["circle-operations.schema.json"]["$defs"]["example_view"]
+        view = docs["realm-link-operations.schema.json"]["$defs"]["example_view"]
         view["properties"] = {}
         view["required"] = []
         errors = run(lock_with(ROW), docs)
@@ -109,7 +109,7 @@ class DerivedWireFieldRemovalLockLintTest(unittest.TestCase):
         self.assertIn("must keep declaring member_ids", errors[0])
 
     def test_moved_carrier_fails_instead_of_passing_silently(self) -> None:
-        errors = run(lock_with(ROW), {"circle-operations.schema.json": {"$defs": {}}})
+        errors = run(lock_with(ROW), {"realm-link-operations.schema.json": {"$defs": {}}})
         self.assertEqual(len(errors), 1, errors)
         self.assertIn("no longer resolves", errors[0])
 

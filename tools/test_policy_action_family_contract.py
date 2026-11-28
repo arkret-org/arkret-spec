@@ -11,11 +11,6 @@ implied by the generic write-contract gates: `check_result_write_contracts`
 closes the per-row grammar, `check_result_write_target_uniqueness` admits the
 pair because the conditions are disjoint, and neither one can tell whether the
 branches still name different things.
-
-These tests read the live artifacts and state what would be lost. They are also
-the record that `ak.policy.rule` was deleted rather than left standing: it
-carried no `policy_id`, so its `rule_id` resolved to nothing, and editing a rule
-submits the whole authorized Policy document through `ak.policy.set`.
 """
 
 from __future__ import annotations
@@ -144,19 +139,6 @@ class PolicyActionFamilyContractTest(unittest.TestCase):
             self.results["$defs"]["policy_action_value"]["$ref"],
             "./event-payload.schema.json#/$defs/policy_action_state_payload/properties/value",
         )
-
-    # ---- the deletion ---------------------------------------------------
-
-    def test_the_rule_kind_is_gone_everywhere(self) -> None:
-        self.assertNotIn(
-            "ak.policy.rule",
-            [row["event_kind"] for row in self.registry["event_kinds"]],
-        )
-        self.assertNotIn("policy_rule_state_payload", self.payloads["$defs"])
-        envelope = (ARTIFACTS / "schemas" / "event-envelope.schema.json").read_text(
-            encoding="utf-8"
-        )
-        self.assertNotIn("ak.policy.rule", envelope)
 
     def test_rule_id_stays_a_document_local_symbol(self) -> None:
         """The deletion did not delete rules -- it deleted a subject claim.

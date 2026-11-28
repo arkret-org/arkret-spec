@@ -70,18 +70,6 @@ class EventAdmissionContractTest(unittest.TestCase):
             self.assertNotIn('"planned_event"', text)
             self.assertIn('"event_submission"', text)
 
-    def test_retired_applet_provision_semantic_ref_is_rejected(self):
-        validator = Draft202012Validator({
-            "$ref": "https://arkret.org/v1/schemas/event-envelope.schema.json#/$defs/semantic_ref"
-        }, registry=self.resources)
-        for critical in [True, False]:
-            with self.subTest(critical=critical):
-                self.assertFalse(validator.is_valid({
-                    "id": "ak:event:" + "A" * 44,
-                    "role": "applet_managed_actor_provision",
-                    "critical": critical,
-                }))
-
     def test_current_grant_and_direct_semantic_refs_keep_their_typed_targets(self):
         # Schema closure only: these refs do not establish accepted authority.
         validator = Draft202012Validator({

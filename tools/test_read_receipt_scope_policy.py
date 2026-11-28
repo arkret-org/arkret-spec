@@ -41,7 +41,7 @@ class ScopeReadReceiptPolicyTest(unittest.TestCase):
     def test_second_writer_is_rejected(self):
         catalog = self.documents[ARTIFACTS / "registry/contract-registry.json"]
         duplicate = copy.deepcopy(self.writer())
-        duplicate["event_kind"] = "ak.circle.read_receipt_policy"
+        duplicate["event_kind"] = "ak.example.read_receipt_policy"
         catalog["event_kind_registry"]["event_kinds"].append(duplicate)
         self.assertTrue(self.run_gate())
 

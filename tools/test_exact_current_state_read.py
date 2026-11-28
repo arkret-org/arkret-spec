@@ -103,7 +103,7 @@ class ExactCurrentStateReadTest(unittest.TestCase):
         self.assertEqual([], list(validator.iter_errors([entry])))
         mutations = [
             lambda row: row["selector"].update(kind="unknown"),
-            lambda row: row["selector"]["primary_conflict_domain"].update(scope_circle_id=None),
+            lambda row: row["selector"]["primary_conflict_domain"].update(unregistered_field=None),
             lambda row: row["selector"].pop("primary_conflict_domain"),
             lambda row: row["value"].update(to_ref="ak:did_core:web:alice.example"),
             lambda row: row.pop("source_stream_ref"),

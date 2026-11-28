@@ -414,7 +414,6 @@ class ManagedGovernanceTests(unittest.TestCase):
         validator = Draft202012Validator({"$id": schema["$id"], **gate}, registry=self.registry)
         self.assertTrue(validator.is_valid({"kind": "ak.member.state"}))
         self.assertFalse(validator.is_valid({"kind": "ak.profile.create"}))
-        self.assertFalse(validator.is_valid({"kind": "ak.circle.member.state"}))
 
     def test_first_device_and_service_child_have_a_real_transport_carrier(self):
         operations = {o["operation_id"]: o for o in self.catalog["operation_registry"]["operations"]}

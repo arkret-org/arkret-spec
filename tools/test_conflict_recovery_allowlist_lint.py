@@ -1,25 +1,8 @@
-"""No Event kind may reset or retarget an arbitrary current state.
-
-`ak.conflict.recovery` was the escape hatch: a kind that named its target in the
-payload (`cell_ref`) and wrote a `reset` projection over whatever it pointed at.
-It is retired, and the registry must never register it again.
-
-The rule used to be enforced by `foundation.lint_conflict_recovery_write`, a
-function whose only production caller was the `cell_writes[]` loop of
-`check_registries` -- dead since the authority-commit clean break, so for the
-whole break the only thing keeping that function alive was this test calling it
-directly. A gate with no caller proves nothing about the registry.
-
-In v1 the proposition is carried by the closed sets of
-`check_result_write_contracts`: `cell_ref` is not a member of `state_writes[]`,
-and `reset` is not a `state_projection.kind`. These tests drive the live gate so
-that both closures stay the thing that actually rejects the shape.
-"""
+"""Check the registered state-write members and projection kinds."""
 
 from __future__ import annotations
 
 import copy
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -30,15 +13,6 @@ sys.path.insert(0, str(ROOT))
 from tools.artifact_lint import core, proof_context_schemas as gate
 
 REGISTRY = gate.EVENT_KIND_REGISTRY
-
-
-class RetiredRecoveryKindTest(unittest.TestCase):
-    def test_the_retired_kind_has_no_registration(self) -> None:
-        registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
-        self.assertNotIn(
-            core.CONFLICT_RECOVERY_KIND,
-            {row["event_kind"] for row in registry["event_kinds"]},
-        )
 
 
 class DynamicResetRejectionTest(unittest.TestCase):

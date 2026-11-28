@@ -272,7 +272,7 @@ def run_case(fixture, name):
         elif field == 'media':
             participant['media']['screen'] = True
     elif name == 'wrong_scope':
-        snapshot['visible_stream_heads'][0]['stream_ref'] = {'kind': 'circle', 'realm_id': request['realm_id'], 'circle_id': typed_id('circle', {})}
+        snapshot['visible_stream_heads'][0]['stream_ref'] = {'kind': 'realm_control', 'realm_id': request['realm_id']}
     elif name == 'wrong_call':
         row['selector']['call_id'] = typed_id('call', {})
     elif name in ('wrong_source_position', 'wrong_source_event'):

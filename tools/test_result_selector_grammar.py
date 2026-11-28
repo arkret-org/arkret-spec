@@ -183,17 +183,17 @@ class StateSelectorGrammarTest(unittest.TestCase):
     def test_coalesce_fields_are_validated(self) -> None:
         self.assertEqual(
             errors_for(
-                {"kind": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}
+                {"kind": "coalesce", "fields": ["payload.realm_id", "payload.target_ref"]}
             ),
             [],
         )
         for selector, expected in (
             ({"kind": "coalesce", "fields": []}, "non-empty array"),
             (
-                {"kind": "coalesce", "fields": ["payload.circle_id", "payload.circle_id"]},
+                {"kind": "coalesce", "fields": ["payload.realm_id", "payload.realm_id"]},
                 "must not repeat a field",
             ),
-            ({"kind": "coalesce", "fields": ["circle_id"]}, "explicit payload.*"),
+            ({"kind": "coalesce", "fields": ["realm_id"]}, "explicit payload.*"),
         ):
             with self.subTest(selector=selector):
                 reported = errors_for(selector)
@@ -201,9 +201,7 @@ class StateSelectorGrammarTest(unittest.TestCase):
                 self.assertIn(expected, reported[0])
 
     def test_coalesce_spelled_with_components_is_reported(self) -> None:
-        """`zh/models/circle.md` spells this subject with `"type"` rather than
-        `"kind"`; a member nobody reads is how that drift survives."""
-        reported = errors_for({"kind": "coalesce", "components": ["payload.circle_id"]})
+        reported = errors_for({"kind": "coalesce", "components": ["payload.realm_id"]})
         self.assertEqual(len(reported), 2, reported)
         self.assertIn("unknown member(s) ['components']", reported[0])
         self.assertIn("fields must be a non-empty array", reported[1])

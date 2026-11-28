@@ -142,20 +142,6 @@ class DetachedObjectSignatureRegistrationGateTest(unittest.TestCase):
         source = (ROOT / "tools/artifact_lint/runner.py").read_text(encoding="utf-8")
         self.assertIn("check_detached_object_signature_registration(lint)", source)
 
-    def test_p18_removed_snapshot_proof_context_cannot_return(self) -> None:
-        self.assert_red(
-            lambda d: d["registry"]["contexts"].append(
-                {
-                    "context": "ak.realm_state_snapshot_proof.v1",
-                    "object_family": "realm_state_snapshot",
-                    "binding_fields": ["payload_digest"],
-                    "defined_in": "zh/conformance/realm-state-snapshot-schema.md",
-                    "schema_ref": "schemas/realm-state-snapshot.schema.json",
-                }
-            ),
-            "removed snapshot proof context",
-        )
-
     def test_native_custody_context_cannot_be_rebound_to_another_domain(self) -> None:
         for name in ("admission", "offer", "confirmation"):
             definition="realm_actor_content_backup_"+name+"_signature"

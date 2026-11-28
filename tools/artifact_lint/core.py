@@ -262,7 +262,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "policy_ref": "policy_id for Policy objects, or policy_event_ref for policy-revision Event references",
     "allowed_view_refs": "allowed_view_ids",
     "allowed_strand_refs": "allowed_strand_ids",
-    "allowed_circle_refs": "allowed_circle_ids",
     "denied_strand_refs": "denied_strand_ids",
     "allowed_space_refs": "allowed_space_ids",
     "denied_space_refs": "denied_space_ids",
@@ -542,19 +541,10 @@ FIELD_PATH_RE = re.compile(
     r"^(?:[A-Za-z_][A-Za-z0-9_]*|\$id)(?:\.(?:[A-Za-z_][A-Za-z0-9_]*|\$id))*$"
 )
 
-
-
-CONFLICT_RECOVERY_KIND = "ak.conflict.recovery"
-# The notary configuration cell is deliberately outside the conflict-recovery allowlist:
-# verifying any Seal reads it, so a quarantine-bypass fork-resolution Seal targeting it cannot be accepted.
-NOTARY_CELL_FAMILY = "ak.component.notary.v1"
-
-
-
 # encoding.md §9.5.1 closes the set of Event Envelope fields a registered cell
 # subject may read.
 #
-# `envelope.scope_ref` is the signed, exact Realm/Circle policy subject.
+# `envelope.scope_ref` is the signed, exact Realm policy subject.
 # `envelope.actor_id` is the accountable actor. `envelope.event_id` is
 # Event-derived object identity: the created object's id is the create Event's
 # own event_id retyped to the kind declared by `cell_subject.kind`
@@ -620,7 +610,7 @@ SIGNED_EVENT_REQUEST_MARKERS = ("EventAdmissionSubmission", "event-envelope.sche
 #
 # Scoping this check to `event_log` alone hid `ak.self.account_data.resource.delete.v1`,
 # whose sibling `resource.replace` writes the same `ak.account_data.set` kind — the same
-# "adding is an Event, removing is not" asymmetry the circle and realm_link DELETEs have.
+# "adding is an Event, removing is not" asymmetry the realm_link DELETE has.
 EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 
 

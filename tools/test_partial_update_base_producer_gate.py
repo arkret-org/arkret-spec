@@ -122,7 +122,7 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             # one set turned red on the one write the spec cannot do without.
             # Its base producer is `ak.view.create`'s whole-value `set`.
             #
-            # The six object families joined in the 2200 landing, which stopped
+            # The object families joined in the 2200 landing, which stopped
             # them at `state_writes: []` -- every one of them had an `update`
             # kind that was a reducer_input writing nothing, so the patch
             # surface these gates measure did not exist to be measured. Each
@@ -132,7 +132,6 @@ class PartialUpdateBaseProducerTest(_GateHarness):
             {
                 "actor_profile",
                 "capability_grant",
-                "circle",
                 "mls_group",
                 "morph",
                 "realm_authority_root",

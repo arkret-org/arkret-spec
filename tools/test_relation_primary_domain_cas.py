@@ -128,7 +128,6 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
                 "from_ref",
                 "rank",
                 "relation_kind",
-                "scope_circle_id",
                 "to_ref",
             ],
         )
@@ -163,7 +162,7 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
         write = self.rows["ak.relation.update"]["state_writes"][0]
         self.assertEqual(
             write["state_projection"]["allowed_paths"],
-            ["scope_circle_id", "rank", "fields"],
+            ["rank", "fields"],
         )
         self.assertTrue(
             {"relation_kind", "from_ref", "to_ref"}

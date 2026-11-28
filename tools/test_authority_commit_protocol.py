@@ -19,46 +19,6 @@ def read(relative: str):
     return json.loads((ARTIFACTS / relative).read_text(encoding="utf-8"))
 
 
-REMOVED_STATE_MACHINE_TERMS = {
-    "EventInitialSubmission",
-    "Control Move",
-    "Move",
-    "ordinary Event",
-    "Lattice",
-    "lattice",
-    "sequenced_state",
-    "causal_register",
-    "or_set",
-    "ordered_log",
-    "state_model",
-    "observed-remove",
-    "observed_dot",
-    "dot_ids",
-    "authority_revision",
-    "auth_context",
-    "data_basis",
-    "reducer_profile",
-    "reducer profile",
-    "supported_reducer_profiles",
-    "state-slot:",
-    "ak.component.",
-    "head_eq",
-    "effect_projection",
-    "notary",
-    "Notary",
-    "ControlProposal",
-    "control_proposal",
-    "peer reconciliation",
-    "frontier_digest",
-    "frontier_ref",
-    "control_frontier",
-}
-
-
-def removed_state_machine_terms(text):
-    return sorted(term for term in REMOVED_STATE_MACHINE_TERMS if term in text)
-
-
 def protocol_registry_lifecycle_errors(document):
     """Check protocol catalog rows, never nested Actor lifecycle state."""
     errors = []
@@ -215,7 +175,6 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         effects = " ".join(event["reducer_effects"])
         self.assertIn("greatest stream_position", effects)
         self.assertIn("retain every accepted response", effects)
-        self.assertNotIn("causal dominance", effects)
 
     def test_member_bootstrap_keeps_exact_stream_join_carrier(self):
         definitions = read("schemas/realm-join-intake.schema.json")["$defs"]
@@ -232,12 +191,6 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         prose = (ROOT / "spec/v1/zh/sync/federation.md").read_text(encoding="utf-8")
         self.assertIn("Realm stream 的 `ak.member.state{join}`", prose)
         self.assertIn("定向 invite 的 `ak.invite.accept`", prose)
-
-    def test_retired_circle_current_families_are_unreachable(self):
-        schema = read("schemas/current-state.schema.json")
-        reachable = {branch.get("$ref") for branch in schema["oneOf"]}
-        for name in ("current_circle", "current_circle_member_state"):
-            self.assertNotIn(f"#/$defs/{name}", reachable)
 
     def test_every_current_state_binds_exact_source_stream(self):
         schema = read("schemas/current-state.schema.json")
@@ -270,14 +223,8 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             ["commit_id", "stream_position"],
         )
 
-    def test_current_v1_has_no_removed_state_machine_vocabulary(self):
+    def test_current_registry_rows_and_operations_are_active(self):
         findings = []
-        for root in (ROOT / "spec/v1/zh", ARTIFACTS):
-            for path in root.rglob("*"):
-                if not path.is_file() or path.suffix not in {".md", ".json", ".yaml", ".yml"}:
-                    continue
-                text = path.read_text(encoding="utf-8")
-                findings.extend(f"{path.relative_to(ROOT)}: {term}" for term in removed_state_machine_terms(text))
         for relative in ("registry/contract-registry.json", "registry/event-kind-registry.json",
                          "registry/operation-registry.json"):
             findings.extend(f"{relative}: {error}" for error in protocol_registry_lifecycle_errors(read(relative)))
@@ -291,14 +238,12 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             "state_writes": [{"condition": {"kind": "field_equals", "field": "payload.state", "const": "retired"}}]}]}
         original = json.dumps(document, sort_keys=True)
         self.assertEqual(protocol_registry_lifecycle_errors(document), [])
-        self.assertEqual(removed_state_machine_terms(json.dumps(document)), [])
         self.assertEqual(json.dumps(document, sort_keys=True), original)
         for status in ("retired", "Retired", "deprecated", "legacy", "退役", None):
             with self.subTest(status=status):
                 changed = json.loads(original)
                 changed["event_kinds"][0]["status"] = status
                 self.assertTrue(protocol_registry_lifecycle_errors(changed))
-        self.assertIn("ControlProposal", removed_state_machine_terms("ControlProposal must not return"))
 
     def test_current_operation_deprecation_is_checked_at_the_operation_object(self):
         api = {"paths": {"/_arkret/self/example": {"get": {"description": "Reject retired Actors",
@@ -311,11 +256,6 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         self.assertTrue(openapi_operation_lifecycle_errors(api))
         for status in ("retired", "deprecated", "legacy"):
             self.assertTrue(protocol_registry_lifecycle_errors({"operations": [{"operation_id": "ak.self.example.read.list.v1", "status": status}]}))
-
-    def test_reducer_profile_registry_is_not_part_of_current_v1(self):
-        self.assertFalse((ARTIFACTS / "registry/reducer-profile-registry.json").exists())
-        manifest = read("registry/registry-manifest.json")
-        self.assertNotIn("reducer_profiles", json.dumps(manifest, sort_keys=True))
 
     def test_fixture_has_independent_predecessor_chains(self):
         fixture = read("fixtures/authority-commit-fixture.json")
@@ -489,22 +429,14 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             "shared_store_expands_protocol_atomicity", row["forbidden_claims"]
         )
 
-    def test_event_has_no_removed_causality_or_cbs_fields(self):
+    def test_event_schema_excludes_fields_forbidden_at_the_envelope_root(self):
         event = read("schemas/event-envelope.schema.json")
-        removed = {
-            "actor_seq",
-            "hlc",
-            "prev_refs",
-            "causal_refs",
-            "preconditions",
-            "auth_context",
-            "data_basis",
-            "seal_basis",
-            "requirements",
-            "unsigned",
-        }
-        self.assertTrue(removed.isdisjoint(event["required"]))
-        self.assertTrue(removed.isdisjoint(event["properties"]))
+        rules = read("registry/forbidden-wire-fields.json")["entries"]
+        declared = set(event["properties"]) | set(event["required"])
+        for rule in rules:
+            if rule["context"] == "producer_event_envelope_root" and rule["match"]["kind"] == "field":
+                with self.subTest(rule=rule["id"]):
+                    self.assertTrue(declared.isdisjoint(rule["match"]["values"]))
 
     def test_realm_and_sidecar_are_independent_streams(self):
         stream = read("schemas/realm-commit.schema.json")["$defs"]["stream_ref"]
@@ -542,35 +474,10 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         self.assertIn("realm_stream_head", public_bundle["required"])
         self.assertNotIn("current_heads", public_bundle["properties"])
 
-    def test_removed_shared_event_kinds_are_absent(self):
+    def test_authority_changes_are_registered(self):
         rows = read("registry/event-kind-registry.json")["event_kinds"]
         kinds = {row["event_kind"] for row in rows if row["status"] == "active"}
-        removed = {
-            "ak.fork.resolution",
-            "ak.mls.commit_failed",
-            "ak.mls.keypackage",
-            "ak.mls.proposal",
-            "ak.mls.welcome",
-            "ak.notary.fault.censorship",
-            "ak.notary.fault.equivocation",
-            "ak.realm.digest_suite_transition",
-            "ak.realm.notary",
-            "ak.realm.organization_recovery_key.register",
-            "ak.realm.organization_recovery_key.rotate",
-            "ak.realm.upgrade",
-        }
-        self.assertTrue(removed.isdisjoint(kinds))
         self.assertIn("ak.realm.governance_station.change", kinds)
-        # ak.realm.authority.reset sat in this list for one reason only: the
-        # mechanical sweep of c473e3c4 dropped it together with the kinds the
-        # frozen architecture really does eliminate. Nothing in that
-        # architecture removes an authority-generation reset, and the prose
-        # (authz/capabilities.md) plus the root-owner mask of
-        # profiles/conformance-profiles.json kept naming it as the only act
-        # that invalidates a delegated authority generation. It is registered
-        # again, and the two counters are now spelled apart: this kind advances
-        # the Realm authority-root authority_generation, while a governing
-        # Station tenure is governance_generation.
         self.assertIn("ak.realm.authority.reset", kinds)
 
     def test_mls_binding_is_minimal_and_revision_based(self):

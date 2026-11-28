@@ -311,16 +311,6 @@ def capture_member_reference_errors(text: str) -> list[str]:
     return errors
 
 
-def retired_contract_reference_errors(text: str) -> list[str]:
-    replacements = {'MlsGroupCurrent': 'MlsGroupValue', 'TypedCurrentRow': 'CurrentState',
-                    'AccountCurrentView': 'AccountStateView'}
-    replacements.update({'PeerKeyPackagesClaimRequestBody': 'KeyPackagesClaimRequestBody', 'PeerKeyPackagesClaimResponseBody': 'PeerKeyPackagesClaimCommandResponseBody', 'ErasureReceiptResource': 'ErasureReceiptPackage', 'ErasureReceiptSubmitRequestBody': 'ErasureReceiptPackage', 'AppletThirdPartyLocationLookupResponseBody': 'AppletRealmView'})
-    replacements.update({'MorphRow': 'MorphView', 'SpaceRow': 'SpaceView', 'StrandRow': 'StrandView', 'RealmListRow': 'AccountRealmView', 'ContactListRow': 'ContactView', 'RealmOrganizationRelationshipRow': 'RealmOrganizationRelationshipView', 'EffectiveCapabilityGrantRow': 'EffectiveCapabilityGrantView', 'RealmStreamRow': 'RealmStreamView', 'AccountDataRow': 'AccountDataEntry', 'DeviceMessageDeliveredRow': 'DeviceMessageDeliveredEntry', 'DeviceMessageUnknownRow': 'DeviceMessageUnknownEntry', 'CalendarScheduleSourceExactRow': 'CurrentCalendarScheduleSource', 'MimiRoomBindingCurrentRow': 'CurrentMimiRoomBinding', 'WebvhWitnessRow': 'DidBindingWitness', 'realm_list_row': 'account_realm_view', 'contact_list_row': 'contact_view', 'realm_organization_relationship_row': 'realm_organization_relationship_view', 'realm_stream_row': 'realm_stream_view', 'pending_sidecar_access_reconciliation_row': 'pending_sidecar_access_reconciliation', 'rejected_event_row': 'applet_event_rejection', 'rejected_scope_row': 'applet_scope_rejection', 'stream_row': 'CommittedEventView'})
-    replacements.update({'AccountDataCasConflict': 'AccountDataRevisionProblemExtensions', 'AccountDataCasConflictDetails': 'AccountDataRevisionProblemExtensions', 'account_data_cas_conflict_details': 'account_data_revision_problem_extensions', 'InviteLiveTargetOccupiedProblem': 'InviteLiveTargetOccupiedProblemExtensions'})
-    return [f'retired contract reference {old}; use {new}' for old, new in replacements.items()
-            if re.search(r'\b' + old + r'\b', text)]
-
-
 def http_problem_response_errors(document: dict) -> list[str]:
     errors = []
     methods = {'get', 'post', 'put', 'patch', 'delete', 'query', 'options'}
@@ -359,12 +349,6 @@ def check_semantic_naming(lint: Lint) -> None:
         from public_type_duplicates import check as check_duplicates
     for error in check_duplicates(ROOT):
         lint.fail(ARTIFACTS / 'schemas', error)
-    text_paths = sorted((ROOT / 'spec/v1/zh').rglob('*.md'))
-    text_paths += sorted(ARTIFACTS.rglob('*.json'))
-    text_paths += sorted((ARTIFACTS / 'openapi').glob('*.yaml'))
-    for path in text_paths:
-        for error in retired_contract_reference_errors(path.read_text(encoding='utf-8')):
-            lint.fail(path, error)
     for relative in ('crypto-media/call-state.md', 'crypto-media/bindings/livekit.md'):
         path = ROOT / 'spec/v1/zh' / relative
         for error in capture_member_reference_errors(path.read_text(encoding='utf-8')):

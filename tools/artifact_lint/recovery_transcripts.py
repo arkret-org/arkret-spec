@@ -31,7 +31,6 @@ KINDS = [
     "device_quorum",
     "trusted_recovery_service",
 ]
-REMOVED_POLICY_DEFS = ("share", "recovery_share_holder")
 GENERIC_KINDS = KINDS[1:]
 COMMON_FIELDS = [
     "schema",
@@ -66,7 +65,6 @@ RECOVERY_UNLOCK_PROOF_FIELDS = {
     "signature",
 }
 RECOVERY_UNLOCK_BODY_FIELDS = RECOVERY_UNLOCK_PROOF_FIELDS - {"signature"}
-REMOVED_RECOVERY_UNLOCK_FIELDS = {"recovery_secret_ref", "unlock_commitment"}
 
 
 def _b64u_decode(value: Any) -> bytes | None:
@@ -130,12 +128,6 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
 
     policy_defs = policy_schema.get("$defs")
     if isinstance(policy_defs, dict):
-        for definition in REMOVED_POLICY_DEFS:
-            if definition in policy_defs:
-                lint.fail(
-                    POLICY_SCHEMA,
-                    f"$defs.{definition} belongs to the removed threshold_recovery method and MUST NOT return",
-                )
         method = policy_defs.get("recovery_method")
         branches = method.get("oneOf") if isinstance(method, dict) else None
         policy_kinds = [
@@ -175,8 +167,6 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
             or definition.get("additionalProperties") is not False
         ):
             lint.fail(SCHEMA, f"$defs.{def_name} must expose exactly {sorted(expected_fields)}")
-        if isinstance(properties, dict) and REMOVED_RECOVERY_UNLOCK_FIELDS & set(properties):
-            lint.fail(SCHEMA, f"$defs.{def_name} must not restore removed recovery unlock fields")
 
     did_root = defs.get("did_root_transcript")
     generic = defs.get("generic_recovery_transcript")

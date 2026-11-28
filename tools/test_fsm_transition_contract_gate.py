@@ -6,7 +6,7 @@ authority-commit clean break. The break renamed everything it reads:
 registry, `cell_writes[].cell_family` and `effect_projection` off each write.
 None of those names survived. Three `or {}` absorbed the first three, the write
 loop then iterated an empty dict, and the gate returned without a word -- while
-`zh/models/circle.md`, `zh/models/morph.md`, `zh/models/realm-and-space.md` and
+`zh/models/morph.md`, `zh/models/realm-and-space.md` and
 `zh/models/strand-and-message.md` each still say, verbatim, that object
 lifecycle transitions have their source of truth in `transition_contracts`.
 
@@ -185,7 +185,7 @@ class FsmTransitionContractGateTest(unittest.TestCase):
     def test_a_machine_for_an_unregistered_family_is_reported(self) -> None:
         def mutate(registry: dict) -> None:
             contracts = registry["event_kind_registry"]["transition_contracts"]
-            contracts["circle_lifecycle"] = copy.deepcopy(contracts["call_recording_state"])
+            contracts["unregistered_family"] = copy.deepcopy(contracts["call_recording_state"])
 
         reported = self._newly_reported(mutate)
         # The unregistered family, plus the two ways a machine nothing writes

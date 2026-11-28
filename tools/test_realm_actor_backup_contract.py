@@ -433,7 +433,7 @@ class RealmActorBackupContractTest(unittest.TestCase):
             if failure=="issuer":source["origin_resolution"]["normalized_did_document"]["services"][0]["endpoint"]="https://attacker.example/"
             if failure in ["scope","generation","original_key","authorization_ref"]:
                 admission=source["admission"]
-                if failure=="scope":admission["effective_scope"]={"kind":"circle","realm_id":packet["actor_id"]["realm_actor_id"]["realm_id"],"circle_id":token("circle",88)}
+                if failure=="scope":admission["effective_scope"]={"kind":"realm","realm_id":token("realm",88)}
                 if failure=="generation":admission["governance_generation"]="1"
                 if failure=="original_key":admission["device_public_key_base64url"]=b64(bytes([42])*32)
                 if failure=="authorization_ref":admission["device_authorize_ref"]["stream_position"]=3

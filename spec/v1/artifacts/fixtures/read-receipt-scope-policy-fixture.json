@@ -135,11 +135,11 @@
       "expected_valid": true
     },
     {
-      "name": "retired_scope_kind",
+      "name": "private_control_stream_is_not_a_receipt_scope",
       "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
       "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
       "instance": {
-        "kind": "circle",
+        "kind": "realm_control",
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
       },
       "expected_valid": false

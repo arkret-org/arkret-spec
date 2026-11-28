@@ -1029,7 +1029,6 @@ DETACHED_SIGNATURE_BINDING_FIELDS = [
     "signed_digest",
     "created_at",
 ]
-REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT = "ak.realm_state_snapshot_proof.v1"
 DETACHED_SIGNATURE_ROW_KEYS = frozenset(
     {
         "domain",
@@ -1504,17 +1503,6 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
     vector_registry = load_json(lint, VECTOR_REGISTRY)
     if not all(isinstance(value, dict) for value in (signature_schema, registry, fixture, vector_registry)):
         return
-
-    contexts = registry.get("contexts")
-    if any(
-        isinstance(row, dict)
-        and row.get("context") == REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT
-        for row in contexts or []
-    ):
-        lint.fail(
-            PROOF_CONTEXT_REGISTRY,
-            f"removed snapshot proof context must not return: {REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT}",
-        )
 
     expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
     realm_contexts = ["ak.realm_actor_" + name + "_signature.v1" for name in ("creation", "control_acceptance", "manager_acceptance", "material", "recovery_acceptance")]

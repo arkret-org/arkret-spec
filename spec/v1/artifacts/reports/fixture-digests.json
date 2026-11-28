@@ -426,7 +426,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json",
-      "sha256": "c6fa88a902a83349094789e62ace887b82a3ed6a864af30dad2b2cddade8216d"
+      "sha256": "85140951ba3c30cadb89782680d5ea89a73d1fc9f4e0c96c1649171959a33c28"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-actor-content-backup-fixture.json",
@@ -514,7 +514,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "c2e653e77a7210303c6d141ef01eaf472bb7e57e821cc733adc70cf0e65f0af8"
+      "sha256": "dd1eabb1c06b78b9bafd49a9c9e99e0de481fa898cf66255a393d4d2a625230f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
@@ -530,7 +530,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",
-      "sha256": "3ce01e1354edfa4b8b250fbe23be572d12f7c8eae84c2091a8bc58ef22cf5791"
+      "sha256": "b31669994aa01538b5aa42ad59c174cde5e319b595be61d43485118b6e7fa0c1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",

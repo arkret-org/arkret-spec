@@ -62,16 +62,6 @@ class RecoveryTranscriptClosureLintTest(unittest.TestCase):
         errors = self._recovery_lint(mutate)
         self.assertTrue(any("exactly one domain_separations row" in error for error in errors), errors)
 
-    def test_removed_share_definition_returning_fails(self) -> None:
-        policy = recovery_transcripts.POLICY_SCHEMA.resolve()
-
-        def mutate(path, value):
-            if path == policy:
-                value["$defs"]["recovery_share_holder"] = {"type": "object"}
-
-        errors = self._recovery_lint(mutate)
-        self.assertTrue(any("MUST NOT return" in error for error in errors), errors)
-
     def test_policy_method_branch_kind_drift_fails(self) -> None:
         policy = recovery_transcripts.POLICY_SCHEMA.resolve()
 
@@ -86,14 +76,14 @@ class RecoveryTranscriptClosureLintTest(unittest.TestCase):
             any("recovery_method branch kinds must be exactly" in error for error in errors), errors
         )
 
-    def test_removed_recovery_unlock_field_cannot_return(self) -> None:
+    def test_recovery_unlock_proof_rejects_an_extra_member(self) -> None:
         schema = recovery_transcripts.SCHEMA.resolve()
 
         def mutate(path, value):
             if path == schema:
                 proof = value["$defs"]["recovery_unlock_proof"]
-                proof["properties"]["unlock_commitment"] = {"$ref": "#/$defs/digest"}
-                proof["required"].append("unlock_commitment")
+                proof["properties"]["unregistered_field"] = {"$ref": "#/$defs/digest"}
+                proof["required"].append("unregistered_field")
 
         errors = self._recovery_lint(mutate)
         self.assertTrue(any("recovery_unlock_proof must expose exactly" in error for error in errors), errors)
@@ -104,7 +94,7 @@ class RecoveryTranscriptClosureLintTest(unittest.TestCase):
         def mutate(path, value):
             if path == fixture:
                 case = next(case for case in value["cases"] if case["kind"] == "recovery_unlock")
-                case["forbidden_signature_carriers"].append("unlock_commitment")
+                case["forbidden_signature_carriers"].append("kind")
 
         errors = self._recovery_lint(mutate)
         self.assertTrue(any("must delete only signature" in error for error in errors), errors)

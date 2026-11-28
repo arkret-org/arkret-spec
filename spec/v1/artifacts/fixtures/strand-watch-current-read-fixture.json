@@ -273,10 +273,13 @@
             "station_id": "ak:did_core:web:station.example"
           }
         },
-        "scope_circle_id": null
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+        }
       },
       "expect_valid": false,
-      "first_expected_error": "$: Additional properties are not allowed ('scope_circle_id' was unexpected)"
+      "first_expected_error": "$: Additional properties are not allowed ('effective_scope' was unexpected)"
     },
     {
       "name": "principal_only_selector_rejected",

@@ -130,7 +130,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             row = self.defs(documents)["peer_submit_request_body"]
             row["properties"]["recipient_witnesses"] = {"type": "array"}
 
-        self.assert_red(mutate, "deleted peer request field")
+        self.assert_red(mutate, "exact branch field set")
 
     def test_old_event_submission_type_alias_is_rejected(self) -> None:
         def mutate(documents: dict) -> None:
@@ -203,12 +203,6 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             branch["properties"]["source_echo"] = {"type": "string"}
 
         self.assert_red(mutate, "exact minimal set")
-
-    def test_replication_rejects_processing_echo(self) -> None:
-        def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request_body"]["properties"]["processing"] = {"const": "per_item"}
-
-        self.assert_red(mutate, "deleted peer request field")
 
     def test_replication_branch_rejects_atomic_unit_field(self) -> None:
         def mutate(documents: dict) -> None:
@@ -298,15 +292,6 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "must be active and bind the executable fixture")
 
-    def test_replication_rejects_committed_event_wrapper(self) -> None:
-        def mutate(documents: dict) -> None:
-            self.defs(documents)["replicated_committed_event_submission"] = {
-                "type": "object",
-                "properties": {"committed_event": {"$ref": "#/$defs/committed_event_submission"}},
-            }
-
-        self.assert_red(mutate, "deleted peer replication wrapper")
-
     def test_replication_result_rejects_redundant_index(self) -> None:
         def mutate(documents: dict) -> None:
             branch = self.defs(documents)["committed_event_replication_outcome"]["oneOf"][0]
@@ -326,7 +311,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             outcome = self.defs(documents)["peer_committed_replication_response_body"]
             outcome["properties"]["results"] = outcome["properties"].pop("replication_outcomes")
 
-        self.assert_red(mutate, "deleted generic results/record names")
+        self.assert_red(mutate, "replication outcome properties must be exactly")
 
     def test_replication_cannot_restore_accepted_status(self) -> None:
         def mutate(documents: dict) -> None:
@@ -574,7 +559,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
     def test_profile_uses_current_compensation_carriers(self) -> None:
         def mutate(documents: dict) -> None:
             profile = documents[gate.PROFILES.resolve()]["profile_requirements"]["ak.profile.membership_join_compensation.v1"]
-            profile["wire_contract_refs"] = ["schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission"]
+            profile["wire_contract_refs"] = ["schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request_body"]
 
         self.assert_red(mutate, "both current aggregate carriers")
 
@@ -605,13 +590,6 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             texts[path] = texts[path].replace("wrong_authority_generation", "wrong_generation_removed")
 
         self.assert_red(marker="wrong_authority_generation", text_mutate=text_mutate)
-
-    def test_deleted_federation_wrapper_is_rejected(self) -> None:
-        def text_mutate(texts: dict) -> None:
-            path = gate.FIXTURE.resolve()
-            texts[path] += "\nEventFederationSubmission\n"
-
-        self.assert_red(marker="must not be restored", text_mutate=text_mutate)
 
     def test_openapi_must_bind_peer_endpoint_union(self) -> None:
         def text_mutate(texts: dict) -> None:
@@ -645,15 +623,30 @@ class PeerEventSubmitGateTest(unittest.TestCase):
         self.assert_red(mutate, "live Device forward source must retain")
 
 
+    def successor_rule(self, peer):
+        return next(rule for rule in peer["allOf"]
+                    if rule.get("then", {}).get("required") == ["successor_device_evidence"])
+
     def test_successor_evidence_cannot_be_untyped_or_become_optional(self):
-        self.assert_red(lambda docs:self.defs(docs)["peer_submit_request_body"]["properties"]["successor_device_evidence"].__setitem__("$ref","./common-ids.schema.json#/$defs/non_empty_string"),marker="closed independent")
-        self.assert_red(lambda docs:self.defs(docs)["peer_submit_request_body"]["allOf"].pop(),marker="only owner transfer")
+        def change_type(docs):
+            peer = self.defs(docs)["peer_submit_request_body"]
+            peer["properties"]["successor_device_evidence"]["$ref"] = "./common-ids.schema.json#/$defs/non_empty_string"
+
+        def remove_requirement(docs):
+            peer = self.defs(docs)["peer_submit_request_body"]
+            peer["allOf"].remove(self.successor_rule(peer))
+
+        self.assert_red(change_type, "closed independent")
+        self.assert_red(remove_requirement, "only owner transfer")
 
     def test_successor_evidence_cannot_expand_to_another_kind(self):
         def mutate(docs):
-            peer=self.defs(docs)["peer_submit_request_body"]
-            peer["allOf"][-1]["if"]["properties"]["event_submission"]["properties"]["event"]["properties"]["kind"]["const"]="ak.call.state"
-        self.assert_red(mutate,marker="only owner-transfer")
+            peer = self.defs(docs)["peer_submit_request_body"]
+            condition = self.successor_rule(peer)["if"]["properties"]
+            event = condition["event_submission"]["properties"]["event"]
+            event["properties"]["kind"]["const"] = "ak.call.state"
+
+        self.assert_red(mutate, "only owner-transfer")
 
 
 if __name__ == "__main__":

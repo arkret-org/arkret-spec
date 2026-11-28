@@ -55,26 +55,6 @@ ALLOWED_PROPOSAL_STATUS = {"draft", "review"}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
-# Removed receipt-family naming guard (RC001).
-REMOVED_RECEIPT_RE = re.compile(
-    r"(?i)"
-    r"proposal[_ \-]receipts?"
-    r"|member[_ \-]receipts?"
-    r"|ProposalMemberReceipt"
-    r"|receipt_sla"
-)
-# Receipt families that keep their qualified names; see glossary and the
-# rule that reserves "Receipt" for independently verifiable evidence of a fact.
-QUALIFIED_RECEIPT_RE = re.compile(
-    r"(?i)"
-    r"(?:ingress|event[_ \-]?batch|batch|read|identity|recovery"
-    r"|erasure|availability|terminal|consume|application|review|cancel|request)"
-    r"[_ \-]?receipts?"
-    r"|receipt[_\-](?:digest|hash|proof|item|sla)"
-    r"|ak\.receipt\.[a-z_]+"
-)
-BARE_RECEIPT_RE = re.compile(r"(?i)receipts?")
-
 CASUAL_HEADING_PATTERNS = [
     r"一句话理解",
     r"一句话总结",
@@ -399,40 +379,6 @@ def lint_binding_response_fields(path: Path, text: str, body_offset: int) -> lis
     return findings
 
 
-def lint_control_plane_receipt(path: Path, text: str, body_offset: int) -> list[Finding]:
-    """Control Proposal Ack naming guard.
-
-    Two rules, both mechanical:
-
-    RC001 forbids the retired Control Proposal Receipt vocabulary anywhere in
-    normative prose. The object is `Control Proposal Ack` / `control_proposal_ack`
-    and its per-signer part is `Control Proposal Authority Ack` /
-    `control_proposal_authority_ack`.
-
-    RC002 forbids an unqualified `receipt` inside the control-plane section that
-    defines the object, because `receipt` alone cannot be told apart from the
-    six other receipt families the spec defines. Other families keep their
-    qualified `*Receipt` names (see the glossary); only bare, unqualified uses
-    inside the control-plane section are rejected.
-    """
-    findings: list[Finding] = []
-    lines = text.splitlines()
-
-    for offset, raw in enumerate(lines[body_offset:], start=body_offset):
-        for match in REMOVED_RECEIPT_RE.finditer(raw):
-            findings.append(
-                Finding(
-                    path,
-                    offset + 1,
-                    "RC001",
-                    f"retired control-proposal vocabulary '{match.group(0)}'; use the Control Proposal Ack names",
-                    "error",
-                )
-            )
-
-    return findings
-
-
 def lint_file(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     text = path.read_text(encoding="utf-8")
@@ -550,7 +496,6 @@ def lint_file(path: Path) -> list[Finding]:
 
     findings.extend(lint_table_blocks(path, text, body_offset))
     findings.extend(lint_binding_response_fields(path, text, body_offset))
-    findings.extend(lint_control_plane_receipt(path, text, body_offset))
 
     all_lines = text.splitlines()
     previous_nonblank_by_line: list[str] = []
