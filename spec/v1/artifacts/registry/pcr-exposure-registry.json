@@ -101,6 +101,10 @@
         "peer",
         "public"
       ]
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.current_sidecar_root_writer.v1",
+      "description": "Only the current consumed Agent leaf authorized to write in its own controller's exact personal Sidecar and explicitly permitted to prepare and PUT a backup receives its immutable provision Event ID. The owning Station rechecks current custody, selected series, recipient and the controller's Sidecar recovery access. Returns only the ID, without the provision or an index into other PCR history."
     }
   ],
   "anti_enumeration_policies": [
@@ -281,6 +285,18 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_agent_history_custodian.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.keys.backups.read.list.v1",
+          "direction": "response",
+          "schema_ref": "schemas/keys-operations.schema.json#/$defs/sidecar_backup_prepare_response_body",
+          "json_pointers": [
+            "/$defs/sidecar_backup_prepare_response_body/properties/custody_authorization_ref"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_sidecar_root_writer.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.single_valued_failure.v1"
         }
       ]
     },

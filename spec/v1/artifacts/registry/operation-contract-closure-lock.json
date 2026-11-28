@@ -684,7 +684,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
-      "sha256": "sha256:d3b7b5e09f9c9e04b3a712a6bfb0decdef370099578d3c1db68734e2a33b45d4"
+      "sha256": "sha256:b56b02a6692fde1e65eefcfa326d6e58282e566710ca22584fcef935f1d3103d"
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete.v1",

@@ -13,12 +13,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 10881,
+    "total_properties": 10882,
     "total_schema_documents": 174,
     "by_presence_class": {
       "optional": 2507,
       "optional_defaulted": 46,
-      "required": 7700,
+      "required": 7701,
       "required_nullable": 376,
       "tristate": 252
     },
@@ -10985,6 +10985,7 @@
         "/$defs/realm_actor_content_backup_source/properties/origin_resolution": "required",
         "/$defs/sidecar_backup_prepare_response_body/if/properties/series_sequence": "tristate",
         "/$defs/sidecar_backup_prepare_response_body/properties/backup_hpke": "required",
+        "/$defs/sidecar_backup_prepare_response_body/properties/custody_authorization_ref": "required",
         "/$defs/sidecar_backup_prepare_response_body/properties/recovery_policy_ref": "required",
         "/$defs/sidecar_backup_prepare_response_body/properties/root_context": "required",
         "/$defs/sidecar_backup_prepare_response_body/properties/series_id": "required",

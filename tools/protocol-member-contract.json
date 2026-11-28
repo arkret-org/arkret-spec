@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:4c93ffc725e5046050ed00ea15d45fd009d3f7b124d6c6c975d965583138ff17",
+  "contract_digest": "sha256:178511abf8fcdcc316a90fdcb3b07421f066f2593d0d471e7d4a058f6a8b8c60",
   "encoding_profile_digest": "sha256:656f3db4925043d0853224486cf5930ef7cbb09ed593e343f37c15f74d285ecd",
   "schemas": [
     {
@@ -83845,11 +83845,15 @@
           },
           "sidecar_backup_prepare_response_body": {
             "type": "object",
+            "x-arkret-pcr-outward-event-kinds": [
+              "ak.agent.provision"
+            ],
             "required": [
               "sidecar_id",
               "root_context",
               "series_id",
               "series_sequence",
+              "custody_authorization_ref",
               "recovery_policy_ref",
               "backup_hpke"
             ],
@@ -83872,6 +83876,10 @@
               },
               "supersedes_digest": {
                 "$ref": "#/$defs/digest"
+              },
+              "custody_authorization_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id",
+                "description": "Exact accepted provision Event of the authenticated Agent. The owning Station supplies only this reference after checking current Sidecar writing and backup authority."
               },
               "recovery_policy_ref": {
                 "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_ref"
@@ -117609,7 +117617,7 @@
     },
     {
       "file": "pcr-exposure-registry.json",
-      "digest": "sha256:d8e31ee267fc957aa900c29f69af579aeb380dc313064d2270385603485f177e"
+      "digest": "sha256:21b90d531fb6040370c671e1df886b566eb95ad3b44815f1b5994860eec76b6c"
     },
     {
       "file": "preimage-identity-exemption-registry.json",

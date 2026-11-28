@@ -258,12 +258,23 @@ class OwnedAgentWireTest(unittest.TestCase):
                        effective_scope={"kind": "sidecar", "realm_id": REALM, "sidecar_id": SIDECAR})
         prepared = {
             "sidecar_id": SIDECAR, "root_context": context, "series_id": envelope["series_id"],
+            "custody_authorization_ref": CREATE["event_id"],
             "series_sequence": 0, "recovery_policy_ref": envelope["recovery_policy_ref"],
             "backup_hpke": policy["methods"][0]["keys"][0]["backup_hpke"],
         }
         response = schema_validator(ARTIFACTS / "schemas/keys-operations.schema.json",
                                     "#/$defs/keys_backups_list_response_body")
         response.validate(prepared)
+        self.assertFalse(response.is_valid({k: v for k, v in prepared.items() if k != "custody_authorization_ref"}))
+        self.assertFalse(response.is_valid({**prepared, "custody_authorization_ref": None}))
+        self.assertFalse(response.is_valid({**prepared, "provision_event": {}}))
+        registry = json.loads((ARTIFACTS / "registry/pcr-exposure-registry.json").read_text("utf-8"))
+        provision = next(row for row in registry["event_kinds"] if row["event_kind"] == "ak.agent.provision")
+        [entry] = [row for row in provision["exposures"] if row.get("authorization_policy_id") == "ak.pcr_exposure_policy.current_sidecar_root_writer.v1"]
+        self.assertEqual((entry["carrier"], entry["operation_id"], entry["direction"], entry["json_pointers"]),
+                         ("derived_field", "ak.self.keys.backups.read.list.v1", "response",
+                          ["/$defs/sidecar_backup_prepare_response_body/properties/custody_authorization_ref"]))
+
         previous = {"supersedes_id": envelope["backup_id"], "supersedes_digest": "sha256:" + "a" * 64}
         self.assertFalse(response.is_valid({**prepared, **previous}))
         self.assertFalse(response.is_valid({**prepared, "series_sequence": 1}))

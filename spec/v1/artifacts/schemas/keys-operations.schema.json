@@ -3535,11 +3535,15 @@
     },
     "sidecar_backup_prepare_response_body": {
       "type": "object",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.agent.provision"
+      ],
       "required": [
         "sidecar_id",
         "root_context",
         "series_id",
         "series_sequence",
+        "custody_authorization_ref",
         "recovery_policy_ref",
         "backup_hpke"
       ],
@@ -3562,6 +3566,10 @@
         },
         "supersedes_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "custody_authorization_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Exact accepted provision Event of the authenticated Agent. The owning Station supplies only this reference after checking current Sidecar writing and backup authority."
         },
         "recovery_policy_ref": {
           "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_ref"

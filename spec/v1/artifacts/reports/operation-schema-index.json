@@ -6972,6 +6972,7 @@
           "series_sequence",
           "supersedes_id",
           "supersedes_digest",
+          "custody_authorization_ref",
           "recovery_policy_ref",
           "backup_hpke"
         ],
@@ -7044,6 +7045,7 @@
               "root_context",
               "series_id",
               "series_sequence",
+              "custody_authorization_ref",
               "recovery_policy_ref",
               "backup_hpke"
             ],
@@ -7054,6 +7056,7 @@
               "series_sequence",
               "supersedes_id",
               "supersedes_digest",
+              "custody_authorization_ref",
               "recovery_policy_ref",
               "backup_hpke"
             ],
