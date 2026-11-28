@@ -61,7 +61,7 @@ PCR history（不调用 peer 设备目录、不要求 `producer_device_evidence`
 producer 设备的授权由接纳它的治理 Station 负责（[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)），
 其 `RealmCommit` 即是对这次授权判定与所选原 fact 的签名承诺。producer 恰为本站托管账号时，接收方也 MUST
 使用原不可变历史事实，不能以今天的 PCR `device_authorization`／`device_generation` 改写它；
-native PCR 和 Agent producer 保持各自既有完整证据规则，不采用普通 Account Device fact 分支。
+native PCR 和 Agent producer 保持各自完整证据规则。Human 本人 PCR 的 MLS 恢复提交按 [content-history §9.1](../crypto-media/content-history.md) 在归属站私有冻结设备事实，不进入普通协作 Realm 的站际 signer fact 披露。
 残余风险（informative）：被攻破的治理 Station 可以在自己治理的 Realm 内以外站用户的名义伪造 Event；消息内容
 仍受 MLS 认证保护，该风险与它对 ordering、membership 的既有权力同级。正负例由
 [`ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1`](../../artifacts/registry/vector-registry.json) 固定。

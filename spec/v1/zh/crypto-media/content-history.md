@@ -775,7 +775,9 @@ roster recovery记录保留完整recovery_source，origin_resolution不是当前
 同core、已登记方法版本、完整历史及原签，核source与原Event／binding逐项一致；
 另核covering RealmCommit的producer_signer_fact_digest等于SHA256(JCS完整原fact))。
 原fact的Event、完整Actor和authorization Event须逐字绑定source／replacement；其实际method须逐字等于原Event.producer_proof.verification_method，并以原fact的公钥独立验证该Event producer原签，
-Human还须核DeviceId；fact.accepted_at等于该Commit.committed_at，原授权在source时有效。
+Human 还须核 DeviceId。Human fact.accepted_at 精确等于设备授权原 Commit.committed_at，须不晚于 source.attested_at；原授权在来源签署时及治理接纳时均有效。换钥时间由覆盖换钥 Event 的 RealmCommit.committed_at 单独证明。Agent runtime fact.accepted_at 仍等于该覆盖 Commit.committed_at。
+
+Human 自己的 principal_control Realm 中，带恢复绑定的 External Commit 与其后由同一 replacement 签署的 Member 清理 Commit 使用同一 Account Device 历史事实形状。归属站仅在核实原生两 Event 恢复单元、当前 Device 和原签、prepared 清单、本站治理资格和该项 RFC 转移后，才在换钥接纳事务冻结该事实及来源并将事实摘要写入覆盖 Commit。原授权时间从其授权原件核对。保留原 PCR 私有读取门；普通 PCR 注册、授权及其它身份恢复操作沿原专用证明合同。
 再验原endpoint producer签名及RFC path leaf。
 这不是接受governor manifest代替原作者或origin来源，也不把最小Agent fact单独当作授权。
 Agent私有requested_scope和PCR闭包只在owning Account Station按原native门验证，不向其它成员Station公开；

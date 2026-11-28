@@ -1035,6 +1035,7 @@
     },
     "recovery_source": {
       "type": "object",
+      "description": "Human fact.accepted_at is the original Device authorization Commit time, no later than attested_at. The covering MLS RealmCommit independently dates recovery acceptance within the source window. Agent runtime fact.accepted_at remains its covering Commit time. The two recovery MLS steps in a Human holder PCR retain this fact only with verified native authorization, prepared inventory and private disclosure.",
       "required": [
         "attestation",
         "origin_resolution"

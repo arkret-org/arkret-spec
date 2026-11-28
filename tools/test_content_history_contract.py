@@ -857,13 +857,15 @@ class ContentHistoryContractTest(unittest.TestCase):
         binding = {"replacement": replacement, "base_group_state_ref": ref, "expected_epoch": native["expected_path_leaf"]["epoch"], "authorization_event_ref": ref, "inventory_digest": "sha256:" + "1" * 64}
         event = {"event_id": ref, "actor_id": actor, "scope_ref": native["native_scope"], "payload": {"recovery_binding": binding, "base_group_state_ref": ref, "previous_epoch": binding["expected_epoch"]}}
         auth = copy.deepcopy(self.fixture["hpke_grant"]["grant"]["history_cut"]); auth["event_id"] = ref
-        fact = {"event_id": ref, "actor": actor, "device_id": replacement["endpoint"]["device_id"], "verification_method": "did:web:agent.example#runtime", "key": {"public_key_base64url": replacement["signature_key_base64url"], "authorization_ref": auth, "revision": {"commit_id": auth["commit_id"], "stream_position": auth["stream_position"]}, "governance_generation": "0"}, "accepted_at": "2026-11-08T00:01:00.000Z"}
+        fact = {"event_id": ref, "actor": actor, "device_id": replacement["endpoint"]["device_id"], "verification_method": "did:web:agent.example#runtime", "key": {"public_key_base64url": replacement["signature_key_base64url"], "authorization_ref": auth, "revision": {"commit_id": auth["commit_id"], "stream_position": auth["stream_position"]}, "governance_generation": "0"}, "accepted_at": "2026-11-07T22:00:00.000Z"}
+        event["producer_proof"] = {"verification_method": fact["verification_method"]}
         digest = "sha256:" + hashlib.sha256(jcs(fact)).hexdigest()
         source = {"event_ref": ref, "replacement": replacement, "effective_scope": native["native_scope"], "base_group_state_ref": ref,
                   "previous_epoch": binding["expected_epoch"], "inventory_digest": binding["inventory_digest"], "verification_method": fact["verification_method"],
                   "attested_at": "2026-11-08T00:00:00.000Z", "expires_at": "2026-11-08T00:04:00.000Z"}
         signer = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
         method = "did:web:recovery-station.example#origin-key"
+        source["verification_method"] = method
         source["signature"] = {"kid": method, "signature_algorithm": "Ed25519", "signature": b64(signer.sign(b"ak.mls.recovery_source.v1\n" + jcs(source)))}
         self.validate("content-encryption.schema.json#/$defs/recovery_source_attestation", source)
         key = {"station_id": actor["account_id"]["station_id"], "verification_method": method, "public_key_base64url": b64(signer.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw))}
@@ -875,6 +877,11 @@ class ContentHistoryContractTest(unittest.TestCase):
         self.validate("authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact", human["producer_signer_fact"])
         human["covering_commit"]["producer_signer_fact_digest"] = "sha256:" + hashlib.sha256(jcs(human["producer_signer_fact"])).hexdigest()
         verify_recovery_source(human, key)
+        late = copy.deepcopy(human)
+        late["producer_signer_fact"]["accepted_at"] = late["covering_commit"]["committed_at"]
+        late["covering_commit"]["producer_signer_fact_digest"] = "sha256:" + hashlib.sha256(jcs(late["producer_signer_fact"])).hexdigest()
+        with self.assertRaises(ValueError):
+            verify_recovery_source(late, key)
         # Source crypto binds the actual Human producer, independently of the
         # resource Actor. This minimal transcript does not prove native control
         # delegation or admit a new Event into an Agent PCR.
@@ -893,7 +900,7 @@ class ContentHistoryContractTest(unittest.TestCase):
         agent_endpoint = {"kind": "agent_runtime", "verification_method": fact["verification_method"]}
         for target in (agent["commit_event"]["payload"]["recovery_binding"]["replacement"], agent["recovery_source"]["attestation"]["replacement"]):
             target["actor_id"] = agent_actor; target["endpoint"] = agent_endpoint
-        agent["producer_signer_fact"] = {"kind": "agent_runtime", "event_ref": ref, "actor_id": agent_actor, "verification_method": fact["verification_method"], "public_key_base64url": replacement["signature_key_base64url"], "authorization_event_ref": ref, "accepted_at": fact["accepted_at"]}
+        agent["producer_signer_fact"] = {"kind": "agent_runtime", "event_ref": ref, "actor_id": agent_actor, "verification_method": fact["verification_method"], "public_key_base64url": replacement["signature_key_base64url"], "authorization_event_ref": ref, "accepted_at": agent["covering_commit"]["committed_at"]}
         self.validate("authority-commit-operations.schema.json#/$defs/agent_runtime_historical_signer_fact", agent["producer_signer_fact"])
         agent["covering_commit"]["producer_signer_fact_digest"] = "sha256:" + hashlib.sha256(jcs(agent["producer_signer_fact"])).hexdigest()
         attestation = agent["recovery_source"]["attestation"]; attestation["signature"]["signature"] = b64(signer.sign(b"ak.mls.recovery_source.v1\n" + jcs({k: v for k, v in attestation.items() if k != "signature"})))

@@ -458,7 +458,7 @@ def verify_recovery_source(record, origin_key):
         raise ValueError("wrong original producer actor")
     if source["replacement"]["actor_id"].get("kind") != "account" or origin_key["station_id"] != source["replacement"]["actor_id"]["account_id"]["station_id"]:
         raise ValueError("origin is not the original owning Account Station")
-    if source["signature"]["kid"] != origin_key["verification_method"]:
+    if source["signature"]["kid"] != origin_key["verification_method"] or source["verification_method"] != origin_key["verification_method"]:
         raise ValueError("wrong original origin method")
     Ed25519PublicKey.from_public_bytes(unb64(origin_key["public_key_base64url"])).verify(
         unb64(source["signature"]["signature"]), b"ak.mls.recovery_source.v1\n" + jcs({k: v for k, v in source.items() if k != "signature"}))
@@ -477,16 +477,18 @@ def verify_recovery_source(record, origin_key):
         raise ValueError("wrong original producer fact commitment")
     fact = record["producer_signer_fact"]
     if fact.get("kind") == "agent_runtime":
+        valid_time = parse_time(fact["accepted_at"]) == accepted
         actor, public, authorization, event_ref = fact["actor_id"], fact["public_key_base64url"], fact["authorization_event_ref"], fact["event_ref"]
         if source["replacement"]["endpoint"] != {"kind": "agent_runtime", "verification_method": fact["verification_method"]}:
             raise ValueError("Agent recovery cannot use a Device endpoint")
     elif "device_id" in fact:
+        valid_time = parse_time(fact["accepted_at"]) <= issued
         actor, public, authorization, event_ref = fact["actor"], fact["key"]["public_key_base64url"], fact["key"]["authorization_ref"]["event_id"], fact["event_id"]
         if source["replacement"]["endpoint"] != {"kind": "device", "device_id": fact["device_id"]}:
             raise ValueError("wrong original device endpoint")
     else:
         raise ValueError("unsupported recovery producer")
-    if actor != source["replacement"]["actor_id"] or public != source["replacement"]["signature_key_base64url"] or authorization != source["replacement"]["authorization_event_ref"] or event_ref != source["event_ref"] or fact["verification_method"] != source["verification_method"] or fact["accepted_at"] != record["covering_commit"]["committed_at"]:
+    if actor != source["replacement"]["actor_id"] or public != source["replacement"]["signature_key_base64url"] or authorization != source["replacement"]["authorization_event_ref"] or event_ref != source["event_ref"] or fact["verification_method"] != event["producer_proof"]["verification_method"] or not valid_time:
         raise ValueError("original signer fact differs from origin endpoint proof")
 
 

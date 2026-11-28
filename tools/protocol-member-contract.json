@@ -6,7 +6,7 @@
   ],
   "generated_by": "tools/protocol_member_contract.py --refresh-candidate",
   "description": "Derived release contract: names, members, constraints, presence, enum ownership, encoding, units, ordering, open slots and canonical/signature bindings.",
-  "contract_digest": "sha256:178511abf8fcdcc316a90fdcb3b07421f066f2593d0d471e7d4a058f6a8b8c60",
+  "contract_digest": "sha256:d1eeabcc7542181815511752d5afea76758b064953a0c3df14f807e80dac0cdc",
   "encoding_profile_digest": "sha256:656f3db4925043d0853224486cf5930ef7cbb09ed593e343f37c15f74d285ecd",
   "schemas": [
     {
@@ -35142,6 +35142,7 @@
           },
           "recovery_source": {
             "type": "object",
+            "description": "Human fact.accepted_at is the original Device authorization Commit time, no later than attested_at. The covering MLS RealmCommit independently dates recovery acceptance within the source window. Agent runtime fact.accepted_at remains its covering Commit time. The two recovery MLS steps in a Human holder PCR retain this fact only with verified native authorization, prepared inventory and private disclosure.",
             "required": [
               "attestation",
               "origin_resolution"
@@ -117593,7 +117594,7 @@
     },
     {
       "file": "normative-clause-registry.json",
-      "digest": "sha256:d9fae11176f91f10603835febdee85c662d3cf18d6b18f38b52709d79715fabb"
+      "digest": "sha256:7f07b62130ebbcc902b8f1097f724e3b1bff5653731729b2dcd262a55e93d48a"
     },
     {
       "file": "operation-clause-registry.json",
